@@ -1,11 +1,16 @@
 "use strict";
 
 /* ================================================================
-   SKPO — MODUL TSM
+   SKPO FORMULA 1 — MODUL TSM
 ================================================================ */
 
 const dbTSM = window.supabaseClient;
 const ZON_MASA_TSM = "Asia/Kuala_Lumpur";
+
+/* Kunci sesi tempatan khusus TSM Formula 1. */
+const KUNCI_TSM_F1 = "skpoF1TSM";
+const NO_BADAN_ADMIN_UTAMA_F1 = "ADMINF1";
+const EMAIL_ADMIN_UTAMA_F1 = "admin@skpo.local";
 
 let penggunaTSM = null;
 let dataTSM = [];
@@ -31,7 +36,13 @@ function htmlTSM(v) {
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 function emailTSM(noBadan) {
-  return `${teksTSM(noBadan).toLowerCase().replace(/[^a-z0-9_-]/g, "")}@skpo.local`;
+  const noBadanBersih = atasTSM(noBadan);
+
+  if (noBadanBersih === NO_BADAN_ADMIN_UTAMA_F1) {
+    return EMAIL_ADMIN_UTAMA_F1;
+  }
+
+  return `${noBadanBersih.toLowerCase().replace(/[^a-z0-9_-]/g, "")}@skpo.local`;
 }
 function hariIniTSM() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -191,8 +202,8 @@ function kemasKiniBadgeNotifikasiTSM() {
   }
 
   document.title = jumlah
-    ? `(${jumlah}) SKPO TSM`
-    : "SKPO TSM";
+    ? `(${jumlah}) SKPO FORMULA 1 — TSM`
+    : "SKPO FORMULA 1 — TSM";
 }
 
 function paparSenaraiNotifikasiTSM() {
@@ -626,6 +637,7 @@ if (!perananTSM(peranan)) {
 
 }
     penggunaTSM = { ...profil, authUserId: data.user.id };
+    localStorage.setItem(KUNCI_TSM_F1, JSON.stringify(penggunaTSM));
     paparDashboardTSM();
 
 await Promise.all([
@@ -667,10 +679,12 @@ if (!perananTSM(peranan)) {
     return;
 
 }
-    penggunaTSM = {
+penggunaTSM = {
   ...profil,
   authUserId: data.session.user.id
 };
+
+localStorage.setItem(KUNCI_TSM_F1, JSON.stringify(penggunaTSM));
 
 paparDashboardTSM();
 
@@ -894,6 +908,8 @@ async function logoutTSM() {
 
   await dbTSM?.auth?.signOut().catch(() => {});
 
+  localStorage.removeItem(KUNCI_TSM_F1);
+
   penggunaTSM = null;
   dataTSM = [];
   dataNotifikasiTSM = [];
@@ -905,7 +921,7 @@ async function logoutTSM() {
   elTSM("loginSection").style.display = "block";
   elTSM("password").value = "";
 
-  document.title = "SKPO TSM";
+  document.title = "SKPO Formula 1 | TSM";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
