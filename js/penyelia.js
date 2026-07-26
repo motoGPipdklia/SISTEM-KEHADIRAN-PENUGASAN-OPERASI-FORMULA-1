@@ -1,7 +1,7 @@
 "use strict";
 
 /* ================================================================
-   SKPO — URUSETIA / PENYELIA
+   SKPO FORMULA 1 — URUSETIA / PENYELIA
 ================================================================ */
 
 const dbPenyelia = window.supabaseClient;
@@ -9,6 +9,11 @@ const dbPenyelia = window.supabaseClient;
 const ZON_MASA_PENYELIA = "Asia/Kuala_Lumpur";
 
 const JADUAL_LAPORAN = "pelaporan";
+
+/* Kunci sesi tempatan khusus Urusetia Formula 1. */
+const KUNCI_PENYELIA_F1 = "skpoF1Penyelia";
+const NO_BADAN_ADMIN_UTAMA_F1 = "ADMINF1";
+const EMAIL_ADMIN_UTAMA_F1 = "admin@skpo.local";
 
 let penggunaPenyelia = null;
 let dataPenyelia = [];
@@ -47,7 +52,13 @@ function htmlPenyelia(nilai) {
 
 
 function emailPenyelia(noBadan) {
-  return `${teksPenyelia(noBadan)
+  const noBadanBersih = atasPenyelia(noBadan);
+
+  if (noBadanBersih === NO_BADAN_ADMIN_UTAMA_F1) {
+    return EMAIL_ADMIN_UTAMA_F1;
+  }
+
+  return `${noBadanBersih
     .toLowerCase()
     .replace(/[^a-z0-9_-]/g, "")}@skpo.local`;
 }
@@ -310,6 +321,11 @@ if (!perananPenyeliaDibenarkan(peranan)) {
       authUserId: data.user.id
     };
 
+    localStorage.setItem(
+      KUNCI_PENYELIA_F1,
+      JSON.stringify(penggunaPenyelia)
+    );
+
     paparDashboardPenyelia();
 
     await muatSemuaDataPenyelia();
@@ -448,6 +464,11 @@ async function pulihkanSesiPenyelia() {
       authUserId:
         data.session.user.id
     };
+
+    localStorage.setItem(
+      KUNCI_PENYELIA_F1,
+      JSON.stringify(penggunaPenyelia)
+    );
 
     paparDashboardPenyelia();
 
@@ -2110,6 +2131,8 @@ async function logoutPenyelia() {
   await dbPenyelia?.auth
     ?.signOut()
     .catch(() => {});
+
+  localStorage.removeItem(KUNCI_PENYELIA_F1);
 
   penggunaPenyelia = null;
   dataPenyelia = [];
