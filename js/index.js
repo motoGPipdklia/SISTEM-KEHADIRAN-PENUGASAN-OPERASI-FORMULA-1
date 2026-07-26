@@ -1,10 +1,14 @@
 "use strict";
 
-/* SKPO V2 - Petugas (GitHub Pages + Supabase) */
+/* SKPO FORMULA 1 — Petugas (GitHub Pages + Supabase) */
 
 const db = window.supabaseClient;
 const ZON_MASA = "Asia/Kuala_Lumpur";
 const SELANG_SEMAKAN_STATUS = 15000;
+
+/* Kunci tempatan khusus Formula 1 supaya tidak bercampur dengan MotoGP. */
+const KUNCI_USER_F1 = "skpoF1User";
+const KUNCI_DEVICE_F1 = "skpoF1DeviceId";
 
 let userLogin = null;
 let tugas = null;
@@ -54,14 +58,14 @@ function emailDalaman(noBadan) {
   return `${n}@skpo.local`;
 }
 function dapatkanDeviceId() {
-  const kunci = "skpoDeviceId";
+  const kunci = KUNCI_DEVICE_F1;
   let id = localStorage.getItem(kunci);
   if (!id) {
     const rawak = window.crypto?.randomUUID?.() ||
       "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
         const r = Math.random() * 16 | 0; return (c === "x" ? r : (r & 3 | 8)).toString(16);
       });
-    id = `DEV-${rawak.toUpperCase()}`; localStorage.setItem(kunci, id);
+    id = `F1-DEV-${rawak.toUpperCase()}`; localStorage.setItem(kunci, id);
   }
   return id;
 }
@@ -120,7 +124,7 @@ async function login() {
       id: profil.id, authUserId: data.user.id, noBadan: profil.no_badan,
       pangkat: profil.pangkat || "", nama: profil.nama || "", peranan: profil.peranan || "PETUGAS"
     };
-    localStorage.setItem("user", JSON.stringify(userLogin));
+    localStorage.setItem(KUNCI_USER_F1, JSON.stringify(userLogin));
     paparDashboardProfil();
     await refreshDashboard();
     mulaSemakanStatusAutomatik();
@@ -151,12 +155,12 @@ async function pulihkanSesi() {
       id: profil.id, authUserId: data.session.user.id, noBadan: profil.no_badan,
       pangkat: profil.pangkat || "", nama: profil.nama || "", peranan: profil.peranan || "PETUGAS"
     };
-    localStorage.setItem("user", JSON.stringify(userLogin));
+    localStorage.setItem(KUNCI_USER_F1, JSON.stringify(userLogin));
     paparDashboardProfil(); await refreshDashboard(); mulaSemakanStatusAutomatik();
   } catch (err) {
     console.error("Pemulihan sesi gagal:", err);
     await db.auth.signOut().catch(() => {});
-    localStorage.removeItem("user");
+    localStorage.removeItem(KUNCI_USER_F1);
     el("status").innerHTML = `<span class="status-error">${escapeHtml(err.message)}</span>`;
   }
 }
@@ -503,7 +507,7 @@ function petaGagalDimuatkan() {
 
 async function logout() {
   tutupPeta();
-  hentikanSemakanStatusAutomatik(); await db.auth.signOut().catch(() => {}); localStorage.removeItem("user");
+  hentikanSemakanStatusAutomatik(); await db.auth.signOut().catch(() => {}); localStorage.removeItem(KUNCI_USER_F1);
   userLogin = tugas = lokasiGPS = lokasiGPSCheckout = rekodCheckinSemasa = null;
   ["dashboard", "checkin", "checkout", "laporan"].forEach(id => { if (el(id)) el(id).style.display = "none"; });
   el("loginBox").style.display = "block"; el("password").value = ""; el("status").innerHTML = "";
@@ -525,3 +529,4 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("keydown", event => {
   if (event.key === "Escape" && !el("modalPeta")?.hidden) tutupPeta();
 });
+
