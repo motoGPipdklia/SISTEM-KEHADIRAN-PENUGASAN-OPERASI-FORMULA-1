@@ -1,13 +1,18 @@
 "use strict";
 
 /* ================================================================
-   SKPO V2 — PENTADBIR
+   SKPO FORMULA 1 — PENTADBIR
    GitHub Pages + Supabase
 ================================================================ */
 
 const db = window.supabaseClient;
 const ZON_MASA = "Asia/Kuala_Lumpur";
 const MASA_TAMAT_PERMINTAAN = 15000;
+
+/* Kunci sesi khusus Pentadbir Formula 1. */
+const KUNCI_ADMIN_F1 = "skpoF1Admin";
+const NO_BADAN_ADMIN_UTAMA_F1 = "ADMINF1";
+const EMAIL_ADMIN_UTAMA_F1 = "admin@skpo.local";
 
 let adminLogin = null;
 let dataDashboard = [];
@@ -46,7 +51,17 @@ function nilaiBoolean(nilai) {
 }
 
 function emailDalaman(noBadan) {
-  const nilai = teks(noBadan)
+  const noBadanBersih = atas(noBadan);
+
+  /*
+    Akaun Pentadbir utama Formula 1 telah didaftarkan dalam Supabase
+    Authentication sebagai admin@skpo.local.
+  */
+  if (noBadanBersih === NO_BADAN_ADMIN_UTAMA_F1) {
+    return EMAIL_ADMIN_UTAMA_F1;
+  }
+
+  const nilai = noBadanBersih
     .toLowerCase()
     .replace(/[^a-z0-9_-]/g, "");
 
@@ -338,7 +353,7 @@ if (!semakPerananPentadbir(profil)) {
       peranan: atas(profil.peranan)
     };
 
-    localStorage.setItem("skpoAdmin", JSON.stringify(adminLogin));
+    localStorage.setItem(KUNCI_ADMIN_F1, JSON.stringify(adminLogin));
 
     el("loginPage").style.display = "none";
     el("dashboard").style.display = "block";
@@ -423,7 +438,7 @@ if (!semakPerananPentadbir(profil)) {
 
 async function logout() {
   await db?.auth?.signOut().catch(() => {});
-  localStorage.removeItem("skpoAdmin");
+  localStorage.removeItem(KUNCI_ADMIN_F1);
   adminLogin = null;
   dataDashboard = [];
   dataPaparan = [];
@@ -767,7 +782,7 @@ function exportExcel() {
 
   const pautan = document.createElement("a");
   pautan.href = URL.createObjectURL(fail);
-  pautan.download = `SKPO_${el("tarikh").value || hariIniMalaysia()}.csv`;
+  pautan.download = `SKPO_F1_${el("tarikh").value || hariIniMalaysia()}.csv`;
   pautan.click();
   URL.revokeObjectURL(pautan.href);
 }
@@ -1066,7 +1081,7 @@ function muatTurunTemplatPengguna() {
   const blob = new Blob(["\uFEFF", kandungan], { type: "text/csv;charset=utf-8" });
   const pautan = document.createElement("a");
   pautan.href = URL.createObjectURL(blob);
-  pautan.download = "TEMPLAT_PENGGUNA_SKPO.csv";
+  pautan.download = "TEMPLAT_PENGGUNA_SKPO_F1.csv";
   document.body.appendChild(pautan);
   pautan.click();
   const alamat = pautan.href;
