@@ -1,12 +1,13 @@
 "use strict";
 
 /* ================================================================
-   SKPO — MODUL WALKIE-TALKIE PETUGAS
+   SKPO FORMULA 1 — MODUL WALKIE-TALKIE PETUGAS
 ================================================================ */
 
 (function modulWalkiePetugas() {
   const dbWalkie = window.supabaseClient;
   const ZON_MASA_WALKIE = "Asia/Kuala_Lumpur";
+  const KOD_OPERASI_WALKIE = "F1";
 
   const state = {
     profil: null,
