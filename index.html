@@ -3,142 +3,241 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#080a0d">
-  <meta
-    name="description"
-    content="Portal rasmi Sistem Kehadiran dan Penugasan Operasi untuk MotoGP dan Formula 1."
-  >
-  <title>Portal Operasi | SKPO</title>
+  <meta name="theme-color" content="#0d0d0d">
+  <title>SKPO</title>
 
-  <link rel="stylesheet" href="css/portal.css?v=20260726-001">
-  <script src="js/portal.js?v=20260726-001" defer></script>
+  <!-- Gaya global mesti dimuatkan dahulu. -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Gaya khusus halaman Petugas dimuatkan selepas gaya global. -->
+  <link rel="stylesheet" href="css/index.css?v=20260722-2045">
 </head>
 
 <body>
-  <a class="skip-link" href="#pilihanOperasi">Terus ke pilihan operasi</a>
-
-  <div class="ambient ambient-one" aria-hidden="true"></div>
-  <div class="ambient ambient-two" aria-hidden="true"></div>
-
-  <header class="site-header">
-    <a class="brand" href="./" aria-label="SKPO - Halaman utama">
-      <span class="brand-mark" aria-hidden="true">
-        <span>S</span>
-      </span>
-      <span class="brand-copy">
-        <strong>SKPO</strong>
-        <small>Sistem Kehadiran &amp; Penugasan Operasi</small>
-      </span>
-    </a>
-
-    <span class="portal-status">
-      <span class="status-dot" aria-hidden="true"></span>
-      PORTAL OPERASI
-    </span>
-  </header>
-
-  <main class="portal-main">
-    <section class="hero" aria-labelledby="tajukPortal">
-      <p class="eyebrow">PORTAL RASMI SKPO</p>
-      <h1 id="tajukPortal">Pilih Operasi Anda</h1>
-      <p class="hero-description">
-        Akses sistem kehadiran, penugasan dan pengurusan operasi
-        melalui platform yang ditetapkan.
-      </p>
-    </section>
-
-    <section
-      class="operation-grid"
-      id="pilihanOperasi"
-      aria-label="Senarai pilihan operasi"
-    >
-      <a
-        class="operation-card motogp-card"
-        href="motogp/"
-        data-operation="MotoGP"
-        aria-label="Masuk ke Sistem Operasi MotoGP"
+  <!-- LOGIN PETUGAS -->
+  <main class="container" id="loginBox">
+    <div class="login-brand">
+      <img
+        src="images/logo-utama.png"
+        alt="OPS Litar MotoGP 2026 - Sistem Kehadiran dan Penugasan Operasi"
+        class="login-brand-logo"
       >
-        <span class="card-glow" aria-hidden="true"></span>
+    </div>
 
-        <span class="card-topline">
-          <span class="operation-code">01</span>
-          <span class="operation-state">
-            <span class="state-dot" aria-hidden="true"></span>
-            SISTEM OPERASI
-          </span>
-        </span>
+    <label class="sr-only" for="noBadan">No Badan</label>
+    <input id="noBadan" type="text" placeholder="No Badan" autocomplete="username">
 
-        <span class="vehicle-icon bike-icon" aria-hidden="true">
-          <span class="bike-wheel bike-wheel-left"></span>
-          <span class="bike-wheel bike-wheel-right"></span>
-          <span class="bike-body"></span>
-          <span class="bike-rider"></span>
-        </span>
+    <label class="sr-only" for="password">Kata Laluan</label>
+    <input id="password" type="password" placeholder="Kata Laluan" autocomplete="current-password">
 
-        <span class="card-content">
-          <span class="card-kicker">OPERASI LITAR</span>
-          <span class="card-title">MotoGP</span>
-          <span class="card-location">Sepang International Circuit</span>
-        </span>
+    <button id="btnLogin" type="button" onclick="login()">LOGIN</button>
+    <div id="status" role="status" aria-live="polite"></div>
 
-        <span class="card-action">
-          <span>MASUK SISTEM</span>
-          <span class="arrow" aria-hidden="true">→</span>
-        </span>
-      </a>
+    <a class="supervisor-link" href="admin.html">LOGIN PENTADBIR</a>
+    <a class="supervisor-link" href="penyelia.html">LOGIN URUSETIA</a>
+    <a class="supervisor-link" href="tsm.html">LOGIN TSM</a>
 
-      <a
-        class="operation-card f1-card"
-        href="f1/"
-        data-operation="Formula 1"
-        aria-label="Masuk ke Sistem Operasi Formula 1"
+    <footer class="login-logos" aria-label="Logo organisasi">
+      <img
+        src="images/logo-gabungan.png"
+        alt="Logo gabungan organisasi"
+        class="login-logo"
       >
-        <span class="card-glow" aria-hidden="true"></span>
-
-        <span class="card-topline">
-          <span class="operation-code">02</span>
-          <span class="operation-state">
-            <span class="state-dot" aria-hidden="true"></span>
-            SISTEM OPERASI
-          </span>
-        </span>
-
-        <span class="vehicle-icon car-icon" aria-hidden="true">
-          <span class="car-wing"></span>
-          <span class="car-body"></span>
-          <span class="car-cockpit"></span>
-          <span class="car-wheel car-wheel-left"></span>
-          <span class="car-wheel car-wheel-right"></span>
-        </span>
-
-        <span class="card-content">
-          <span class="card-kicker">OPERASI LITAR</span>
-          <span class="card-title">Formula 1</span>
-          <span class="card-location">Sepang International Circuit</span>
-        </span>
-
-        <span class="card-action">
-          <span>MASUK SISTEM</span>
-          <span class="arrow" aria-hidden="true">→</span>
-        </span>
-      </a>
-    </section>
-
-    <p class="security-note">
-      <span class="lock-icon" aria-hidden="true"></span>
-      Pilih operasi yang betul sebelum meneruskan log masuk.
-    </p>
+    </footer>
   </main>
 
-  <footer class="site-footer">
-    <p>&copy; <span id="tahunSemasa">2026</span> SKPO. Hak cipta terpelihara.</p>
-    <p class="footer-tagline">KEHADIRAN • PENUGASAN • OPERASI</p>
-  </footer>
+  <!-- DASHBOARD PETUGAS -->
+  <main class="dashboard" id="dashboard">
+    <section class="card">
+      <h1>Dashboard Petugas</h1>
 
-  <noscript>
-    <div class="noscript-note">
-      JavaScript tidak aktif. Anda masih boleh memilih dan membuka sistem operasi.
+      <div class="profile-box">
+        <div class="profile-rank" id="pangkatPetugas">-</div>
+        <div class="profile-name" id="namaPetugas">-</div>
+        <div class="profile-number" id="noBadanPetugas">No Badan: -</div>
+      </div>
+
+      <hr>
+      <h2>Maklumat Tugas Hari Ini</h2>
+
+      <div class="info-box">
+        <div class="info-row">
+          <div class="info-label">Call Sign:</div>
+          <div class="info-value" id="callSignTugas">Memuatkan...</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Jenis Tugas:</div>
+          <div class="info-value" id="jenisTugas">Memuatkan...</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Tempat Tugas:</div>
+          <div class="info-value" id="lokasiTugas">Memuatkan...</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Penyelia:</div>
+          <div class="info-value" id="penyeliaTugas">Memuatkan...</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Pemegang Set:</div>
+          <div class="info-value" id="pemegangSetTugas">Memuatkan...</div>
+        </div>
+      </div>
+
+      <div id="statusTugas" role="status" aria-live="polite"></div>
+      <div class="status-box" id="statusKehadiran"></div>
+      <div class="status-box" id="statusCheckout"></div>
+
+      <button id="btnCheckin" type="button" disabled onclick="mulaCheckin()">
+        CHECK-IN KEHADIRAN
+      </button>
+      <button id="btnCheckout" type="button" disabled onclick="mulaCheckout()">
+        CHECK-OUT KEHADIRAN
+      </button>
+
+      <!-- Modul ini diurus sepenuhnya oleh js/walkie-petugas.js. -->
+      <section class="walkie-card" id="modulWalkiePetugas">
+        <div class="walkie-header">
+          <div>
+            <h2>Permohonan Set Walkie-Talkie</h2>
+            <p>Mohon dan semak status set komunikasi untuk penugasan hari ini.</p>
+          </div>
+          <button
+            class="secondary walkie-refresh-button"
+            type="button"
+            onclick="window.SKPOWalkie?.muatSemula()"
+          >
+            SEMAK STATUS SET
+          </button>
+        </div>
+        <div class="hidden" id="statusWalkiePetugas"></div>
+        <div id="kandunganWalkiePetugas">
+          <div class="walkie-loading">Sedang mendapatkan maklumat set...</div>
+        </div>
+      </section>
+
+      <button
+        class="gold-report"
+        id="btnLaporan"
+        type="button"
+        disabled
+        style="display:none"
+        onclick="bukaLaporan()"
+      >
+        HANTAR PELAPORAN
+      </button>
+
+      <button class="map-button" id="btnPaparPeta" type="button" onclick="bukaPeta()">
+        PAPARAN PETA
+      </button>
+
+      <button class="refresh-button" id="btnRefreshStatus" type="button" onclick="refreshDashboard()">
+        SEMAK SEMULA STATUS
+      </button>
+      <button class="secondary" type="button" onclick="logout()">LOG KELUAR</button>
+    </section>
+  </main>
+
+  <!-- CHECK-IN -->
+  <main class="checkin" id="checkin">
+    <section class="card">
+      <h1>Pengesahan Kehadiran</h1>
+      <div class="info-box"><div id="tugasCheckin"></div></div>
+      <h2 id="gpsStatus">Tekan butang untuk mendapatkan lokasi.</h2>
+      <p id="koordinat"></p>
+      <p id="jarakStatus"></p>
+      <div class="status-box" id="statusHantar"></div>
+      <button id="btnDapatGPS" type="button" onclick="dapatkanGPS()">DAPATKAN LOKASI GPS</button>
+      <button id="btnHantar" type="button" disabled onclick="hantarKehadiran()">HANTAR KEHADIRAN</button>
+      <button class="secondary" id="btnKembali" type="button" onclick="kembaliDashboard()">KEMBALI</button>
+    </section>
+  </main>
+
+  <!-- CHECK-OUT -->
+  <main class="checkout" id="checkout">
+    <section class="card">
+      <h1>Check-Out Kehadiran</h1>
+      <div class="info-box"><div id="tugasCheckout"></div></div>
+      <h2 id="gpsStatusCheckout">Tekan butang untuk mendapatkan lokasi.</h2>
+      <p id="koordinatCheckout"></p>
+      <p id="jarakStatusCheckout"></p>
+      <div class="status-box" id="statusHantarCheckout"></div>
+      <button id="btnDapatGPSCheckout" type="button" onclick="dapatkanGPSCheckout()">
+        DAPATKAN LOKASI GPS
+      </button>
+      <button id="btnHantarCheckout" type="button" disabled onclick="hantarCheckout()">
+        HANTAR CHECK-OUT
+      </button>
+      <button class="secondary" id="btnKembaliCheckout" type="button" onclick="kembaliDashboardCheckout()">
+        KEMBALI
+      </button>
+    </section>
+  </main>
+
+  <!-- PELAPORAN PETUGAS -->
+  <main class="laporan" id="laporan">
+    <section class="card">
+      <h1>Pelaporan Petugas</h1>
+      <div class="info-box"><div id="tugasLaporan"></div></div>
+      <div class="info-box">
+        <div class="info-row">
+          <div class="info-label">Tarikh / Masa:</div>
+          <div class="info-value" id="tarikhMasaLaporan">-</div>
+        </div>
+      </div>
+
+      <label for="jumlahPengunjung"><strong>Jumlah Pengunjung</strong></label>
+      <input id="jumlahPengunjung" type="number" inputmode="numeric" min="0" step="1" placeholder="Contoh: 150">
+
+      <label for="jumlahKenderaan"><strong>Jumlah Kenderaan</strong></label>
+      <input id="jumlahKenderaan" type="number" inputmode="numeric" min="0" step="1" placeholder="Contoh: 45">
+
+      <label for="vvipVip"><strong>VVIP / VIP</strong></label>
+      <textarea id="vvipVip" placeholder="Jika tiada, masukkan TIADA."></textarea>
+
+      <label for="perkaraMenarik"><strong>Perkara Menarik</strong></label>
+      <textarea id="perkaraMenarik" placeholder="Jika tiada, masukkan TIADA."></textarea>
+
+      <div class="status-box" id="statusLaporan"></div>
+      <button id="btnHantarLaporan" type="button" onclick="hantarLaporan()">
+        HANTAR LAPORAN KEPADA URUSETIA
+      </button>
+      <button class="secondary" id="btnKembaliLaporan" type="button" onclick="tutupLaporan()">
+        KEMBALI
+      </button>
+    </section>
+  </main>
+
+  <!-- PAPARAN PETA OPERASI -->
+  <section class="peta-modal" id="modalPeta" role="dialog" aria-modal="true"
+    aria-labelledby="tajukModalPeta" aria-hidden="true" hidden
+    onclick="if(event.target===this)tutupPeta()">
+    <div class="peta-dialog">
+      <header class="peta-header">
+        <div>
+          <h2 id="tajukModalPeta">Peta Operasi</h2>
+          <p>Gunakan kawalan zum untuk melihat peta dengan lebih jelas.</p>
+        </div>
+        <button class="peta-close" type="button" aria-label="Tutup paparan peta" onclick="tutupPeta()">&times;</button>
+      </header>
+
+      <div class="peta-controls" aria-label="Kawalan peta">
+        <button type="button" onclick="ubahZumPeta(-0.25)">ZUM KELUAR</button>
+        <button type="button" onclick="resetZumPeta()">RESET</button>
+        <button type="button" onclick="ubahZumPeta(0.25)">ZUM MASUK</button>
+      </div>
+
+      <div class="peta-status" id="statusPeta" role="status" aria-live="polite">Zum: 100%</div>
+      <div class="peta-viewport" id="ruangPeta">
+        <img id="imejPeta" src="images/peta.png" alt="Peta kawasan operasi"
+          onload="petaBerjayaDimuatkan()" onerror="petaGagalDimuatkan()">
+      </div>
     </div>
-  </noscript>
+  </section>
+
+  <!-- Urutan JavaScript ini penting. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/api-config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/index.js?v=20260722-1245"></script>
+  <script src="js/walkie-petugas.js"></script>
 </body>
 </html>

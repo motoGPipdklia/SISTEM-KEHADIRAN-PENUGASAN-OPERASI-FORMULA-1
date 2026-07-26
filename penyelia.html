@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="theme-color"
+    content="#0d0d0d"
+  >
+
+  <title>SKPO Urusetia</title>
+
+  <link
+    rel="stylesheet"
+    href="css/style.css?v=20260721-1605"
+  >
+
+  <link
+    rel="stylesheet"
+    href="css/penyelia.css?v=20260722-1145"
+  >
+</head>
+
+<body>
+
+  <main class="container">
+
+    <header>
+      <div class="logo">
+        SKPO URUSETIA
+      </div>
+
+      <p class="sub">
+        Pengesahan Kehadiran &amp; Pelaporan Petugas
+      </p>
+    </header>
+
+
+    <!-- =========================================================
+         LOGIN URUSETIA
+    ========================================================== -->
+
+    <section
+      class="card"
+      id="loginSection"
+    >
+
+      <h1>
+        Login Urusetia
+      </h1>
+
+      <label
+        class="sr-only"
+        for="noBadan"
+      >
+        No Badan
+      </label>
+
+      <input
+        id="noBadan"
+        type="text"
+        placeholder="No Badan"
+        autocomplete="username"
+        spellcheck="false"
+      >
+
+      <label
+        class="sr-only"
+        for="password"
+      >
+        Kata Laluan
+      </label>
+
+      <input
+        id="password"
+        type="password"
+        placeholder="Kata Laluan"
+        autocomplete="current-password"
+      >
+
+      <button
+        class="btn-main"
+        id="btnLogin"
+        type="button"
+        onclick="loginPenyelia()"
+      >
+        LOGIN URUSETIA
+      </button>
+
+      <div
+        class="status hidden"
+        id="loginStatus"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <a
+        class="btn-secondary link"
+        href="index.html"
+      >
+        KEMBALI KE LOGIN PETUGAS
+      </a>
+
+    </section>
+
+
+    <!-- =========================================================
+         DASHBOARD URUSETIA
+    ========================================================== -->
+
+    <section
+      class="hidden"
+      id="dashboardSection"
+    >
+
+      <div class="card">
+
+        <div class="topbar">
+
+          <div
+            class="profile"
+            id="profilPenyelia"
+          >
+            -
+          </div>
+
+          <button
+            class="btn-secondary"
+            type="button"
+            onclick="logoutPenyelia()"
+          >
+            LOG KELUAR
+          </button>
+
+        </div>
+
+
+        <!-- TOOLBAR UTAMA -->
+
+        <div class="toolbar">
+
+          <input
+            id="carian"
+            type="search"
+            placeholder="Cari No Badan, nama, Call Sign atau tugas..."
+            autocomplete="off"
+            oninput="paparSenarai()"
+          >
+
+          <input
+            id="tarikh"
+            type="date"
+            aria-label="Tarikh rekod"
+          >
+
+          <select
+            id="penapisStatus"
+            onchange="paparSenarai()"
+            aria-label="Penapis status kehadiran"
+          >
+            <option value="SEMUA">
+              SEMUA STATUS
+            </option>
+
+            <option value="BELUM HADIR">
+              BELUM HADIR
+            </option>
+
+            <option value="MENUNGGU">
+              MENUNGGU PENGESAHAN
+            </option>
+
+            <option value="HADIR">
+              HADIR
+            </option>
+
+            <option value="DITOLAK">
+              DITOLAK
+            </option>
+
+            <option value="SELESAI TUGAS">
+              SELESAI TUGAS
+            </option>
+
+            <option value="DIGANTI">
+              DIGANTI
+            </option>
+          </select>
+
+          <button
+            class="btn-refresh"
+            type="button"
+            onclick="muatSemuaDataPenyelia()"
+          >
+            SEMAK SEMULA
+          </button>
+
+        </div>
+
+
+        <!-- RINGKASAN -->
+
+        <div class="ringkasan-grid">
+
+          <button
+            class="ringkasan-card"
+            type="button"
+            onclick="tetapPenapisStatus('SEMUA')"
+          >
+            <span>
+              JUMLAH REKOD
+            </span>
+
+            <strong id="jumlahRekod">
+              0
+            </strong>
+          </button>
+
+
+          <button
+            class="ringkasan-card belum"
+            type="button"
+            onclick="tetapPenapisStatus('BELUM HADIR')"
+          >
+            <span>
+              BELUM HADIR
+            </span>
+
+            <strong id="jumlahBelumHadir">
+              0
+            </strong>
+          </button>
+
+
+          <button
+            class="ringkasan-card menunggu"
+            type="button"
+            onclick="tetapPenapisStatus('MENUNGGU')"
+          >
+            <span>
+              MENUNGGU PENGESAHAN
+            </span>
+
+            <strong id="jumlahMenunggu">
+              0
+            </strong>
+          </button>
+
+
+          <button
+            class="ringkasan-card laporan"
+            type="button"
+            onclick="bukaBahagianLaporan()"
+          >
+            <span>
+              LAPORAN BELUM DIBACA
+            </span>
+
+            <strong id="jumlahLaporanBelumDibaca">
+              0
+            </strong>
+          </button>
+
+        </div>
+
+
+        <!-- TAB KEHADIRAN / LAPORAN -->
+
+        <div
+          class="tabbar"
+          role="tablist"
+          aria-label="Paparan Urusetia"
+        >
+
+          <button
+            id="tabKehadiran"
+            class="tab-button active"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-controls="bahagianKehadiran"
+            onclick="tukarTabPenyelia('kehadiran')"
+          >
+            KEHADIRAN
+          </button>
+
+
+          <button
+            id="tabLaporan"
+            class="tab-button"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="bahagianLaporan"
+            onclick="tukarTabPenyelia('laporan')"
+          >
+            LAPORAN PETUGAS
+
+            <span
+              class="badge hidden"
+              id="badgeLaporan"
+            >
+              0
+            </span>
+          </button>
+
+        </div>
+
+
+        <!-- =====================================================
+             BAHAGIAN KEHADIRAN
+        ====================================================== -->
+
+        <section
+          id="bahagianKehadiran"
+          role="tabpanel"
+          aria-labelledby="tabKehadiran"
+        >
+
+          <div
+            class="status hidden"
+            id="statusData"
+            role="status"
+            aria-live="polite"
+          ></div>
+
+          <div
+            class="list"
+            id="senaraiPetugas"
+          ></div>
+
+        </section>
+
+
+        <!-- =====================================================
+             BAHAGIAN LAPORAN
+        ====================================================== -->
+
+        <section
+          id="bahagianLaporan"
+          class="hidden"
+          role="tabpanel"
+          aria-labelledby="tabLaporan"
+        >
+
+          <div class="toolbar laporan-toolbar">
+
+            <input
+              id="carianLaporan"
+              type="search"
+              placeholder="Cari nama, No Badan, Call Sign atau perkara menarik..."
+              autocomplete="off"
+              oninput="paparSenaraiLaporan()"
+            >
+
+            <select
+              id="penapisLaporan"
+              onchange="paparSenaraiLaporan()"
+              aria-label="Penapis laporan"
+            >
+              <option value="SEMUA">
+                SEMUA LAPORAN
+              </option>
+
+              <option value="BELUM DIBACA">
+                BELUM DIBACA
+              </option>
+
+              <option value="TELAH DIBACA">
+                TELAH DIBACA
+              </option>
+            </select>
+
+          </div>
+
+
+          <div
+            class="status hidden"
+            id="statusLaporan"
+            role="status"
+            aria-live="polite"
+          ></div>
+
+
+          <div
+            class="list"
+            id="senaraiLaporan"
+          ></div>
+
+        </section>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ===========================================================
+       MODAL LAPORAN
+  ============================================================ -->
+
+  <div
+    class="modal hidden"
+    id="modalLaporan"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tajukModalLaporan"
+    onclick="if(event.target===this)tutupModalLaporan()"
+  >
+
+    <div class="modal-panel">
+
+      <div class="modal-header">
+
+        <h2 id="tajukModalLaporan">
+          Laporan Petugas
+        </h2>
+
+        <button
+          class="modal-close"
+          type="button"
+          onclick="tutupModalLaporan()"
+          aria-label="Tutup laporan"
+        >
+          &times;
+        </button>
+
+      </div>
+
+
+      <!--
+        Kandungan laporan termasuk:
+        - Maklumat petugas
+        - Status bacaan
+        - Dibaca oleh
+        - Masa dibaca
+
+        akan dijana oleh penyelia.js.
+      -->
+
+      <div id="kandunganModalLaporan"></div>
+
+
+      <div
+        class="actions"
+        id="tindakanModalLaporan"
+      ></div>
+
+    </div>
+
+  </div>
+
+  <!-- ===========================================================
+     MODAL PENGGANTIAN PETUGAS
+=========================================================== -->
+
+<div
+  id="modalPengganti"
+  class="modal hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="tajukModalPengganti"
+  onclick="if(event.target===this)tutupModalPengganti()">
+
+  <div
+    class="modal-box"
+    style="position:relative !important;z-index:2147483647 !important;filter:none !important;opacity:1 !important;visibility:visible !important">
+
+    <h2 id="tajukModalPengganti">GANTI PETUGAS</h2>
+
+    <div
+      id="petugasAsal"
+      class="petugas-preview">
+    </div>
+
+    <label>No Badan Pengganti</label>
+
+    <div class="toolbar">
+
+      <input
+        id="noBadanPengganti"
+        type="text"
+        placeholder="Masukkan No Badan">
+
+      <button
+        class="btn-main"
+        type="button"
+        onclick="semakPetugasPengganti()">
+        SEMAK
+      </button>
+
+    </div>
+
+    <div
+      id="previewPengganti"
+      class="petugas-preview hidden">
+    </div>
+
+    <div
+      id="borangPengganti"
+      class="hidden">
+
+      <div class="form-grid">
+
+        <input
+          id="namaPengganti"
+          placeholder="Nama">
+
+        <input
+          id="pangkatPengganti"
+          placeholder="Pangkat">
+
+        <input
+          id="telefonPengganti"
+          placeholder="Telefon">
+
+        <input
+          id="bahagianPengganti"
+          placeholder="Bahagian">
+
+        <input
+          id="passwordPengganti"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Kata Laluan">
+
+      </div>
+
+    </div>
+
+    <label>Catatan</label>
+
+    <textarea
+      id="catatanPenggantian"
+      placeholder="Contoh : Cuti kecemasan">
+    </textarea>
+
+    <div
+      id="statusPertukaran"
+      class="status hidden">
+    </div>
+
+    <div class="modal-actions">
+
+      <button
+        class="btn-secondary"
+        type="button"
+        onclick="tutupModalPengganti()">
+
+        TUTUP
+
+      </button>
+
+      <button
+        class="btn-change"
+        id="btnSimpanPengganti"
+        type="button"
+        onclick="gantiPetugas()">
+
+        SIMPAN
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+  <!-- ===========================================================
+       JAVASCRIPT
+  ============================================================ -->
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+  <script
+    src="js/api-config.js?v=20260721-1605"
+  ></script>
+
+  <script
+    src="js/supabase-client.js?v=20260721-1605"
+  ></script>
+
+  <script
+    src="js/penyelia.js?v=20260722-1145"
+  ></script>
+
+</body>
+</html>
