@@ -447,9 +447,11 @@ async function logout() {
   dataPaparan = [];
 
   el("dashboard").style.display = "none";
-  el("loginPage").style.display = "block";
+  el("loginPage").style.display = "flex";
+  el("noBadan").value = "";
   el("password").value = "";
   el("loginStatus").innerHTML = "";
+  el("noBadan").focus();
 }
 
 /* ================================================================
