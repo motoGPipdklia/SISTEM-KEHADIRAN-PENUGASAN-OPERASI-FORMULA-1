@@ -1870,6 +1870,7 @@ function bukaModulLaporanPentadbir() {
 
   modul.hidden = false;
   modul.removeAttribute("hidden");
+  modul.style.removeProperty("display");
 
   const inputTarikh = el("tarikhLaporanPentadbir");
   if (inputTarikh && !inputTarikh.value) {
@@ -1886,6 +1887,7 @@ function tutupModulLaporanPentadbir() {
   if (!modul) return;
   modul.hidden = true;
   modul.setAttribute("hidden", "");
+  modul.style.display = "none";
 }
 
 
