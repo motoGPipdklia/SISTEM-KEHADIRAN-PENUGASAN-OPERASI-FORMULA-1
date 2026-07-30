@@ -52,9 +52,10 @@ button{
 }
 
 .container{
-  width:min(100%,1050px);
-  margin:35px auto;
-  padding:18px;
+  width:calc(100% - 24px);
+  max-width:none;
+  margin:22px auto;
+  padding:8px;
 }
 
 .logo{
@@ -806,8 +807,9 @@ button:disabled{
 
 @media(max-width:700px){
   .container{
-    margin-top:15px;
-    padding:13px;
+    width:calc(100% - 12px);
+    margin:12px auto;
+    padding:6px;
   }
 
   .card{
@@ -1088,5 +1090,331 @@ body #loginSection .btn-secondary.link:hover{
   body #loginSection #btnLogin.btn-main,
   body #loginSection input{
     min-height:54px !important;
+  }
+}
+
+/* ================================================================
+   MODUL SITREP
+================================================================ */
+
+.sitrep-panel{
+  margin-top:18px;
+  padding:22px;
+  border:1px solid #3d3d3d;
+  border-radius:14px;
+  background:#1b1b1b;
+}
+
+.sitrep-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:20px;
+}
+
+.sitrep-heading h2{
+  margin:0 0 5px;
+  color:var(--gold);
+}
+
+.sitrep-heading p{
+  margin:0;
+  color:#bdbdbd;
+}
+
+.sitrep-form{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+}
+
+.sitrep-field{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  min-width:0;
+  color:#fff;
+  font-weight:700;
+}
+
+.sitrep-field input,
+.sitrep-field textarea,
+.sitrep-search{
+  width:100%;
+  border:1px solid #4a4a4a;
+  border-radius:9px;
+  background:#111;
+  color:#fff;
+}
+
+.sitrep-field input,
+.sitrep-search{
+  min-height:50px;
+  padding:12px 14px;
+}
+
+.sitrep-field textarea{
+  min-height:112px;
+  padding:12px 14px;
+  resize:vertical;
+}
+
+.sitrep-field small{
+  color:#aaa;
+  font-size:12px;
+  font-weight:400;
+}
+
+.sitrep-wide{
+  grid-column:1 / -1;
+}
+
+.sitrep-actions{
+  display:flex;
+  justify-content:flex-end;
+}
+
+.sitrep-actions button{
+  width:min(100%,360px);
+  min-height:52px;
+}
+
+.sitrep-history{
+  margin-top:22px;
+}
+
+.sitrep-search{
+  margin:0;
+}
+
+.sitrep-filter-bar{
+  display:grid;
+  grid-template-columns:minmax(190px,260px) minmax(0,1fr);
+  gap:14px;
+  margin-bottom:16px;
+}
+
+.sitrep-date-filter,
+.sitrep-search-filter{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  color:#fff;
+  font-weight:700;
+}
+
+.sitrep-date-filter input{
+  width:100%;
+  min-height:50px;
+  padding:12px 14px;
+  border:1px solid #4a4a4a;
+  border-radius:9px;
+  background:#111;
+  color:#fff;
+}
+
+.sitrep-list{
+  display:grid;
+  gap:16px;
+}
+
+.sitrep-table-wrap{
+  width:100%;
+  overflow-x:auto;
+  border:1px solid #414141;
+  border-radius:11px;
+  background:#151515;
+}
+
+.sitrep-table{
+  width:100%;
+  min-width:650px;
+  border-collapse:collapse;
+}
+
+.sitrep-table th,
+.sitrep-table td{
+  padding:15px 16px;
+  border-bottom:1px solid #353535;
+  color:#eee;
+  text-align:left;
+  vertical-align:top;
+  white-space:pre-wrap;
+}
+
+.sitrep-table th{
+  background:#171717;
+  color:var(--gold);
+  font-size:13px;
+  text-transform:uppercase;
+}
+
+.sitrep-table th:first-child,
+.sitrep-table td:first-child{
+  width:70px;
+  text-align:center;
+}
+
+.sitrep-table th:nth-child(3),
+.sitrep-table td:nth-child(3){
+  width:210px;
+  white-space:nowrap;
+}
+
+.sitrep-table th:last-child,
+.sitrep-table td:last-child{
+  width:130px;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.sitrep-table-print{
+  min-width:92px;
+  min-height:42px;
+  padding:9px 14px;
+}
+
+.sitrep-table tbody tr:last-child td{
+  border-bottom:0;
+}
+
+.sitrep-table tbody tr:hover{
+  background:#222;
+}
+
+.sitrep-card{
+  padding:20px;
+  border:1px solid #414141;
+  border-left:4px solid var(--gold);
+  border-radius:12px;
+  background:#151515;
+}
+
+.sitrep-card > header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:17px;
+}
+
+.sitrep-card h3{
+  margin:4px 0;
+  color:var(--gold);
+  font-size:22px;
+}
+
+.sitrep-card header p{
+  margin:0;
+  color:#c9c9c9;
+}
+
+.sitrep-date{
+  color:#9f9f9f;
+  font-size:13px;
+}
+
+.sitrep-detail-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.sitrep-detail{
+  padding:13px;
+  border:1px solid #343434;
+  border-radius:9px;
+  background:#1e1e1e;
+}
+
+.sitrep-detail strong{
+  display:block;
+  margin-bottom:5px;
+  color:#d9b735;
+  font-size:12px;
+  text-transform:uppercase;
+}
+
+.sitrep-detail p{
+  margin:0;
+  color:#eee;
+  white-space:pre-wrap;
+}
+
+.sitrep-attachment{
+  width:100%;
+  margin-top:14px;
+}
+
+@media(max-width:720px){
+  .sitrep-panel{
+    padding:16px;
+  }
+
+  .sitrep-heading,
+  .sitrep-card > header{
+    flex-direction:column;
+  }
+
+  .sitrep-heading button,
+  .sitrep-print-button{
+    width:100%;
+  }
+
+  .sitrep-form,
+  .sitrep-detail-grid{
+    grid-template-columns:1fr;
+  }
+
+  .sitrep-filter-bar{
+    grid-template-columns:1fr;
+  }
+
+  .sitrep-wide{
+    grid-column:auto;
+  }
+
+  .sitrep-table{
+    min-width:0;
+  }
+
+  .sitrep-table thead{
+    display:none;
+  }
+
+  .sitrep-table,
+  .sitrep-table tbody,
+  .sitrep-table tr,
+  .sitrep-table td{
+    display:block;
+    width:100% !important;
+  }
+
+  .sitrep-table tr{
+    padding:10px 0;
+    border-bottom:1px solid #414141;
+  }
+
+  .sitrep-table tr:last-child{
+    border-bottom:0;
+  }
+
+  .sitrep-table td{
+    display:grid;
+    grid-template-columns:115px minmax(0,1fr);
+    gap:10px;
+    padding:8px 14px;
+    border:0;
+    text-align:left !important;
+    white-space:pre-wrap !important;
+  }
+
+  .sitrep-table td::before{
+    content:attr(data-label);
+    color:var(--gold);
+    font-size:12px;
+    font-weight:800;
+    text-transform:uppercase;
   }
 }
