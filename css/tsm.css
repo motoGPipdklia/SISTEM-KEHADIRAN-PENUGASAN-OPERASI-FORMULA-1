@@ -918,6 +918,11 @@ body.tsm-login-mode #loginSection .logo{
   letter-spacing:.03em;
 }
 
+/* Samakan jarak dua kotak login dengan paparan TSM MotoGP. */
+body.tsm-login-mode #loginSection #noBadan{
+  margin-bottom:12px;
+}
+
 @media(max-width:600px){
   body.tsm-login-mode #loginSection{
     padding:18px 14px;
