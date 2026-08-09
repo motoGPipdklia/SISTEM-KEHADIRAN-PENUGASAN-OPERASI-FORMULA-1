@@ -886,7 +886,7 @@ body.tsm-login-mode #loginSection{
 }
 
 body.tsm-login-mode #loginSection > .card{
-  width:min(100%,560px);
+  width:min(100%,630px);
   margin:0 auto;
   padding:28px;
   border:1px solid rgba(255,255,255,.10);
@@ -906,14 +906,14 @@ body.tsm-login-mode #loginSection > .card{
 .tsm-login-logo{
   display:block;
   width:min(100%,500px);
-  max-height:155px;
+  max-height:140px;
   margin:0 auto;
   object-fit:contain;
 }
 
 body.tsm-login-mode #loginSection .logo{
   color:var(--gold);
-  font-size:clamp(25px,4vw,36px);
+  font-size:clamp(28px,4vw,38px);
   font-weight:800;
   letter-spacing:.03em;
 }
