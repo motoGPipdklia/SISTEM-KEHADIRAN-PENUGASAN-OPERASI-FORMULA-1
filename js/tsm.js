@@ -647,6 +647,11 @@ function tetapkanPaparanTSM(modLogin) {
 
 function paparDashboardTSM() {
   tetapkanPaparanTSM(false);
+  const statusLogin = elTSM("loginStatus");
+  if (statusLogin) {
+    statusLogin.className = "status";
+    statusLogin.innerHTML = "";
+  }
   elTSM("profilTSM").textContent = [penggunaTSM.pangkat, penggunaTSM.nama, `(${penggunaTSM.no_badan})`].filter(Boolean).join(" ");
   localStorage.setItem(KUNCI_TSM_F1, JSON.stringify(penggunaTSM));
 }
@@ -916,6 +921,16 @@ async function logoutTSM() {
   paparSenaraiNotifikasiTSM();
 
   tetapkanPaparanTSM(true);
+  const statusLogin = elTSM("loginStatus");
+  if (statusLogin) {
+    statusLogin.className = "status";
+    statusLogin.innerHTML = "";
+  }
+  const btnLogin = elTSM("btnLogin");
+  if (btnLogin) {
+    btnLogin.disabled = false;
+    btnLogin.textContent = "LOGIN TSM";
+  }
   elTSM("password").value = "";
 
   document.title = "SKPO Formula 1 | TSM";
