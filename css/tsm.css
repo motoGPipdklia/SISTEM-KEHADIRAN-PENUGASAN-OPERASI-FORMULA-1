@@ -212,6 +212,17 @@ button:disabled{
   flex-wrap:wrap;
 }
 
+.topbar-actions > .nav-button,
+.topbar-actions > .logout{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:140px;
+  min-width:140px;
+  min-height:52px;
+  text-align:center;
+}
+
 .profile{
   padding:13px;
   border:1px solid #333;
@@ -264,6 +275,26 @@ button:disabled{
 .toolbar label,
 .filters label{
   margin-top:0;
+}
+
+.toolbar > div:not(.toolbar-actions){
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+}
+
+.toolbar > div:not(.toolbar-actions) > label{
+  display:block;
+  width:100%;
+  margin-top:0;
+  text-align:center;
+}
+
+.toolbar > div:not(.toolbar-actions) > input,
+.toolbar > div:not(.toolbar-actions) > select{
+  width:100%;
+  height:58px;
+  min-height:58px;
 }
 
 .toolbar-actions{
@@ -537,6 +568,11 @@ tbody tr:hover{
   .topbar-actions button,
   .topbar-actions a{
     width:100%;
+  }
+
+  .topbar-actions > .nav-button,
+  .topbar-actions > .logout{
+    min-width:0;
   }
 
   .stats,
