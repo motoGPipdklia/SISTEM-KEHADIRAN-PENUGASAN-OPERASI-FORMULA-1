@@ -214,12 +214,18 @@ button:disabled{
 
 .topbar-actions > .nav-button,
 .topbar-actions > .logout{
-  display:inline-flex;
+  box-sizing:border-box;
+  display:inline-flex !important;
   align-items:center;
   justify-content:center;
-  width:140px;
-  min-width:140px;
-  min-height:52px;
+  flex:0 0 158px;
+  width:158px !important;
+  min-width:158px !important;
+  height:68px !important;
+  min-height:68px !important;
+  margin:0 !important;
+  padding:0 18px !important;
+  line-height:1.2;
   text-align:center;
 }
 
@@ -526,6 +532,20 @@ tbody tr:hover{
   margin-top:14px;
 }
 
+.modal-actions > button{
+  box-sizing:border-box;
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  width:100% !important;
+  min-width:0 !important;
+  height:62px !important;
+  min-height:62px !important;
+  margin:0 !important;
+  padding:0 16px !important;
+  line-height:1.2;
+}
+
 .empty{
   padding:26px;
   color:var(--muted);
@@ -572,7 +592,11 @@ tbody tr:hover{
 
   .topbar-actions > .nav-button,
   .topbar-actions > .logout{
-    min-width:0;
+    flex:1 1 100%;
+    width:100% !important;
+    min-width:0 !important;
+    height:52px !important;
+    min-height:52px !important;
   }
 
   .stats,
