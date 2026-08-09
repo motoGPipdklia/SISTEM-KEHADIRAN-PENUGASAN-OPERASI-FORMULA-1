@@ -35,6 +35,16 @@ function htmlTSM(v) {
   return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;")
     .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+
+function tetapkanPaparanTSM(modLogin) {
+  const login = elTSM("loginSection");
+  const dashboard = elTSM("dashboardSection");
+
+  document.body.classList.toggle("tsm-login-mode", modLogin);
+
+  if (login) login.style.display = modLogin ? "flex" : "none";
+  if (dashboard) dashboard.style.display = modLogin ? "none" : "block";
+}
 function emailTSM(noBadan) {
   const noBadanBersih = atasTSM(noBadan);
 
@@ -651,8 +661,7 @@ await Promise.all([
 }
 
 function paparDashboardTSM() {
-  elTSM("loginSection").style.display = "none";
-  elTSM("dashboardSection").style.display = "block";
+  tetapkanPaparanTSM(false);
   elTSM("profilTSM").textContent = [penggunaTSM.pangkat, penggunaTSM.nama, `(${penggunaTSM.no_badan})`].filter(Boolean).join(" ");
 }
 
@@ -923,14 +932,14 @@ async function logoutTSM() {
 
   paparSenaraiNotifikasiTSM();
 
-  elTSM("dashboardSection").style.display = "none";
-  elTSM("loginSection").style.display = "block";
+  tetapkanPaparanTSM(true);
   elTSM("password").value = "";
 
   document.title = "SKPO Formula 1 | TSM";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  tetapkanPaparanTSM(true);
   elTSM("tarikh").value = hariIniTSM();
 
   elTSM("password")?.addEventListener("keydown", event => {
