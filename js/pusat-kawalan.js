@@ -477,7 +477,7 @@ function paparSitrep() {
                     '${htmlLaporan(item.lampiran_nama || "lampiran")}'
                   )"
                 >
-                  📎 MUAT TURUN LAMPIRAN
+                  MUAT TURUN LAMPIRAN
                 </button>
               `
             : ""
