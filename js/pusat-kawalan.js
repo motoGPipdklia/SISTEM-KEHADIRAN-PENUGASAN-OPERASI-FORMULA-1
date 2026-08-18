@@ -459,8 +459,8 @@ function paparSitrep() {
         <div class="laporan-label">Tarikh</div>
         <div>${htmlLaporan(formatTarikhLaporan(item.tarikh))}</div>
 
-        <div class="laporan-label">Lampiran</div>
-        <div>${htmlLaporan(item.lampiran_nama || "TIADA")}</div>
+        <div class="laporan-label">Tadbir</div>
+        <div style="white-space:pre-wrap">${htmlLaporan(item.tadbir || "TIADA")}</div>
 
       </div>
 
