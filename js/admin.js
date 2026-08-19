@@ -2312,6 +2312,21 @@ function bukaDanSkrolModul(
 }
 
 
+function tutupPerantiKhasAdmin() {
+  const modul = el("modulPerantiKhasAdmin");
+  if (!modul) return;
+
+  modul.hidden = true;
+  modul.style.display = "none";
+  modul.classList.remove("modul-disorot");
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
 function bukaPerantiKhasAdmin() {
   tutupSemuaModulPentadbir();
 
