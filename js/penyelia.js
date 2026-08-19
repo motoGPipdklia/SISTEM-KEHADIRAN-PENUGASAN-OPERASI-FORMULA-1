@@ -1641,11 +1641,9 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div style="white-space:pre-line;">
-              ${htmlPenyelia(
-                ringkasan.nilai1
-              )}
-            </div>
+            <div style="white-space:pre-line;">${htmlPenyelia(
+              ringkasan.nilai1
+            )}</div>
 
             <div class="label">
               ${htmlPenyelia(
@@ -1653,11 +1651,9 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div style="white-space:pre-line;">
-              ${htmlPenyelia(
-                ringkasan.nilai2
-              )}
-            </div>
+            <div style="white-space:pre-line;">${htmlPenyelia(
+              ringkasan.nilai2
+            )}</div>
 
             <div class="label">
               ${htmlPenyelia(
@@ -1665,11 +1661,9 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div style="white-space:pre-line;">
-              ${htmlPenyelia(
-                ringkasan.nilai3
-              )}
-            </div>
+            <div style="white-space:pre-line;">${htmlPenyelia(
+              ringkasan.nilai3
+            )}</div>
 
             <div class="label">
               ${htmlPenyelia(
@@ -1677,11 +1671,9 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div class="teks-ringkas" style="white-space:pre-line;">
-              ${htmlPenyelia(
-                ringkasan.nilai4
-              )}
-            </div>
+            <div class="teks-ringkas" style="white-space:pre-line;">${htmlPenyelia(
+              ringkasan.nilai4
+            )}</div>
 
           </div>
 
@@ -2028,9 +2020,7 @@ function butiranAdaTiadaLaporan(objek) {
 function barisModalLaporan(label, nilai) {
   return `
     <div class="label">${htmlPenyelia(label)}</div>
-    <div style="white-space:pre-line;">${htmlPenyelia(
-      nilaiPaparanLaporan(nilai)
-    )}</div>
+    <div style="white-space:pre-line;">${htmlPenyelia(nilaiPaparanLaporan(nilai))}</div>
   `;
 }
 
