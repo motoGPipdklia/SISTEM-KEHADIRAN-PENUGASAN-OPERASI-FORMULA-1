@@ -7,6 +7,7 @@
 
 const db = window.supabaseClient;
 const ZON_MASA = "Asia/Kuala_Lumpur";
+const BUCKET_SITREP_ADMIN = "sitrep-lampiran";
 const MASA_TAMAT_PERMINTAAN = 15000;
 
 /* Kunci sesi khusus Pentadbir Formula 1. */
@@ -2679,7 +2680,52 @@ function paparLaporanPentadbir() {
             <td>${index + 1}</td>
             <td>${escapeHtml(item.tadbir || "-")}</td>
             <td>${escapeHtml(formatMasaLaporanAdmin(item.created_at || item.tarikh_masa))}</td>
-            <td><button class="gray compact-print" type="button" onclick="cetakSitrepAdmin('${escapeHtml(item.id)}')">CETAK</button></td>
+            <td>
+              <div
+                style="
+                  display:flex;
+                  gap:8px;
+                  justify-content:center;
+                  align-items:center;
+                  flex-wrap:wrap;
+                "
+              >
+                ${
+                  item.lampiran_path
+                    ? `
+                      <button
+                        class="yellow compact-print"
+                        type="button"
+                        style="
+                          min-width:150px;
+                          height:42px;
+                          margin:0;
+                        "
+                        onclick="muatTurunLampiranSitrepAdmin(
+                          '${escapeHtml(item.lampiran_path)}',
+                          '${escapeHtml(item.lampiran_nama || "lampiran")}'
+                        )"
+                      >
+                        MUAT TURUN LAMPIRAN
+                      </button>
+                    `
+                    : ""
+                }
+
+                <button
+                  class="gray compact-print"
+                  type="button"
+                  style="
+                    min-width:150px;
+                    height:42px;
+                    margin:0;
+                  "
+                  onclick="cetakSitrepAdmin('${escapeHtml(item.id)}')"
+                >
+                  CETAK
+                </button>
+              </div>
+            </td>
           </tr>`).join("")
       : '<tr><td colspan="4" class="empty-row">Tiada rekod SITREP untuk tarikh ini.</td></tr>';
   }
@@ -2930,6 +2976,52 @@ function cetakLaporanPetugasAdmin(id) {
       `</div>`
     ).join("")
   );
+}
+
+
+
+async function muatTurunLampiranSitrepAdmin(laluan, namaFail = "lampiran") {
+  if (!laluan) {
+    alert("Lampiran SITREP tidak ditemui.");
+    return;
+  }
+
+  try {
+    const { data, error } = await db.storage
+      .from(BUCKET_SITREP_ADMIN)
+      .download(laluan);
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      throw new Error("Fail lampiran tidak ditemui.");
+    }
+
+    const url = URL.createObjectURL(data);
+    const pautan = document.createElement("a");
+
+    pautan.href = url;
+    pautan.download = namaFail || "lampiran";
+    pautan.style.display = "none";
+
+    document.body.appendChild(pautan);
+    pautan.click();
+    pautan.remove();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1500);
+
+  } catch (error) {
+    console.error("Muat turun lampiran SITREP Admin gagal:", error);
+
+    alert(
+      "Lampiran gagal dimuat turun: " +
+      (error.message || "Ralat tidak diketahui.")
+    );
+  }
 }
 
 
