@@ -2183,6 +2183,12 @@ async function hantarResetDevice() {
 function tutupSemuaModulPentadbir() {
   const senaraiModul = [
     {
+      idModul: "modulPerantiKhasAdmin",
+      idKandungan: "",
+      idButang: "",
+      teksButang: ""
+    },
+    {
       idModul: "modulImportPengguna",
       idKandungan: "kandunganImportPengguna",
       idButang: "btnToggleImportPengguna",
@@ -2303,6 +2309,29 @@ function bukaDanSkrolModul(
       modul.classList.remove("modul-disorot");
     }, 1800);
   }, 100);
+}
+
+
+function bukaPerantiKhasAdmin() {
+  tutupSemuaModulPentadbir();
+
+  const modul = el("modulPerantiKhasAdmin");
+  if (!modul) {
+    alert("Modul Peranti Khas Pentadbir tidak dijumpai.");
+    return;
+  }
+
+  modul.hidden = false;
+  modul.removeAttribute("hidden");
+  modul.style.removeProperty("display");
+  modul.classList.add("modul-disorot");
+
+  muatPerantiKhasAdmin();
+
+  modul.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 }
 
 
