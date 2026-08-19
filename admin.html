@@ -73,12 +73,21 @@
       <nav class="topbar-actions" aria-label="Tindakan Pentadbir">
 
   <button
+    class="header-action-button"
+    type="button"
+    onclick="bukaPerantiKhasAdmin()"
+  >
+    PERANTI KHAS
+  </button>
+
+  <button
     class="header-action-button header-import-user"
     type="button"
     onclick="bukaImportPengguna()"
   >
     IMPORT PENGGUNA CSV
   </button>
+
 
   <button
     class="header-action-button header-import-assignment"
@@ -126,7 +135,7 @@
       <!-- ===============================================
            PERANTI KHAS PENTADBIR
       ================================================ -->
-      <section class="card" id="modulPerantiKhasAdmin">
+      <section class="card" id="modulPerantiKhasAdmin" hidden style="display:none;">
         <div class="section-heading">
           <div>
             <h2>Peranti Khas Pentadbir</h2>
@@ -924,7 +933,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
-<script src="js/admin.js?v=20260819-1041-reset-device"></script>
+<script src="js/admin.js?v=20260819-1058-peranti-khas-kiri"></script>
 
 </body>
 </html>
