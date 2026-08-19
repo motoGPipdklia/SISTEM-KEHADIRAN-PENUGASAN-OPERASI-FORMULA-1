@@ -1583,11 +1583,22 @@ function paparSenaraiLaporan() {
 
           </div>
 
-          <div class="actions">
+          <div
+            class="actions"
+            style="
+              display:flex;
+              gap:10px;
+              align-items:stretch;
+            "
+          >
 
             <button
               class="btn-main"
               type="button"
+              style="
+                flex:1 1 0;
+                width:50%;
+              "
               onclick="bukaLaporanPenyelia('${htmlPenyelia(
                 item.id
               )}')"
@@ -1601,6 +1612,10 @@ function paparSenaraiLaporan() {
                   <button
                     class="btn-ok"
                     type="button"
+                    style="
+                      flex:1 1 0;
+                      width:50%;
+                    "
                     onclick="tandaLaporanDibaca('${htmlPenyelia(
                       item.id
                     )}')"
@@ -1608,7 +1623,22 @@ function paparSenaraiLaporan() {
                     TANDA TELAH DIBACA
                   </button>
                 `
-                : ""
+                : `
+                  <button
+                    class="btn-secondary"
+                    type="button"
+                    style="
+                      flex:1 1 0;
+                      width:50%;
+                      visibility:hidden;
+                      pointer-events:none;
+                    "
+                    tabindex="-1"
+                    aria-hidden="true"
+                  >
+                    TANDA TELAH DIBACA
+                  </button>
+                `
             }
 
           </div>
@@ -1827,7 +1857,7 @@ function nilaiPaparanLaporan(nilai, nilaiKosong = "TIADA") {
 
 function butiranAdaTiadaLaporan(objek) {
   if (!objek || typeof objek !== "object") {
-    const nilai = atasPenyelia(objek);
+    const nilai = teksPenyelia(objek);
     return nilai || "TIADA";
   }
 
@@ -1835,9 +1865,7 @@ function butiranAdaTiadaLaporan(objek) {
   const butiran = teksPenyelia(objek.butiran);
 
   if (status === "ADA") {
-    return butiran
-      ? `ADA — ${butiran}`
-      : "ADA";
+    return butiran || "ADA";
   }
 
   return "TIADA";
