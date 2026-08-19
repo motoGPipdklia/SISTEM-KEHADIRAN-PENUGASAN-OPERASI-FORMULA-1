@@ -344,18 +344,44 @@ body{
   font-weight:800;
 }
 
+
+/* ================================================================
+   TINDAKAN SITREP
+   - MUAT TURUN LAMPIRAN & CETAK / SIMPAN PDF DI TENGAH
+================================================================ */
+
 .laporan-actions{
   display:grid;
-  grid-template-columns:minmax(210px,260px) minmax(180px,220px);
-  gap:10px;
-  justify-content:start;
-  padding:0 18px 18px;
+  grid-template-columns:260px 220px;
+  gap:12px;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  padding:4px 18px 18px;
 }
 
 .laporan-actions .laporan-btn{
   width:100%;
   min-height:46px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  margin:0;
 }
+
+
+/* Jika hanya ada satu butang, kekalkan ia di tengah */
+.laporan-actions > .laporan-btn:only-child{
+  grid-column:1 / -1;
+  justify-self:center;
+  width:220px;
+}
+
+
+/* ================================================================
+   EMPTY
+================================================================ */
 
 .laporan-empty{
   padding:40px 20px;
@@ -401,9 +427,14 @@ body{
 
   .laporan-actions{
     grid-template-columns:1fr;
+    justify-content:stretch;
+    width:100%;
   }
 
-  .laporan-actions .laporan-btn{
+  .laporan-actions .laporan-btn,
+  .laporan-actions > .laporan-btn:only-child{
+    grid-column:auto;
     width:100%;
+    justify-self:stretch;
   }
 }
