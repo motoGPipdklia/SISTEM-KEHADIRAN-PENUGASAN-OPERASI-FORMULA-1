@@ -1403,6 +1403,34 @@ function ringkasanKadLaporanPenyelia(item) {
     };
   }
 
+
+  if (jenis === "KAWALAN LALULINTAS") {
+    return {
+      label1: "Keadaan Trafik",
+      nilai1:
+        data.keadaan_trafik ||
+        "TIADA",
+
+      label2: "Kenderaan",
+      nilai2:
+        data.jumlah_kenderaan ??
+        item.jumlahKenderaan ??
+        0,
+
+      label3: "Kemalangan",
+      nilai3:
+        butiranAdaTiadaLaporan(
+          data.kemalangan
+        ),
+
+      label4: "Catatan",
+      nilai4:
+        data.catatan_tindakan ||
+        item.perkaraMenarik ||
+        "TIADA"
+    };
+  }
+
   if (jenis === "UNIT PEMUSNAH BOM") {
     return {
       label1: "Lokasi",
