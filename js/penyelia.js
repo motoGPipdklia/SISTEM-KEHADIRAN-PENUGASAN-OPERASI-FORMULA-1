@@ -1771,6 +1771,16 @@ function paparSenaraiLaporan() {
       const ringkasan =
         ringkasanKadLaporanPenyelia(item);
 
+      const jenisRingkasan =
+        normalisasiJenisTugasLaporanPenyelia(
+          item?.jenisTugas ||
+          item?.tugas?.jenis_tugas
+        );
+
+      const ringkasanBalaiPondok =
+        jenisRingkasan === "BALAI POLIS BERGERAK" ||
+        jenisRingkasan === "PONDOK POLIS";
+
       return `
         <article
           class="record laporan-record ${
@@ -1845,46 +1855,72 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div class="label">
-              ${htmlPenyelia(
-                ringkasan.label1
-              )}
-            </div>
+            ${
+              ringkasanBalaiPondok
+                ? `
+                  <div
+                    class="label"
+                    style="margin:0 !important; padding:0 !important;"
+                  >No. Repot</div>
+                  <div
+                    style="
+                      margin:0 !important;
+                      padding:0 !important;
+                      white-space:pre-line;
+                    "
+                  >${htmlPenyelia(ringkasan.nilai1)}</div>
 
-            <div style="white-space:pre-line;">${htmlPenyelia(
-              ringkasan.nilai1
-            )}</div>
+                  <div
+                    class="label"
+                    style="margin:0 !important; padding:0 !important;"
+                  >Catatan</div>
+                  <div
+                    class="teks-ringkas"
+                    style="
+                      margin:0 !important;
+                      padding:0 !important;
+                      white-space:pre-line;
+                    "
+                  >${htmlPenyelia(ringkasan.nilai4)}</div>
+                `
+                : `
+                  ${
+                    ringkasan.label1
+                      ? `
+                        <div class="label">${htmlPenyelia(ringkasan.label1)}</div>
+                        <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai1)}</div>
+                      `
+                      : ""
+                  }
 
-            <div class="label">
-              ${htmlPenyelia(
-                ringkasan.label2
-              )}
-            </div>
+                  ${
+                    ringkasan.label2
+                      ? `
+                        <div class="label">${htmlPenyelia(ringkasan.label2)}</div>
+                        <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai2)}</div>
+                      `
+                      : ""
+                  }
 
-            <div style="white-space:pre-line;">${htmlPenyelia(
-              ringkasan.nilai2
-            )}</div>
+                  ${
+                    ringkasan.label3
+                      ? `
+                        <div class="label">${htmlPenyelia(ringkasan.label3)}</div>
+                        <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai3)}</div>
+                      `
+                      : ""
+                  }
 
-            <div class="label">
-              ${htmlPenyelia(
-                ringkasan.label3
-              )}
-            </div>
-
-            <div style="white-space:pre-line;">${htmlPenyelia(
-              ringkasan.nilai3
-            )}</div>
-
-            <div class="label">
-              ${htmlPenyelia(
-                ringkasan.label4
-              )}
-            </div>
-
-            <div class="teks-ringkas" style="white-space:pre-line;">${htmlPenyelia(
-              ringkasan.nilai4
-            )}</div>
-
+                  ${
+                    ringkasan.label4
+                      ? `
+                        <div class="label">${htmlPenyelia(ringkasan.label4)}</div>
+                        <div class="teks-ringkas" style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai4)}</div>
+                      `
+                      : ""
+                  }
+                `
+            }
           </div>
 
           <div
