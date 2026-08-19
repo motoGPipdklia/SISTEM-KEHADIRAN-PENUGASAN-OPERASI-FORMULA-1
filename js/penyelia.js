@@ -1146,6 +1146,8 @@ async function muatLaporanPenyelia() {
           jumlah_kenderaan,
           vvip_vip,
           perkara_menarik,
+          jenis_tugas,
+          data_laporan,
           dibaca,
           dibaca_pada,
           dibaca_oleh
@@ -1282,6 +1284,17 @@ async function muatLaporanPenyelia() {
             tugas.callsign ||
             "-",
 
+          jenisTugas:
+            item.jenis_tugas ||
+            tugas.jenis_tugas ||
+            "-",
+
+          dataLaporan:
+            item.data_laporan &&
+            typeof item.data_laporan === "object"
+              ? item.data_laporan
+              : {},
+
           jumlahPengunjung:
             item.jumlah_pengunjung ??
             0,
@@ -1402,7 +1415,9 @@ function paparSenaraiLaporan() {
             item.profil?.pangkat,
             item.profil?.nama,
             item.callSign,
+            item.jenisTugas,
             item.perkaraMenarik,
+            JSON.stringify(item.dataLaporan || {}),
             statusBacaan
           ].join(" "));
 
@@ -1745,6 +1760,375 @@ function tukarTabPenyelia(tab) {
 }
 
 
+
+/* ================================================================
+   PAPARAN DINAMIK BUTIRAN LAPORAN
+================================================================ */
+
+function normalisasiJenisTugasLaporanPenyelia(nilai) {
+  const jenis = atasPenyelia(nilai)
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (jenis.includes("KAWALAN KESELAMATAN")) {
+    return "KAWALAN KESELAMATAN";
+  }
+
+  if (
+    jenis.includes("KAWALAN LALULINTAS") ||
+    jenis.includes("KAWALAN LALU LINTAS")
+  ) {
+    return "KAWALAN LALULINTAS";
+  }
+
+  if (jenis.includes("RONDAAN PENCEGAHAN JENAYAH NARKOTIK")) {
+    return "RONDAAN PENCEGAHAN JENAYAH NARKOTIK";
+  }
+
+  if (jenis.includes("RONDAAN PENCEGAHAN JENAYAH KOMERSIL")) {
+    return "RONDAAN PENCEGAHAN JENAYAH KOMERSIL";
+  }
+
+  if (jenis.includes("RONDAAN PENCEGAHAN JENAYAH")) {
+    return "RONDAAN PENCEGAHAN JENAYAH";
+  }
+
+  if (jenis.includes("BALAI POLIS BERGERAK")) {
+    return "BALAI POLIS BERGERAK";
+  }
+
+  if (jenis.includes("PONDOK POLIS")) {
+    return "PONDOK POLIS";
+  }
+
+  if (
+    jenis.includes("UNIT PEMUSNAH BOM") ||
+    jenis === "UPB"
+  ) {
+    return "UNIT PEMUSNAH BOM";
+  }
+
+  return jenis;
+}
+
+
+function nilaiPaparanLaporan(nilai, nilaiKosong = "TIADA") {
+  if (
+    nilai === undefined ||
+    nilai === null ||
+    teksPenyelia(nilai) === ""
+  ) {
+    return nilaiKosong;
+  }
+
+  return String(nilai);
+}
+
+
+function butiranAdaTiadaLaporan(objek) {
+  if (!objek || typeof objek !== "object") {
+    const nilai = atasPenyelia(objek);
+    return nilai || "TIADA";
+  }
+
+  const status = atasPenyelia(objek.status);
+  const butiran = teksPenyelia(objek.butiran);
+
+  if (status === "ADA") {
+    return butiran
+      ? `ADA — ${butiran}`
+      : "ADA";
+  }
+
+  return "TIADA";
+}
+
+
+function barisModalLaporan(label, nilai) {
+  return `
+    <div class="label">${htmlPenyelia(label)}</div>
+    <div>${htmlPenyelia(nilaiPaparanLaporan(nilai))}</div>
+  `;
+}
+
+
+function binaButiranDinamikLaporanPenyelia(item) {
+  const data =
+    item?.dataLaporan &&
+    typeof item.dataLaporan === "object"
+      ? item.dataLaporan
+      : {};
+
+  const jenis = normalisasiJenisTugasLaporanPenyelia(
+    item?.jenisTugas ||
+    item?.tugas?.jenis_tugas
+  );
+
+  /*
+    Jika laporan lama belum mempunyai data_laporan,
+    gunakan paparan legacy.
+  */
+  if (!Object.keys(data).length) {
+    return `
+      ${barisModalLaporan(
+        "Jumlah Pengunjung",
+        item.jumlahPengunjung
+      )}
+
+      ${barisModalLaporan(
+        "Jumlah Kenderaan",
+        item.jumlahKenderaan
+      )}
+
+      ${barisModalLaporan(
+        "VVIP / VIP",
+        item.vvipVip || "TIADA"
+      )}
+    `;
+  }
+
+
+  if (jenis === "KAWALAN KESELAMATAN") {
+    const kenderaan =
+      data.kenderaan &&
+      typeof data.kenderaan === "object"
+        ? data.kenderaan
+        : {};
+
+    const vvip =
+      butiranAdaTiadaLaporan(
+        data.vvip_vip
+      );
+
+    return `
+      ${barisModalLaporan(
+        "Keadaan Keselamatan",
+        data.keadaan_keselamatan
+      )}
+
+      ${barisModalLaporan(
+        "Jumlah Pengunjung",
+        data.jumlah_pengunjung ?? item.jumlahPengunjung
+      )}
+
+      ${barisModalLaporan(
+        "Jumlah Kenderaan",
+        kenderaan.jumlah ?? item.jumlahKenderaan
+      )}
+
+      ${barisModalLaporan(
+        "Bas",
+        kenderaan.bas ?? 0
+      )}
+
+      ${barisModalLaporan(
+        "Motosikal",
+        kenderaan.motosikal ?? 0
+      )}
+
+      ${barisModalLaporan(
+        "Motokar",
+        kenderaan.motokar ?? 0
+      )}
+
+      ${barisModalLaporan(
+        "VVIP / VIP",
+        vvip
+      )}
+    `;
+  }
+
+
+  if (jenis === "KAWALAN LALULINTAS") {
+    return `
+      ${barisModalLaporan(
+        "Keadaan Trafik",
+        data.keadaan_trafik
+      )}
+
+      ${barisModalLaporan(
+        "Jumlah Kenderaan",
+        data.jumlah_kenderaan ?? item.jumlahKenderaan
+      )}
+
+      ${barisModalLaporan(
+        "Kemalangan",
+        butiranAdaTiadaLaporan(data.kemalangan)
+      )}
+    `;
+  }
+
+
+  if (
+    jenis === "RONDAAN PENCEGAHAN JENAYAH" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH NARKOTIK" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH KOMERSIL"
+  ) {
+    const pemeriksaan =
+      data.pemeriksaan &&
+      typeof data.pemeriksaan === "object"
+        ? data.pemeriksaan
+        : {};
+
+    return `
+      ${barisModalLaporan(
+        "Lokasi Rondaan",
+        data.lokasi_rondaan
+      )}
+
+      ${barisModalLaporan(
+        "Jumlah Pemeriksaan",
+        pemeriksaan.jumlah ?? 0
+      )}
+
+      ${barisModalLaporan(
+        "Lelaki",
+        pemeriksaan.lelaki ?? 0
+      )}
+
+      ${barisModalLaporan(
+        "Perempuan",
+        pemeriksaan.perempuan ?? 0
+      )}
+
+      ${barisModalLaporan(
+        "Tangkapan",
+        butiranAdaTiadaLaporan(data.tangkapan)
+      )}
+
+      ${barisModalLaporan(
+        "Rampasan",
+        butiranAdaTiadaLaporan(data.rampasan)
+      )}
+    `;
+  }
+
+
+  if (
+    jenis === "BALAI POLIS BERGERAK" ||
+    jenis === "PONDOK POLIS"
+  ) {
+    return `
+      ${barisModalLaporan(
+        "No. Repot",
+        data.no_repot
+      )}
+    `;
+  }
+
+
+  if (jenis === "UNIT PEMUSNAH BOM") {
+    return `
+      ${barisModalLaporan(
+        "Lokasi",
+        data.lokasi
+      )}
+
+      ${barisModalLaporan(
+        "VVIP / VIP",
+        butiranAdaTiadaLaporan(data.vvip_vip)
+      )}
+
+      ${barisModalLaporan(
+        "Jenis Ancaman",
+        butiranAdaTiadaLaporan(data.jenis_ancaman)
+      )}
+    `;
+  }
+
+
+  return `
+    ${barisModalLaporan(
+      "Jumlah Pengunjung",
+      item.jumlahPengunjung
+    )}
+
+    ${barisModalLaporan(
+      "Jumlah Kenderaan",
+      item.jumlahKenderaan
+    )}
+
+    ${barisModalLaporan(
+      "VVIP / VIP",
+      item.vvipVip || "TIADA"
+    )}
+  `;
+}
+
+
+function tajukCatatanLaporanPenyelia(item) {
+  const jenis = normalisasiJenisTugasLaporanPenyelia(
+    item?.jenisTugas ||
+    item?.tugas?.jenis_tugas
+  );
+
+  if (
+    jenis === "KAWALAN LALULINTAS"
+  ) {
+    return "Catatan / Tindakan";
+  }
+
+  if (
+    jenis === "RONDAAN PENCEGAHAN JENAYAH" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH NARKOTIK" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH KOMERSIL"
+  ) {
+    return "Catatan / No. Repot";
+  }
+
+  if (
+    jenis === "BALAI POLIS BERGERAK" ||
+    jenis === "PONDOK POLIS" ||
+    jenis === "UNIT PEMUSNAH BOM" ||
+    jenis === "KAWALAN KESELAMATAN"
+  ) {
+    return "Catatan";
+  }
+
+  return "Perkara Menarik";
+}
+
+
+function catatanDinamikLaporanPenyelia(item) {
+  const data =
+    item?.dataLaporan &&
+    typeof item.dataLaporan === "object"
+      ? item.dataLaporan
+      : {};
+
+  const jenis = normalisasiJenisTugasLaporanPenyelia(
+    item?.jenisTugas ||
+    item?.tugas?.jenis_tugas
+  );
+
+  if (jenis === "KAWALAN KESELAMATAN") {
+    return data.catatan || item.perkaraMenarik || "TIADA";
+  }
+
+  if (jenis === "KAWALAN LALULINTAS") {
+    return data.catatan_tindakan || item.perkaraMenarik || "TIADA";
+  }
+
+  if (
+    jenis === "RONDAAN PENCEGAHAN JENAYAH" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH NARKOTIK" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH KOMERSIL"
+  ) {
+    return data.catatan_no_repot || item.perkaraMenarik || "TIADA";
+  }
+
+  if (
+    jenis === "BALAI POLIS BERGERAK" ||
+    jenis === "PONDOK POLIS" ||
+    jenis === "UNIT PEMUSNAH BOM"
+  ) {
+    return data.catatan || item.perkaraMenarik || "TIADA";
+  }
+
+  return item.perkaraMenarik || "TIADA";
+}
+
+
 /* ================================================================
    BUKA LAPORAN DALAM MODAL
 ================================================================ */
@@ -1794,88 +2178,51 @@ function bukaLaporanPenyelia(
     );
 
   if (kandunganModal) {
+    const butiranDinamik =
+      binaButiranDinamikLaporanPenyelia(item);
+
+    const tajukCatatan =
+      tajukCatatanLaporanPenyelia(item);
+
+    const catatan =
+      catatanDinamikLaporanPenyelia(item);
+
     kandunganModal.innerHTML = `
       <div class="grid modal-grid">
 
-        <div class="label">
-          Petugas
-        </div>
+        ${barisModalLaporan(
+          "Petugas",
+          [
+            item.profil?.pangkat || "",
+            item.profil?.nama || "-"
+          ].filter(Boolean).join(" ")
+        )}
 
-        <div>
-          ${htmlPenyelia(
-            item.profil?.pangkat ||
-            "-"
-          )}
-          ${htmlPenyelia(
-            item.profil?.nama ||
-            "-"
-          )}
-        </div>
+        ${barisModalLaporan(
+          "No Badan",
+          item.profil?.no_badan || "-"
+        )}
 
-        <div class="label">
-          No Badan
-        </div>
+        ${barisModalLaporan(
+          "Tarikh / Masa",
+          formatMasaPenyelia(
+            item.tarikhMasa
+          )
+        )}
 
-        <div>
-          ${htmlPenyelia(
-            item.profil?.no_badan ||
-            "-"
-          )}
-        </div>
+        ${barisModalLaporan(
+          "Call Sign",
+          item.callSign || "-"
+        )}
 
-        <div class="label">
-          Tarikh / Masa
-        </div>
+        ${barisModalLaporan(
+          "Jenis Tugas",
+          item.jenisTugas ||
+          item.tugas?.jenis_tugas ||
+          "-"
+        )}
 
-        <div>
-          ${htmlPenyelia(
-            formatMasaPenyelia(
-              item.tarikhMasa
-            )
-          )}
-        </div>
-
-        <div class="label">
-          Call Sign
-        </div>
-
-        <div>
-          ${htmlPenyelia(
-            item.callSign ||
-            "-"
-          )}
-        </div>
-
-        <div class="label">
-          Jumlah Pengunjung
-        </div>
-
-        <div>
-          ${htmlPenyelia(
-            item.jumlahPengunjung
-          )}
-        </div>
-
-        <div class="label">
-          Jumlah Kenderaan
-        </div>
-
-        <div>
-          ${htmlPenyelia(
-            item.jumlahKenderaan
-          )}
-        </div>
-
-        <div class="label">
-          VVIP / VIP
-        </div>
-
-        <div>
-          ${htmlPenyelia(
-            item.vvipVip ||
-            "TIADA"
-          )}
-        </div>
+        ${butiranDinamik}
 
         <div class="label">
           Status Bacaan
@@ -1892,35 +2239,48 @@ function bukaLaporanPenyelia(
         ${
           item.telahDibaca
             ? `
-              <div class="label">
-                Masa Dibaca
-              </div>
-
-              <div>
-                ${htmlPenyelia(
+                ${barisModalLaporan(
+                  "Masa Dibaca",
                   formatMasaPenyelia(
                     item.masaDibaca
                   )
                 )}
-              </div>
-            `
+              `
             : ""
         }
 
       </div>
 
-      <div class="laporan-penuh">
+      <div
+        class="laporan-penuh"
+        style="
+          margin-top:12px;
+          padding:12px;
+        "
+      >
 
-        <div class="label">
-          Perkara Menarik
+        <div
+          class="label"
+          style="
+            margin:0 0 6px 0;
+            padding:0;
+          "
+        >
+          ${htmlPenyelia(
+            tajukCatatan
+          )}
         </div>
 
-        <p>
-          ${htmlPenyelia(
-            item.perkaraMenarik ||
-            "TIADA"
-          )}
-        </p>
+        <p
+          style="
+            margin:0;
+            padding:0;
+            white-space:pre-wrap;
+            line-height:1.45;
+          "
+        >${htmlPenyelia(
+          catatan || "TIADA"
+        )}</p>
 
       </div>
     `;
