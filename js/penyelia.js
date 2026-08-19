@@ -1403,6 +1403,37 @@ function ringkasanKadLaporanPenyelia(item) {
     };
   }
 
+  if (jenis === "UNIT PEMUSNAH BOM") {
+    return {
+      label1: "Lokasi",
+      nilai1:
+        data.lokasi ||
+        item.tugas?.tempat_tugas ||
+        item.tugas?.lokasi ||
+        "-",
+
+      label2: "VVIP / VIP",
+      nilai2:
+        formatVvipVipBerbaris(
+          butiranAdaTiadaLaporan(
+            data.vvip_vip
+          )
+        ),
+
+      label3: "Ancaman",
+      nilai3:
+        butiranAdaTiadaLaporan(
+          data.jenis_ancaman
+        ),
+
+      label4: "Catatan",
+      nilai4:
+        data.catatan ||
+        item.perkaraMenarik ||
+        "TIADA"
+    };
+  }
+
   return {
     label1: "Pengunjung",
     nilai1: item.jumlahPengunjung,
@@ -1610,7 +1641,7 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div>
+            <div style="white-space:pre-line;">
               ${htmlPenyelia(
                 ringkasan.nilai1
               )}
@@ -1622,7 +1653,7 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div>
+            <div style="white-space:pre-line;">
               ${htmlPenyelia(
                 ringkasan.nilai2
               )}
@@ -1634,7 +1665,7 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div>
+            <div style="white-space:pre-line;">
               ${htmlPenyelia(
                 ringkasan.nilai3
               )}
@@ -1646,7 +1677,7 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div class="teks-ringkas">
+            <div class="teks-ringkas" style="white-space:pre-line;">
               ${htmlPenyelia(
                 ringkasan.nilai4
               )}
@@ -1951,6 +1982,32 @@ function nilaiPaparanLaporan(nilai, nilaiKosong = "TIADA") {
 }
 
 
+function formatVvipVipBerbaris(nilai) {
+  const teks = teksPenyelia(nilai);
+
+  if (!teks) {
+    return "TIADA";
+  }
+
+  /*
+    Contoh:
+      PMX TIMBALAN PERDANA MENTERI 1
+    menjadi:
+      PMX
+      TIMBALAN PERDANA MENTERI 1
+  */
+  const padanan = teks.match(
+    /^(PMX|PM|TPM|VVIP|VIP)\s+(.+)$/i
+  );
+
+  if (padanan) {
+    return `${padanan[1].toUpperCase()}\n${padanan[2]}`;
+  }
+
+  return teks;
+}
+
+
 function butiranAdaTiadaLaporan(objek) {
   if (!objek || typeof objek !== "object") {
     const nilai = teksPenyelia(objek);
@@ -1971,7 +2028,9 @@ function butiranAdaTiadaLaporan(objek) {
 function barisModalLaporan(label, nilai) {
   return `
     <div class="label">${htmlPenyelia(label)}</div>
-    <div>${htmlPenyelia(nilaiPaparanLaporan(nilai))}</div>
+    <div style="white-space:pre-line;">${htmlPenyelia(
+      nilaiPaparanLaporan(nilai)
+    )}</div>
   `;
 }
 
@@ -2020,8 +2079,10 @@ function binaButiranDinamikLaporanPenyelia(item) {
         : {};
 
     const vvip =
-      butiranAdaTiadaLaporan(
-        data.vvip_vip
+      formatVvipVipBerbaris(
+        butiranAdaTiadaLaporan(
+          data.vvip_vip
+        )
       );
 
     return `
@@ -2150,7 +2211,11 @@ function binaButiranDinamikLaporanPenyelia(item) {
 
       ${barisModalLaporan(
         "VVIP / VIP",
-        butiranAdaTiadaLaporan(data.vvip_vip)
+        formatVvipVipBerbaris(
+          butiranAdaTiadaLaporan(
+            data.vvip_vip
+          )
+        )
       )}
 
       ${barisModalLaporan(
