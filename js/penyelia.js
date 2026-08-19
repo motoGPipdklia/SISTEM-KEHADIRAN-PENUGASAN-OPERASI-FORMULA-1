@@ -3238,7 +3238,7 @@ function paparSenaraiSitrep() {
                   item.lampiran_path
                     ? `
                         <button
-                          class="btn-main"
+                          class="btn-main sitrep-table-action sitrep-table-attachment"
                           type="button"
                           onclick="bukaLampiranSitrep(
                             '${htmlPenyelia(item.lampiran_path)}',
@@ -3252,7 +3252,7 @@ function paparSenaraiSitrep() {
                 }
 
                 <button
-                  class="btn-secondary sitrep-table-print"
+                  class="btn-secondary sitrep-table-print sitrep-table-action"
                   type="button"
                   onclick="cetakSitrep('${htmlPenyelia(item.id)}')"
                 >
