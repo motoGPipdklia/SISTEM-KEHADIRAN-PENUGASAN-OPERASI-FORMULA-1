@@ -288,13 +288,11 @@ function paparDashboardLaporan() {
   if (profil) {
     profil.innerHTML = `
       <strong>
-        ${htmlLaporan(penggunaLaporan?.pangkat || "")}
-        ${htmlLaporan(penggunaLaporan?.nama || "-")}
+        ${htmlLaporan(
+          penggunaLaporan?.nama ||
+          "PUSAT KAWALAN KONTINJEN SELANGOR"
+        )}
       </strong>
-      &nbsp; | &nbsp;
-      No Badan: ${htmlLaporan(penggunaLaporan?.no_badan || "-")}
-      &nbsp; | &nbsp;
-      Akses: PUSAT KAWALAN
     `;
   }
 
