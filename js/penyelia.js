@@ -1357,6 +1357,68 @@ async function muatLaporanPenyelia() {
    PAPAR SENARAI LAPORAN
 ================================================================ */
 
+
+function ringkasanKadLaporanPenyelia(item) {
+  const jenis = normalisasiJenisTugasLaporanPenyelia(
+    item?.jenisTugas ||
+    item?.tugas?.jenis_tugas
+  );
+
+  const data =
+    item?.dataLaporan &&
+    typeof item.dataLaporan === "object"
+      ? item.dataLaporan
+      : {};
+
+  if (
+    jenis === "RONDAAN PENCEGAHAN JENAYAH" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH NARKOTIK" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH KOMERSIL"
+  ) {
+    const pemeriksaan =
+      data.pemeriksaan &&
+      typeof data.pemeriksaan === "object"
+        ? data.pemeriksaan
+        : {};
+
+    return {
+      label1: "Jumlah Pemeriksaan",
+      nilai1: pemeriksaan.jumlah ?? 0,
+
+      label2: "Tangkapan",
+      nilai2: butiranAdaTiadaLaporan(
+        data.tangkapan
+      ),
+
+      label3: "Rampasan",
+      nilai3: butiranAdaTiadaLaporan(
+        data.rampasan
+      ),
+
+      label4: "Catatan / No. Repot",
+      nilai4:
+        data.catatan_no_repot ||
+        item.perkaraMenarik ||
+        "TIADA"
+    };
+  }
+
+  return {
+    label1: "Pengunjung",
+    nilai1: item.jumlahPengunjung,
+
+    label2: "Kenderaan",
+    nilai2: item.jumlahKenderaan,
+
+    label3: "VVIP / VIP",
+    nilai3: item.vvipVip || "TIADA",
+
+    label4: "Perkara Menarik",
+    nilai4: item.perkaraMenarik || "TIADA"
+  };
+}
+
+
 function paparSenaraiLaporan() {
   const carian = atasPenyelia(
     elemenPenyelia(
@@ -1465,6 +1527,9 @@ function paparSenaraiLaporan() {
           ? "TELAH DIBACA"
           : "BELUM DIBACA";
 
+      const ringkasan =
+        ringkasanKadLaporanPenyelia(item);
+
       return `
         <article
           class="record laporan-record ${
@@ -1540,44 +1605,50 @@ function paparSenaraiLaporan() {
             </div>
 
             <div class="label">
-              Pengunjung
+              ${htmlPenyelia(
+                ringkasan.label1
+              )}
             </div>
 
             <div>
               ${htmlPenyelia(
-                item.jumlahPengunjung
+                ringkasan.nilai1
               )}
             </div>
 
             <div class="label">
-              Kenderaan
+              ${htmlPenyelia(
+                ringkasan.label2
+              )}
             </div>
 
             <div>
               ${htmlPenyelia(
-                item.jumlahKenderaan
+                ringkasan.nilai2
               )}
             </div>
 
             <div class="label">
-              VVIP / VIP
+              ${htmlPenyelia(
+                ringkasan.label3
+              )}
             </div>
 
             <div>
               ${htmlPenyelia(
-                item.vvipVip ||
-                "TIADA"
+                ringkasan.nilai3
               )}
             </div>
 
             <div class="label">
-              Perkara Menarik
+              ${htmlPenyelia(
+                ringkasan.label4
+              )}
             </div>
 
             <div class="teks-ringkas">
               ${htmlPenyelia(
-                item.perkaraMenarik ||
-                "TIADA"
+                ringkasan.nilai4
               )}
             </div>
 
