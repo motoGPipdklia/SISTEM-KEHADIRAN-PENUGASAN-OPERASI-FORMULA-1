@@ -124,6 +124,97 @@
 
     <main class="content">
       <!-- ===============================================
+           PERANTI KHAS PENTADBIR
+      ================================================ -->
+      <section class="card" id="modulPerantiKhasAdmin">
+        <div class="section-heading">
+          <div>
+            <h2>Peranti Khas Pentadbir</h2>
+            <p class="muted">
+              Maksimum 2 peranti khas dibenarkan: 1 laptop dan 1 telefon.
+              Peranti khas boleh digunakan untuk login bagi mana-mana petugas.
+            </p>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <div class="info-row">
+            <div class="info-label">Jenis Peranti:</div>
+            <div class="info-value" id="jenisPerantiAdmin">-</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Device ID:</div>
+            <div
+              class="info-value"
+              id="deviceIdAdmin"
+              style="word-break:break-all"
+            >-</div>
+          </div>
+
+          <div class="info-row">
+            <div class="info-label">Status:</div>
+            <div class="info-value" id="statusPerantiKhasAdmin">MENYEMAK...</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button
+            class="gray"
+            id="btnSalinDeviceAdmin"
+            type="button"
+            onclick="salinDeviceIdAdmin()"
+          >
+            SALIN DEVICE ID
+          </button>
+
+          <button
+            class="green-button"
+            id="btnJadikanPerantiKhas"
+            type="button"
+            onclick="jadikanPerantiKhasAdmin()"
+          >
+            JADIKAN PERANTI KHAS
+          </button>
+
+          <button
+            class="red"
+            id="btnBuangPerantiKhas"
+            type="button"
+            onclick="buangPerantiKhasAdmin()"
+            disabled
+          >
+            BUANG PERANTI KHAS
+          </button>
+        </div>
+
+        <div
+          class="status-box"
+          id="mesejPerantiKhasAdmin"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <div class="wrap" style="margin-top:16px">
+          <table>
+            <thead>
+              <tr>
+                <th>Bil.</th>
+                <th>Jenis</th>
+                <th>Device ID</th>
+                <th>Catatan</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPerantiKhasAdmin">
+              <tr>
+                <td colspan="4" class="empty-row">Sedang mendapatkan peranti khas...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===============================================
            PENAPIS
       ================================================ -->
       <section class="filters" aria-label="Penapis dashboard">
@@ -833,7 +924,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
-<script src="js/admin.js?v=20260818-pusat-kawalan-001"></script>
+<script src="js/admin.js?v=20260819-1022"></script>
 
 </body>
 </html>
