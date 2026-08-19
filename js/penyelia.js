@@ -3245,7 +3245,7 @@ function paparSenaraiSitrep() {
                             '${htmlPenyelia(item.lampiran_nama || "lampiran")}'
                           )"
                         >
-                          📎 LAMPIRAN
+                          LAMPIRAN
                         </button>
                       `
                     : ""
