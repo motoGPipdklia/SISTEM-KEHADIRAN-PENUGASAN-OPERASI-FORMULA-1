@@ -1462,6 +1462,35 @@ function ringkasanKadLaporanPenyelia(item) {
     };
   }
 
+
+  if (
+    jenis === "BALAI POLIS BERGERAK" ||
+    jenis === "PONDOK POLIS"
+  ) {
+    return {
+      label1: "No. Repot",
+      nilai1:
+        data.no_repot ||
+        data.no_report ||
+        data.nombor_repot ||
+        data.nombor_report ||
+        "TIADA",
+
+      label2: "",
+      nilai2: "",
+
+      label3: "",
+      nilai3: "",
+
+      label4: "Catatan",
+      nilai4:
+        data.catatan ||
+        data.catatan_tindakan ||
+        item.perkaraMenarik ||
+        "TIADA"
+    };
+  }
+
   return {
     label1: "Pengunjung",
     nilai1: item.jumlahPengunjung,
