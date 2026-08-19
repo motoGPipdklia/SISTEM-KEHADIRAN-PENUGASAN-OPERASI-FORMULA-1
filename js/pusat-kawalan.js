@@ -667,14 +667,6 @@ function cetakSitrepLaporan(id) {
           overflow-wrap:anywhere;
         }
 
-        .lampiran{
-          margin-top:20px;
-          padding:12px;
-          border:1px solid #ccc;
-          background:#f8f8f8;
-          font-size:14px;
-        }
-
         @media print{
           body{
             margin:15mm;
@@ -731,24 +723,17 @@ function cetakSitrepLaporan(id) {
         `
       ).join("")}
 
-      ${
-        item.lampiran_path
-          ? `
-            <div class="lampiran">
-              <strong>11. Lampiran</strong><br>
-              ${htmlLaporan(
+      <div class="medan">
+        <strong>11. Lampiran</strong>
+        <p>${htmlLaporan(
+          item.lampiran_path
+            ? (
                 item.lampiran_nama ||
                 "Lampiran tersedia"
-              )}
-            </div>
-          `
-          : `
-            <div class="lampiran">
-              <strong>11. Lampiran</strong><br>
-              TIADA
-            </div>
-          `
-      }
+              )
+            : "TIADA"
+        )}</p>
+      </div>
 
     </body>
     </html>
