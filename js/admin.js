@@ -1105,82 +1105,222 @@ async function importPenggunaCsv() {
   const senarai = rekodImportPengguna.filter(
     item => item.ralat.length === 0 && !item.sediaAda && !item.diimport
   );
+
   if (!senarai.length) {
-    paparMesej("statusImportPengguna", "Tiada pengguna baharu yang sah untuk diimport.", "error");
+    paparMesej(
+      "statusImportPengguna",
+      "Tiada pengguna baharu yang sah untuk diimport.",
+      "error"
+    );
     return;
   }
 
-  if (!confirm(`Import ${senarai.length} pengguna baharu? Akaun Authentication akan dicipta dan tindakan ini tidak boleh dibatalkan dari halaman ini.`)) return;
+  if (!confirm(
+    `Import ${senarai.length} pengguna baharu? ` +
+    "Akaun Authentication dan profil pengguna akan dicipta di Supabase."
+  )) return;
 
   importPenggunaSedangBerjalan = true;
+
   const butang = el("btnImportPengguna");
   butang.disabled = true;
+
   let diproses = 0;
   let berjaya = 0;
   let sediaAda = 0;
   let gagal = 0;
+
   const semuaKeputusan = [];
 
   try {
-    const kumpulan = bahagiKumpulan(senarai, 10);
+    /*
+      PENTING:
+      Pendaftaran manual dalam sistem menggunakan Edge Function
+      "tambah-petugas". Import CSV kini menggunakan fungsi yang sama
+      supaya Auth user + public.profiles dicipta dengan aliran yang
+      sama dan tidak memerlukan Edge Function "import-pengguna".
+    */
 
-    for (let i = 0; i < kumpulan.length; i += 1) {
-      butang.textContent = `MENGIMPORT ${diproses} / ${senarai.length}...`;
+    for (const item of senarai) {
+      const d = item.data;
+
+      butang.textContent =
+        `MENGIMPORT ${diproses + 1} / ${senarai.length}...`;
+
       paparMesej(
         "statusImportPengguna",
-        `Sedang mencipta akaun kumpulan ${i + 1} daripada ${kumpulan.length}. Jangan tutup halaman ini.`,
+        `Sedang mencipta pengguna ${diproses + 1} daripada ${senarai.length}: ` +
+        `${escapeHtml(d.no_badan)} — ${escapeHtml(d.nama)}. ` +
+        "Jangan tutup halaman ini.",
         "warning"
       );
 
-      const hasil = await panggilEdgeFunction(
-        "import-pengguna",
-        { pengguna: kumpulan[i].map(item => item.data) },
-        120000
-      );
+      try {
+        const hasil = await panggilEdgeFunction(
+          "tambah-petugas",
+          {
+            no_badan: d.no_badan,
+            noBadan: d.no_badan,
+            pangkat: d.pangkat,
+            nama: d.nama,
+            peranan: d.peranan || "PETUGAS",
+            telefon: d.telefon || "",
+            bahagian: d.bahagian || "",
+            daerah: d.daerah || "",
+            password: d.password,
+            aktif: d.aktif !== false
+          },
+          60000
+        );
 
-      if (hasil?.success === false) throw new Error(hasil.message || "Import pengguna gagal.");
-
-      berjaya += Number(hasil.berjaya || 0);
-      sediaAda += Number(hasil.sedia_ada || 0);
-      gagal += Number(hasil.gagal || 0);
-      const keputusan = Array.isArray(hasil.keputusan) ? hasil.keputusan : [];
-      semuaKeputusan.push(...keputusan);
-
-      keputusan.forEach(itemHasil => {
-        const rekod = rekodImportPengguna.find(item => item.baris === Number(itemHasil.baris));
-        if (!rekod) return;
-
-        if (itemHasil.status === "BERJAYA") {
-          rekod.diimport = true;
-          rekod.data.password = "";
-        } else if (itemHasil.status === "SEDIA_ADA") {
-          rekod.sediaAda = true;
-          rekod.data.password = "";
-        } else {
-          rekod.ralat.push(`Import: ${itemHasil.mesej || "Gagal"}`);
+        if (hasil?.status === false || hasil?.success === false) {
+          throw new Error(
+            hasil?.mesej ||
+            hasil?.message ||
+            "Pendaftaran pengguna gagal."
+          );
         }
-      });
 
-      diproses += kumpulan[i].length;
+        item.diimport = true;
+        item.data.password = "";
+        berjaya += 1;
+
+        semuaKeputusan.push({
+          baris: item.baris,
+          no_badan: d.no_badan,
+          status: "BERJAYA",
+          mesej: "Pengguna berjaya didaftarkan."
+        });
+
+      } catch (error) {
+        const mesejAsal = String(
+          error?.message || "Pendaftaran pengguna gagal."
+        );
+
+        /*
+          Jika profil sudah wujud / pengguna sudah didaftarkan,
+          tandakan sebagai sedia ada dan jangan anggap sebagai
+          kegagalan import keseluruhan.
+        */
+        if (
+          /already registered|already exists|duplicate|sedia ada|sudah wujud|telah didaftarkan/i
+            .test(mesejAsal)
+        ) {
+          item.sediaAda = true;
+          item.data.password = "";
+          sediaAda += 1;
+
+          semuaKeputusan.push({
+            baris: item.baris,
+            no_badan: d.no_badan,
+            status: "SEDIA_ADA",
+            mesej: mesejAsal
+          });
+
+        } else {
+          gagal += 1;
+
+          const mesejPaparan =
+            /Edge Function|Failed to send|404/i.test(mesejAsal)
+              ? `${mesejAsal} Pastikan Edge Function "tambah-petugas" telah dideploy dan berfungsi.`
+              : mesejAsal;
+
+          if (
+            !item.ralat.some(ralat =>
+              String(ralat).includes(mesejPaparan)
+            )
+          ) {
+            item.ralat.push(`Import: ${mesejPaparan}`);
+          }
+
+          semuaKeputusan.push({
+            baris: item.baris,
+            no_badan: d.no_badan,
+            status: "GAGAL",
+            mesej: mesejPaparan
+          });
+        }
+      }
+
+      diproses += 1;
       paparPratontonImportPengguna();
+
+      /*
+        Jeda kecil antara akaun untuk mengurangkan risiko terlalu
+        banyak permintaan Auth dalam masa yang sangat singkat.
+      */
+      if (diproses < senarai.length) {
+        await new Promise(resolve => setTimeout(resolve, 150));
+      }
     }
 
-    const ralat = semuaKeputusan.filter(item => item.status === "GAGAL");
+    /*
+      Semak semula table profiles selepas import supaya status sebenar
+      di Supabase disahkan sebelum keputusan akhir dipaparkan.
+    */
+    try {
+      await semakPenggunaSediaAda(rekodImportPengguna);
+
+      rekodImportPengguna.forEach(item => {
+        if (item.diimport) item.sediaAda = false;
+      });
+
+      paparPratontonImportPengguna();
+    } catch (semakError) {
+      console.warn(
+        "Semakan semula profiles selepas import gagal:",
+        semakError
+      );
+    }
+
+    const ralat = semuaKeputusan.filter(
+      item => item.status === "GAGAL"
+    );
+
     const butiran = ralat.length
-      ? `<br><details><summary>Lihat ${ralat.length} ralat</summary><ul>${ralat.slice(0, 100).map(item => `<li>Baris ${escapeHtml(item.baris || "-")} — ${escapeHtml(item.no_badan || "-")}: ${escapeHtml(item.mesej || "Ralat")}</li>`).join("")}</ul></details>`
+      ? `<br><details><summary>Lihat ${ralat.length} ralat</summary><ul>${
+          ralat.slice(0, 100).map(item =>
+            `<li>Baris ${escapeHtml(item.baris || "-")} — ` +
+            `${escapeHtml(item.no_badan || "-")}: ` +
+            `${escapeHtml(item.mesej || "Ralat")}</li>`
+          ).join("")
+        }</ul></details>`
       : "";
 
     paparMesej(
       "statusImportPengguna",
-      `<strong>IMPORT PENGGUNA SELESAI</strong><br>Berjaya: ${berjaya}<br>Sedia ada/dilangkau: ${sediaAda}<br>Gagal: ${gagal}${butiran}`,
+      `<strong>IMPORT PENGGUNA SELESAI</strong><br>` +
+      `Berjaya: ${berjaya}<br>` +
+      `Sedia ada/dilangkau: ${sediaAda}<br>` +
+      `Gagal: ${gagal}${butiran}`,
       gagal ? "warning" : "success"
     );
+
+    /*
+      Muat semula dashboard jika fungsi tersedia.
+    */
+    if (berjaya > 0 && typeof muatData === "function") {
+      try {
+        await muatData(true);
+      } catch (errorMuat) {
+        console.warn(
+          "Pengguna berjaya diimport tetapi dashboard gagal dimuat semula:",
+          errorMuat
+        );
+      }
+    }
+
   } catch (error) {
     console.error("Import pengguna gagal:", error);
-    const mesej = /Edge Function|Failed to send|404/i.test(error.message)
-      ? `${error.message} Pastikan Edge Function bernama tepat \"import-pengguna\" telah dideploy.`
-      : error.message;
-    paparMesej("statusImportPengguna", `Import gagal: ${escapeHtml(mesej)}`, "error");
+
+    paparMesej(
+      "statusImportPengguna",
+      `Import gagal: ${escapeHtml(
+        error?.message || "Ralat tidak diketahui."
+      )}`,
+      "error"
+    );
+
   } finally {
     importPenggunaSedangBerjalan = false;
     butang.textContent = "IMPORT PENGGUNA KE SUPABASE";
