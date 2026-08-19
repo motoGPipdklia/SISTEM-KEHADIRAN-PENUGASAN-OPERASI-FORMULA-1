@@ -2683,23 +2683,35 @@ function paparLaporanPentadbir() {
             <td>
               <div
                 style="
-                  display:flex;
+                  display:grid;
+                  grid-template-columns:190px 130px;
                   gap:8px;
                   justify-content:center;
                   align-items:center;
-                  flex-wrap:wrap;
+                  width:100%;
                 "
               >
                 ${
                   item.lampiran_path
                     ? `
                       <button
-                        class="yellow compact-print"
+                        class="compact-print"
                         type="button"
                         style="
-                          min-width:150px;
+                          width:190px;
+                          min-width:190px;
+                          max-width:190px;
                           height:42px;
+                          min-height:42px;
+                          max-height:42px;
                           margin:0;
+                          padding:0 14px;
+                          background:#2e7d32;
+                          color:#ffffff;
+                          border:0;
+                          border-radius:8px;
+                          font-weight:700;
+                          box-sizing:border-box;
                         "
                         onclick="muatTurunLampiranSitrepAdmin(
                           '${escapeHtml(item.lampiran_path)}',
@@ -2716,9 +2728,14 @@ function paparLaporanPentadbir() {
                   class="gray compact-print"
                   type="button"
                   style="
-                    min-width:150px;
+                    width:130px;
+                    min-width:130px;
+                    max-width:130px;
                     height:42px;
+                    min-height:42px;
+                    max-height:42px;
                     margin:0;
+                    box-sizing:border-box;
                   "
                   onclick="cetakSitrepAdmin('${escapeHtml(item.id)}')"
                 >
@@ -2728,6 +2745,38 @@ function paparLaporanPentadbir() {
             </td>
           </tr>`).join("")
       : '<tr><td colspan="4" class="empty-row">Tiada rekod SITREP untuk tarikh ini.</td></tr>';
+
+    const jadualSitrep = tbodySitrep.closest("table");
+
+    if (jadualSitrep) {
+      const kepala = jadualSitrep.querySelectorAll("thead th");
+
+      if (kepala[2]) {
+        kepala[2].style.textAlign = "center";
+        kepala[2].style.width = "220px";
+      }
+
+      if (kepala[3]) {
+        kepala[3].style.textAlign = "center";
+        kepala[3].style.width = "340px";
+      }
+
+      jadualSitrep
+        .querySelectorAll("tbody td:nth-child(3)")
+        .forEach(td => {
+          td.style.textAlign = "center";
+          td.style.verticalAlign = "middle";
+          td.style.whiteSpace = "nowrap";
+        });
+
+      jadualSitrep
+        .querySelectorAll("tbody td:nth-child(4)")
+        .forEach(td => {
+          td.style.textAlign = "center";
+          td.style.verticalAlign = "middle";
+          td.style.width = "340px";
+        });
+    }
   }
 }
 
