@@ -8,9 +8,8 @@
   <title>OP LITAR | Formula 1 | Pusat Kawalan</title>
 
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/pusat-kawalan.css?v=20260818-005">
+  <link rel="stylesheet" href="css/pusat-kawalan.css?v=20260819-001">
 
-  <!-- BACKGROUND PORTAL -->
   <style>
     html,
     body {
@@ -21,27 +20,23 @@
 
     body {
       min-height: 100vh;
-
       background:
         linear-gradient(
           rgba(0, 0, 0, 0.40),
           rgba(0, 0, 0, 0.40)
         ),
         url("images/background-portal.jpg");
-
       background-size: cover;
       background-position: center center;
       background-repeat: no-repeat;
       background-attachment: fixed;
     }
 
-    /* Pastikan container tidak mempunyai background sendiri */
     .laporan-shell {
       background: transparent !important;
       min-height: 100vh;
     }
 
-    /* Logo utama betul-betul di tengah */
     .laporan-brand {
       width: 100%;
       display: flex;
@@ -76,12 +71,9 @@
 
   <main class="laporan-shell">
 
-    <!-- ======================================================
-         LOGIN PUSAT KAWALAN
-    ======================================================= -->
+    <!-- LOGIN PUSAT KAWALAN -->
     <section id="loginPage" class="laporan-login-card">
 
-      <!-- LOGO UTAMA -->
       <div class="laporan-brand">
         <img
           src="images/logo-utama.png"
@@ -93,15 +85,10 @@
       <h1>PUSAT KAWALAN</h1>
 
       <p class="laporan-sub">
-        Muat Turun &amp; Cetak Laporan SITREP
+        Muat Turun, Cetak & Simpan PDF SITREP
       </p>
 
-
-      <!-- NO BADAN -->
-      <label class="sr-only" for="noBadan">
-        No Badan
-      </label>
-
+      <label class="sr-only" for="noBadan">No Badan</label>
       <input
         id="noBadan"
         type="text"
@@ -110,12 +97,7 @@
         spellcheck="false"
       >
 
-
-      <!-- KATA LALUAN -->
-      <label class="sr-only" for="password">
-        Kata Laluan
-      </label>
-
+      <label class="sr-only" for="password">Kata Laluan</label>
       <input
         id="password"
         type="password"
@@ -123,8 +105,6 @@
         autocomplete="current-password"
       >
 
-
-      <!-- LOGIN -->
       <button
         id="btnLogin"
         class="laporan-btn laporan-btn-primary"
@@ -134,8 +114,6 @@
         LOGIN PUSAT KAWALAN
       </button>
 
-
-      <!-- STATUS LOGIN -->
       <div
         id="loginStatus"
         class="laporan-status hidden"
@@ -143,8 +121,6 @@
         aria-live="polite"
       ></div>
 
-
-      <!-- KEMBALI -->
       <a
         class="laporan-btn laporan-btn-secondary laporan-link"
         href="index.html"
@@ -155,32 +131,15 @@
     </section>
 
 
-
-    <!-- ======================================================
-         DASHBOARD SITREP
-    ======================================================= -->
+    <!-- DASHBOARD -->
     <section id="dashboardPage" class="hidden">
 
-      <!-- TOP BAR -->
       <div class="laporan-topbar">
-
         <div>
-
-          <div class="laporan-eyebrow">
-            PUSAT KAWALAN
-          </div>
-
+          <div class="laporan-eyebrow">PUSAT KAWALAN</div>
           <h1>SITREP</h1>
-
-          <p
-            id="profilLaporan"
-            class="laporan-profile"
-          >
-            -
-          </p>
-
+          <p id="profilLaporan" class="laporan-profile">-</p>
         </div>
-
 
         <button
           class="laporan-btn laporan-btn-secondary"
@@ -189,121 +148,73 @@
         >
           LOG KELUAR
         </button>
-
       </div>
 
+      <!-- REKOD SITREP -->
+      <section class="sitrep-record-panel">
+        <div class="sitrep-record-heading">
+          <div>
+            <h2>Rekod SITREP</h2>
+            <p>Senarai SITREP terkini yang telah dihantar.</p>
+          </div>
 
-
-      <!-- ====================================================
-           TOOLBAR
-      ===================================================== -->
-      <div class="laporan-toolbar">
-
-        <!-- TARIKH -->
-        <label>
-
-          <span>
-            Tarikh SITREP
-          </span>
-
-          <input
-            id="tarikhLaporan"
-            type="date"
-            onchange="muatSitrep()"
+          <button
+            class="laporan-btn laporan-btn-primary"
+            type="button"
+            onclick="muatSitrep()"
           >
-
-        </label>
-
-
-        <!-- CARIAN -->
-        <label class="laporan-search">
-
-          <span>
-            Carian
-          </span>
-
-          <input
-            id="carianLaporan"
-            type="search"
-            placeholder="Cari tajuk, pengirim atau kandungan SITREP..."
-            autocomplete="off"
-            oninput="paparSitrep()"
-          >
-
-        </label>
-
-
-        <!-- REFRESH -->
-        <button
-          class="laporan-btn laporan-btn-primary"
-          type="button"
-          onclick="muatSitrep()"
-        >
-          SEMAK SEMULA
-        </button>
-
-      </div>
-
-
-
-      <!-- ====================================================
-           RINGKASAN
-      ===================================================== -->
-      <div class="laporan-summary">
-
-        <div class="laporan-summary-card">
-
-          <span>
-            JUMLAH SITREP
-          </span>
-
-          <strong id="jumlahSitrep">
-            0
-          </strong>
-
+            SEMAK SEMULA
+          </button>
         </div>
 
-      </div>
+        <div class="laporan-toolbar">
+          <label>
+            <span>Tarikh SITREP</span>
+            <input
+              id="tarikhLaporan"
+              type="date"
+              onchange="muatSitrep()"
+            >
+          </label>
 
+          <label class="laporan-search">
+            <span>Carian</span>
+            <input
+              id="carianLaporan"
+              type="search"
+              placeholder="Cari tajuk, pengirim atau kandungan SITREP..."
+              autocomplete="off"
+              oninput="paparSitrep()"
+            >
+          </label>
+        </div>
 
+        <div class="laporan-summary">
+          <div class="laporan-summary-card">
+            <span>JUMLAH SITREP</span>
+            <strong id="jumlahSitrep">0</strong>
+          </div>
+        </div>
 
-      <!-- ====================================================
-           STATUS DATA
-      ===================================================== -->
-      <div
-        id="statusDataLaporan"
-        class="laporan-status hidden"
-        role="status"
-        aria-live="polite"
-      ></div>
+        <div
+          id="statusDataLaporan"
+          class="laporan-status hidden"
+          role="status"
+          aria-live="polite"
+        ></div>
 
-
-
-      <!-- ====================================================
-           SENARAI SITREP
-      ===================================================== -->
-      <div
-        id="senaraiSitrep"
-        class="laporan-list"
-      ></div>
+        <div id="senaraiSitrep" class="laporan-list"></div>
+      </section>
 
     </section>
 
   </main>
 
 
-
-  <!-- ========================================================
-       JAVASCRIPT
-  ========================================================= -->
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
   <script src="js/api-config.js"></script>
-
   <script src="js/supabase-client.js"></script>
-
-  <script src="js/pusat-kawalan.js?v=20260818-005"></script>
+  <script src="js/pusat-kawalan.js?v=20260819-001"></script>
 
 </body>
 </html>
