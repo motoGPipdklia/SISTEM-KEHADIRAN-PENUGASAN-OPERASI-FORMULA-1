@@ -1502,3 +1502,70 @@ body #loginSection .btn-secondary.link:hover{
     max-width:none !important;
   }
 }
+
+
+/* ================================================================
+   PEMBETULAN KEDUDUKAN KOLUM REKOD SITREP
+   - MASA DIHANTAR berada di tengah kolum
+   - TINDAKAN berada di tengah antara LAMPIRAN dan CETAK
+================================================================ */
+
+@media(min-width:701px){
+
+  .sitrep-table{
+    width:100% !important;
+    table-layout:fixed !important;
+  }
+
+  /* Bil. */
+  .sitrep-table th:first-child,
+  .sitrep-table td:first-child{
+    width:60px !important;
+    text-align:center !important;
+  }
+
+  /* Masa Dihantar */
+  .sitrep-table th:nth-child(3),
+  .sitrep-table td:nth-child(3){
+    width:220px !important;
+    text-align:center !important;
+    vertical-align:middle !important;
+    white-space:nowrap !important;
+  }
+
+  /* Tindakan */
+  .sitrep-table th:last-child,
+  .sitrep-table td:last-child{
+    width:300px !important;
+  }
+
+  .sitrep-table th:last-child{
+    text-align:center !important;
+    vertical-align:middle !important;
+  }
+
+  .sitrep-table td[data-label="Tindakan"]{
+    display:grid !important;
+    grid-template-columns:130px 130px !important;
+    gap:8px !important;
+    justify-content:center !important;
+    align-items:center !important;
+    width:300px !important;
+    min-width:300px !important;
+    padding-left:12px !important;
+    padding-right:12px !important;
+    box-sizing:border-box !important;
+    text-align:center !important;
+    vertical-align:middle !important;
+  }
+
+  .sitrep-table .sitrep-table-action{
+    width:130px !important;
+    min-width:130px !important;
+    max-width:130px !important;
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+    margin:0 !important;
+  }
+}
