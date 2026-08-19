@@ -1586,9 +1586,11 @@ function paparSenaraiLaporan() {
           <div
             class="actions"
             style="
-              display:flex;
-              gap:10px;
-              align-items:stretch;
+              display:grid !important;
+              grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) !important;
+              gap:10px !important;
+              width:100% !important;
+              align-items:stretch !important;
             "
           >
 
@@ -1596,8 +1598,17 @@ function paparSenaraiLaporan() {
               class="btn-main"
               type="button"
               style="
-                flex:1 1 0;
-                width:50%;
+                display:flex !important;
+                align-items:center !important;
+                justify-content:center !important;
+                width:100% !important;
+                min-width:0 !important;
+                height:46px !important;
+                min-height:46px !important;
+                max-height:46px !important;
+                margin:0 !important;
+                padding:0 16px !important;
+                box-sizing:border-box !important;
               "
               onclick="bukaLaporanPenyelia('${htmlPenyelia(
                 item.id
@@ -1613,8 +1624,17 @@ function paparSenaraiLaporan() {
                     class="btn-ok"
                     type="button"
                     style="
-                      flex:1 1 0;
-                      width:50%;
+                      display:flex !important;
+                      align-items:center !important;
+                      justify-content:center !important;
+                      width:100% !important;
+                      min-width:0 !important;
+                      height:46px !important;
+                      min-height:46px !important;
+                      max-height:46px !important;
+                      margin:0 !important;
+                      padding:0 16px !important;
+                      box-sizing:border-box !important;
                     "
                     onclick="tandaLaporanDibaca('${htmlPenyelia(
                       item.id
@@ -1628,10 +1648,15 @@ function paparSenaraiLaporan() {
                     class="btn-secondary"
                     type="button"
                     style="
-                      flex:1 1 0;
-                      width:50%;
-                      visibility:hidden;
-                      pointer-events:none;
+                      display:flex !important;
+                      width:100% !important;
+                      min-width:0 !important;
+                      height:46px !important;
+                      margin:0 !important;
+                      padding:0 16px !important;
+                      box-sizing:border-box !important;
+                      visibility:hidden !important;
+                      pointer-events:none !important;
                     "
                     tabindex="-1"
                     aria-hidden="true"
