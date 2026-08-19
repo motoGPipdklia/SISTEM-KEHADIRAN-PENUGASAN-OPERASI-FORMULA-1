@@ -2712,31 +2712,226 @@ function bukaCetakanAdmin(tajuk, kandungan) {
   tetingkap.document.close();
 }
 
+function normalisasiJenisTugasCetakAdmin(nilai) {
+  const jenis = atas(nilai)
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (jenis.includes("KAWALAN KESELAMATAN")) {
+    return "KAWALAN KESELAMATAN";
+  }
+
+  if (
+    jenis.includes("KAWALAN LALULINTAS") ||
+    jenis.includes("KAWALAN LALU LINTAS")
+  ) {
+    return "KAWALAN LALULINTAS";
+  }
+
+  if (jenis.includes("RONDAAN PENCEGAHAN JENAYAH NARKOTIK")) {
+    return "RONDAAN PENCEGAHAN JENAYAH NARKOTIK";
+  }
+
+  if (jenis.includes("RONDAAN PENCEGAHAN JENAYAH KOMERSIL")) {
+    return "RONDAAN PENCEGAHAN JENAYAH KOMERSIL";
+  }
+
+  if (jenis.includes("RONDAAN PENCEGAHAN JENAYAH")) {
+    return "RONDAAN PENCEGAHAN JENAYAH";
+  }
+
+  if (jenis.includes("BALAI POLIS BERGERAK")) {
+    return "BALAI POLIS BERGERAK";
+  }
+
+  if (jenis.includes("PONDOK POLIS")) {
+    return "PONDOK POLIS";
+  }
+
+  if (
+    jenis.includes("UNIT PEMUSNAH BOM") ||
+    jenis === "UPB"
+  ) {
+    return "UNIT PEMUSNAH BOM";
+  }
+
+  return jenis;
+}
+
+
+function nilaiAdaTiadaCetakAdmin(objek) {
+  if (!objek || typeof objek !== "object") {
+    return teks(objek) || "TIADA";
+  }
+
+  const status = atas(objek.status);
+  const butiran = teks(objek.butiran);
+
+  if (status === "ADA") {
+    return butiran || "ADA";
+  }
+
+  return "TIADA";
+}
+
+
+function medanDinamikCetakLaporanAdmin(item) {
+  const tugasItem = item.penugasan || {};
+
+  const jenis = normalisasiJenisTugasCetakAdmin(
+    item.jenis_tugas ||
+    tugasItem.jenis_tugas ||
+    "-"
+  );
+
+  const data =
+    item.data_laporan &&
+    typeof item.data_laporan === "object"
+      ? item.data_laporan
+      : {};
+
+  /*
+    Laporan lama: kekalkan paparan asal jika data_laporan kosong.
+  */
+  if (!Object.keys(data).length) {
+    return [
+      ["Jumlah Pengunjung", item.jumlah_pengunjung ?? "-"],
+      ["Jumlah Kenderaan", item.jumlah_kenderaan ?? "-"],
+      ["VVIP / VIP", item.vvip_vip || "TIADA"],
+      ["Perkara Menarik", item.perkara_menarik || "TIADA"]
+    ];
+  }
+
+
+  if (jenis === "KAWALAN KESELAMATAN") {
+    const kenderaan =
+      data.kenderaan &&
+      typeof data.kenderaan === "object"
+        ? data.kenderaan
+        : {};
+
+    return [
+      ["Keadaan Keselamatan", data.keadaan_keselamatan || "-"],
+      ["Jumlah Pengunjung", data.jumlah_pengunjung ?? item.jumlah_pengunjung ?? 0],
+      ["Jumlah Kenderaan", kenderaan.jumlah ?? item.jumlah_kenderaan ?? 0],
+      ["Bas", kenderaan.bas ?? 0],
+      ["Motosikal", kenderaan.motosikal ?? 0],
+      ["Motokar", kenderaan.motokar ?? 0],
+      ["VVIP / VIP", nilaiAdaTiadaCetakAdmin(data.vvip_vip)],
+      ["Catatan", data.catatan || item.perkara_menarik || "TIADA"]
+    ];
+  }
+
+
+  if (jenis === "KAWALAN LALULINTAS") {
+    return [
+      ["Keadaan Trafik", data.keadaan_trafik || "-"],
+      ["Jumlah Kenderaan", data.jumlah_kenderaan ?? item.jumlah_kenderaan ?? 0],
+      ["Kemalangan", nilaiAdaTiadaCetakAdmin(data.kemalangan)],
+      ["Catatan / Tindakan", data.catatan_tindakan || item.perkara_menarik || "TIADA"]
+    ];
+  }
+
+
+  if (
+    jenis === "RONDAAN PENCEGAHAN JENAYAH" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH NARKOTIK" ||
+    jenis === "RONDAAN PENCEGAHAN JENAYAH KOMERSIL"
+  ) {
+    const pemeriksaan =
+      data.pemeriksaan &&
+      typeof data.pemeriksaan === "object"
+        ? data.pemeriksaan
+        : {};
+
+    return [
+      ["Lokasi Rondaan", data.lokasi_rondaan || "-"],
+      ["Jumlah Pemeriksaan", pemeriksaan.jumlah ?? 0],
+      ["Lelaki", pemeriksaan.lelaki ?? 0],
+      ["Perempuan", pemeriksaan.perempuan ?? 0],
+      ["Tangkapan", nilaiAdaTiadaCetakAdmin(data.tangkapan)],
+      ["Rampasan", nilaiAdaTiadaCetakAdmin(data.rampasan)],
+      ["Catatan / No. Repot", data.catatan_no_repot || item.perkara_menarik || "TIADA"]
+    ];
+  }
+
+
+  if (
+    jenis === "BALAI POLIS BERGERAK" ||
+    jenis === "PONDOK POLIS"
+  ) {
+    return [
+      ["No. Repot", data.no_repot || "TIADA"],
+      ["Catatan", data.catatan || item.perkara_menarik || "TIADA"]
+    ];
+  }
+
+
+  if (jenis === "UNIT PEMUSNAH BOM") {
+    return [
+      ["Lokasi", data.lokasi || "-"],
+      ["VVIP / VIP", nilaiAdaTiadaCetakAdmin(data.vvip_vip)],
+      ["Jenis Ancaman", nilaiAdaTiadaCetakAdmin(data.jenis_ancaman)],
+      ["Catatan", data.catatan || item.perkara_menarik || "TIADA"]
+    ];
+  }
+
+
+  return [
+    ["Jumlah Pengunjung", item.jumlah_pengunjung ?? "-"],
+    ["Jumlah Kenderaan", item.jumlah_kenderaan ?? "-"],
+    ["VVIP / VIP", item.vvip_vip || "TIADA"],
+    ["Perkara Menarik", item.perkara_menarik || "TIADA"]
+  ];
+}
+
+
 function cetakLaporanPetugasAdmin(id) {
-  const item = dataLaporanPetugasAdmin.find(rekod => String(rekod.id) === String(id));
-  if (!item) return alert("Rekod laporan tidak ditemui.");
+  const item = dataLaporanPetugasAdmin.find(
+    rekod => String(rekod.id) === String(id)
+  );
+
+  if (!item) {
+    return alert("Rekod laporan tidak ditemui.");
+  }
 
   const profil = item.profil || {};
   const tugasItem = item.penugasan || {};
-  const nama = [profil.pangkat, profil.nama].filter(Boolean).join(" ") || "-";
+
+  const nama =
+    [profil.pangkat, profil.nama]
+      .filter(Boolean)
+      .join(" ") || "-";
+
+  const jenisTugas =
+    item.jenis_tugas ||
+    tugasItem.jenis_tugas ||
+    "-";
+
   const medan = [
     ["Petugas", nama],
     ["No Badan", profil.no_badan || "-"],
     ["Call Sign", tugasItem.call_sign || "-"],
-    ["Jenis Tugas", tugasItem.jenis_tugas || "-"],
+    ["Jenis Tugas", jenisTugas],
     ["Tempat Tugas", tugasItem.tempat_tugas || tugasItem.lokasi || "-"],
     ["Tarikh / Masa", formatMasaLaporanAdmin(item.tarikh_masa)],
-    ["Jumlah Pengunjung", item.jumlah_pengunjung ?? "-"],
-    ["Jumlah Kenderaan", item.jumlah_kenderaan ?? "-"],
-    ["VVIP / VIP", item.vvip_vip || "-"],
-    ["Perkara Menarik", item.perkara_menarik || "-"],
+
+    ...medanDinamikCetakLaporanAdmin(item),
+
     ["Dibaca Pada", formatMasaLaporanAdmin(item.dibaca_pada)]
   ];
 
-  bukaCetakanAdmin("LAPORAN PETUGAS", medan.map(([label, nilai]) =>
-    `<div class="field"><strong>${escapeHtml(label)}</strong>${escapeHtml(nilai)}</div>`
-  ).join(""));
+  bukaCetakanAdmin(
+    "LAPORAN PETUGAS",
+    medan.map(([label, nilai]) =>
+      `<div class="field">` +
+        `<strong>${escapeHtml(label)}</strong>` +
+        `${escapeHtml(nilai ?? "-")}` +
+      `</div>`
+    ).join("")
+  );
 }
+
 
 function cetakSitrepAdmin(id) {
   const item = dataSitrepAdmin.find(rekod => String(rekod.id) === String(id));
