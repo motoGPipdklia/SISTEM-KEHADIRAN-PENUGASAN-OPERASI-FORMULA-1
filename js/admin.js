@@ -993,7 +993,6 @@ function paparJadual() {
           <button
             class="reset-device"
             type="button"
-            ${item.deviceId ? "" : "disabled"}
             onclick="bukaModalResetDevice('${escapeHtml(item.petugasId)}')"
           >
             RESET DEVICE
@@ -2066,9 +2065,14 @@ function bukaModalResetDevice(petugasId) {
   el("maklumatResetDevice").innerHTML = `
     <strong>${escapeHtml(rekod.pangkat)} ${escapeHtml(rekod.nama)}</strong><br>
     No Badan: ${escapeHtml(rekod.noBadan)}<br>
-    Device ID: ${escapeHtml(rekod.deviceId || "-")}<br><br>
-    <strong>Perhatian:</strong> Hanya ikatan Device ID akan dibuang.
-    Rekod Check-In, Check-Out dan status kehadiran petugas akan dikekalkan.
+    Device ID Terikat: ${escapeHtml(rekod.deviceId || "TIADA")}<br><br>
+
+    <strong>Fungsi Reset:</strong><br>
+    Sebarang ikatan peranti petugas ini akan dibuang.
+    Rekod Check-In, Check-Out dan status kehadiran akan <strong>DIKEKALKAN</strong>.<br><br>
+
+    Selepas reset, petugas boleh login menggunakan telefon mereka sendiri
+    dan telefon tersebut akan didaftarkan sebagai peranti petugas.
   `;
   el("statusModalResetDevice").innerHTML = "";
   el("modalResetDevice").style.display = "block";
@@ -2085,13 +2089,22 @@ async function hantarResetDevice() {
   const butang = el("btnSahkanResetDevice");
 
   if (!confirm(
-    `Sahkan reset Device ID untuk ${rekodResetDevice.noBadan}? Rekod kehadiran akan dikekalkan.`
+    `Sahkan RESET DEVICE untuk ${rekodResetDevice.noBadan}? ` +
+    "Rekod Check-In, Check-Out dan status kehadiran akan dikekalkan."
   )) return;
 
   butang.disabled = true;
   butang.textContent = "SEDANG RESET...";
 
   try {
+    /*
+      RPC ini hanya membuang device_bindings petugas.
+      Ia TIDAK menyentuh:
+      - checkin
+      - checkout
+      - penugasan
+      - device_whitelist / Peranti Khas Admin
+    */
     const hasil = await denganHadMasa(
       db.rpc("nyahikat_peranti_petugas", {
         p_no_badan: rekodResetDevice.noBadan
@@ -2103,30 +2116,56 @@ async function hantarResetDevice() {
         `${hasil.error.code || ""} ${hasil.error.message || ""}`
       )) {
         throw new Error(
-          "Fungsi nyahikat_peranti_petugas belum tersedia dalam Supabase Formula 1."
+          "Fungsi nyahikat_peranti_petugas belum dipasang atau belum dikemas kini dalam Supabase."
         );
       }
+
       throw hasil.error;
     }
+
     if (!hasil.data || hasil.data.success !== true) {
-      throw new Error(hasil.data?.message || "Device ID gagal direset.");
+      throw new Error(
+        hasil.data?.message ||
+        "Reset Device gagal."
+      );
     }
 
     paparMesej(
       "statusModalResetDevice",
-      escapeHtml(
-        hasil.data.message ||
-        "Device ID berjaya direset. Rekod kehadiran dikekalkan."
-      ),
+      `<strong>RESET DEVICE BERJAYA.</strong><br>` +
+      `${escapeHtml(hasil.data.message || "Ikatan peranti telah dibuang.")}<br><br>` +
+      `Rekod kehadiran dikekalkan. Petugas kini boleh login menggunakan telefon mereka sendiri.`,
       "success"
     );
+
+    /*
+      Kemas kini data tempatan terus supaya butang/status tidak
+      bergantung kepada cache lama.
+    */
+    const idPetugas = rekodResetDevice.petugasId;
+
+    dataDashboard.forEach(item => {
+      if (item.petugasId === idPetugas) {
+        item.deviceId = "";
+        item.deviceDiikatPada = null;
+        item.deviceKaliTerakhir = null;
+      }
+    });
+
     setTimeout(async () => {
       tutupModalResetDevice();
       await muatData(false);
-    }, 1000);
+    }, 1300);
+
   } catch (error) {
     console.error("Reset Device gagal:", error);
-    paparMesej("statusModalResetDevice", escapeHtml(error.message), "error");
+
+    paparMesej(
+      "statusModalResetDevice",
+      `Reset Device gagal: ${escapeHtml(error.message)}`,
+      "error"
+    );
+
   } finally {
     butang.disabled = false;
     butang.textContent = "SAHKAN RESET DEVICE";
