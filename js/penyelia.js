@@ -1692,45 +1692,41 @@ function paparSenaraiLaporan() {
               )}
             </div>
 
-            <div class="label">
-              ${htmlPenyelia(
-                ringkasan.label1
-              )}
-            </div>
+            ${
+              ringkasan.label1
+                ? `
+                  <div class="label">${htmlPenyelia(ringkasan.label1)}</div>
+                  <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai1)}</div>
+                `
+                : ""
+            }
 
-            <div style="white-space:pre-line;">${htmlPenyelia(
-              ringkasan.nilai1
-            )}</div>
+            ${
+              ringkasan.label2
+                ? `
+                  <div class="label">${htmlPenyelia(ringkasan.label2)}</div>
+                  <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai2)}</div>
+                `
+                : ""
+            }
 
-            <div class="label">
-              ${htmlPenyelia(
-                ringkasan.label2
-              )}
-            </div>
+            ${
+              ringkasan.label3
+                ? `
+                  <div class="label">${htmlPenyelia(ringkasan.label3)}</div>
+                  <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai3)}</div>
+                `
+                : ""
+            }
 
-            <div style="white-space:pre-line;">${htmlPenyelia(
-              ringkasan.nilai2
-            )}</div>
-
-            <div class="label">
-              ${htmlPenyelia(
-                ringkasan.label3
-              )}
-            </div>
-
-            <div style="white-space:pre-line;">${htmlPenyelia(
-              ringkasan.nilai3
-            )}</div>
-
-            <div class="label">
-              ${htmlPenyelia(
-                ringkasan.label4
-              )}
-            </div>
-
-            <div class="teks-ringkas" style="white-space:pre-line;">${htmlPenyelia(
-              ringkasan.nilai4
-            )}</div>
+            ${
+              ringkasan.label4
+                ? `
+                  <div class="label">${htmlPenyelia(ringkasan.label4)}</div>
+                  <div class="teks-ringkas" style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai4)}</div>
+                `
+                : ""
+            }
 
           </div>
 
