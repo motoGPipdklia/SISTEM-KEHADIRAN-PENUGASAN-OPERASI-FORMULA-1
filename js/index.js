@@ -272,15 +272,44 @@ function formatTempoh(minit) {
   if (!Number.isFinite(Number(minit))) return "-";
   const m = Math.max(0, Number(minit)); return `${Math.floor(m / 60)} jam ${Math.round(m % 60)} minit`;
 }
-function petugasLayakHantarLaporan(t) { return !!t && (nilaiBoolean(t.penyelia) || nilaiBoolean(t.pemegangSet)); }
+function petugasLayakHantarLaporan(t) {
+  if (!t) return false;
+
+  const ialahPenyelia = atas(t.penyelia) === "YA";
+  const ialahPemegangSet = atas(t.pemegangSet) === "YA";
+
+  return ialahPenyelia || ialahPemegangSet;
+}
+
 function kemasKiniButangPelaporan(t) {
-  const b = el("btnLaporan"); if (!b) return;
+  const b = el("btnLaporan");
+  const skrinLaporan = el("laporan");
+  const ruangBorang = el("borangLaporanDinamik");
+
+  if (!b) return;
+
   const layak = petugasLayakHantarLaporan(t);
-  b.style.display = layak ? "block" : "none";
-  b.disabled = !(layak && statusKehadiranSemasa === "HADIR" && !sudahCheckOutSemasa);
-  b.textContent = !layak ? "HANTAR PELAPORAN" : sudahCheckOutSemasa
+
+  /* Bukan Penyelia dan bukan Pemegang Set: tiada akses pelaporan. */
+  if (!layak) {
+    b.style.display = "none";
+    b.disabled = true;
+    b.textContent = "HANTAR PELAPORAN";
+
+    if (ruangBorang) ruangBorang.innerHTML = "";
+    if (skrinLaporan) skrinLaporan.style.display = "none";
+
+    return;
+  }
+
+  b.style.display = "block";
+  b.disabled = !(statusKehadiranSemasa === "HADIR" && !sudahCheckOutSemasa);
+
+  b.textContent = sudahCheckOutSemasa
     ? "PELAPORAN DITUTUP SELEPAS CHECK-OUT"
-    : statusKehadiranSemasa !== "HADIR" ? "PELAPORAN MENUNGGU PENGESAHAN URUSETIA" : "HANTAR PELAPORAN";
+    : statusKehadiranSemasa !== "HADIR"
+      ? "PELAPORAN MENUNGGU PENGESAHAN URUSETIA"
+      : "HANTAR PELAPORAN";
 }
 
 function mulaCheckin() { bukaSkrinGps("checkin"); }
@@ -430,13 +459,24 @@ function normalisasiJenisTugasPelaporan(nilai) {
 }
 
 function bukaLaporan() {
-  if (!petugasLayakHantarLaporan(tugas) || statusKehadiranSemasa !== "HADIR" || sudahCheckOutSemasa) {
-    alert("Pelaporan hanya dibenarkan selepas kehadiran disahkan, sebelum Check-Out, kepada Penyelia atau Pemegang Set.");
+  if (!tugas) {
+    alert("Maklumat tugasan tidak dijumpai.");
     return;
   }
 
-  if (!tugas) {
-    alert("Maklumat tugasan tidak dijumpai.");
+  /* Perlindungan utama: hanya Penyelia atau Pemegang Set. */
+  if (!petugasLayakHantarLaporan(tugas)) {
+    const ruangBorang = el("borangLaporanDinamik");
+
+    if (ruangBorang) ruangBorang.innerHTML = "";
+    if (el("laporan")) el("laporan").style.display = "none";
+
+    alert("Borang pelaporan hanya disediakan kepada Penyelia atau Pemegang Set.");
+    return;
+  }
+
+  if (statusKehadiranSemasa !== "HADIR" || sudahCheckOutSemasa) {
+    alert("Pelaporan hanya dibenarkan selepas kehadiran disahkan dan sebelum Check-Out.");
     return;
   }
 
