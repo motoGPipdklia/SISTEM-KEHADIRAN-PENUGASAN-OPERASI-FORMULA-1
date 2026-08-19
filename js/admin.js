@@ -26,6 +26,11 @@ let importSedangBerjalan = false;
 let rekodImportPengguna = [];
 let importPenggunaSedangBerjalan = false;
 
+/* Peranti khas Pentadbir Formula 1 */
+const KUNCI_DEVICE_F1_ADMIN = "skpoF1DeviceId";
+const HAD_PERANTI_KHAS_ADMIN = 2;
+let dataPerantiKhasAdmin = [];
+
 function el(id) {
   return document.getElementById(id);
 }
@@ -273,6 +278,290 @@ function semakPerananPentadbir(profil) {
 }
 
 /* ================================================================
+   PERANTI KHAS PENTADBIR
+================================================================ */
+
+function dapatkanDeviceIdAdmin() {
+  let id = localStorage.getItem(KUNCI_DEVICE_F1_ADMIN);
+
+  if (!id) {
+    const rawak =
+      window.crypto?.randomUUID?.() ||
+      "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, aksara => {
+        const nombor = Math.random() * 16 | 0;
+        const nilai = aksara === "x" ? nombor : (nombor & 3 | 8);
+        return nilai.toString(16);
+      });
+
+    id = `F1-DEV-${rawak.toUpperCase()}`;
+    localStorage.setItem(KUNCI_DEVICE_F1_ADMIN, id);
+  }
+
+  return id;
+}
+
+function jenisPerantiSemasaAdmin() {
+  const ua = String(navigator.userAgent || "").toLowerCase();
+
+  if (
+    /android|iphone|ipad|ipod|mobile|windows phone/.test(ua)
+  ) {
+    return "TELEFON";
+  }
+
+  return "LAPTOP";
+}
+
+function paparanStatusPerantiKhasAdmin(aktif) {
+  const ruang = el("statusPerantiKhasAdmin");
+  const btnTambah = el("btnJadikanPerantiKhas");
+  const btnBuang = el("btnBuangPerantiKhas");
+
+  if (ruang) {
+    ruang.innerHTML = aktif
+      ? '<span class="badge badge-green">PERANTI KHAS AKTIF</span>'
+      : '<span class="badge badge-gray">BUKAN PERANTI KHAS</span>';
+  }
+
+  if (btnTambah) btnTambah.disabled = aktif;
+  if (btnBuang) btnBuang.disabled = !aktif;
+}
+
+async function muatPerantiKhasAdmin() {
+  if (!adminLogin) return;
+
+  const deviceId = dapatkanDeviceIdAdmin();
+  const jenis = jenisPerantiSemasaAdmin();
+
+  if (el("deviceIdAdmin")) {
+    el("deviceIdAdmin").textContent = deviceId;
+  }
+
+  if (el("jenisPerantiAdmin")) {
+    el("jenisPerantiAdmin").textContent = jenis;
+  }
+
+  try {
+    const { data, error } = await denganHadMasa(
+      db.from("device_whitelist")
+        .select("device_id,akses_semua_petugas,catatan,aktif")
+        .eq("akses_semua_petugas", true)
+        .order("device_id", { ascending: true })
+    );
+
+    if (error) throw error;
+
+    dataPerantiKhasAdmin = data || [];
+
+    const perantiSemasa = dataPerantiKhasAdmin.find(
+      item => atas(item.device_id) === atas(deviceId) && item.aktif !== false
+    );
+
+    paparanStatusPerantiKhasAdmin(Boolean(perantiSemasa));
+
+    const tbody = el("tbodyPerantiKhasAdmin");
+    if (tbody) {
+      if (!dataPerantiKhasAdmin.length) {
+        tbody.innerHTML =
+          '<tr><td colspan="4" class="empty-row">Belum ada peranti khas didaftarkan.</td></tr>';
+      } else {
+        tbody.innerHTML = dataPerantiKhasAdmin.map((item, index) => {
+          const catatan = teks(item.catatan) || "-";
+          const jenisPeranti =
+            /TELEFON/i.test(catatan) ? "TELEFON" :
+            /LAPTOP/i.test(catatan) ? "LAPTOP" : "-";
+
+          return `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${escapeHtml(jenisPeranti)}</td>
+              <td style="word-break:break-all">${escapeHtml(item.device_id || "-")}</td>
+              <td>${escapeHtml(catatan)}</td>
+            </tr>
+          `;
+        }).join("");
+      }
+    }
+
+    const statusBox = el("mesejPerantiKhasAdmin");
+    if (statusBox && !statusBox.innerHTML) {
+      statusBox.style.display = "none";
+    }
+
+  } catch (error) {
+    console.error("Gagal memuatkan peranti khas:", error);
+    paparanStatusPerantiKhasAdmin(false);
+
+    paparMesej(
+      "mesejPerantiKhasAdmin",
+      `Gagal menyemak peranti khas: ${escapeHtml(error.message)}. ` +
+      "Pastikan kolum akses_semua_petugas dan catatan telah diwujudkan dalam device_whitelist.",
+      "error"
+    );
+  }
+}
+
+async function salinDeviceIdAdmin() {
+  const deviceId = dapatkanDeviceIdAdmin();
+
+  try {
+    await navigator.clipboard.writeText(deviceId);
+    paparMesej(
+      "mesejPerantiKhasAdmin",
+      "Device ID berjaya disalin.",
+      "success"
+    );
+  } catch (_) {
+    window.prompt("Salin Device ID ini:", deviceId);
+  }
+}
+
+async function jadikanPerantiKhasAdmin() {
+  if (!adminLogin) return;
+
+  const deviceId = dapatkanDeviceIdAdmin();
+  const jenis = jenisPerantiSemasaAdmin();
+  const btn = el("btnJadikanPerantiKhas");
+
+  btn.disabled = true;
+  btn.textContent = "SEDANG MENDAFTAR...";
+
+  try {
+    const { data: sediaAda, error: semakError } = await denganHadMasa(
+      db.from("device_whitelist")
+        .select("device_id,akses_semua_petugas,catatan,aktif")
+        .eq("akses_semua_petugas", true)
+    );
+
+    if (semakError) throw semakError;
+
+    const senaraiAktif = (sediaAda || []).filter(item => item.aktif !== false);
+    const sudahAda = senaraiAktif.some(
+      item => atas(item.device_id) === atas(deviceId)
+    );
+
+    if (!sudahAda && senaraiAktif.length >= HAD_PERANTI_KHAS_ADMIN) {
+      throw new Error(
+        "Had maksimum 2 peranti khas telah dicapai. Buang salah satu peranti khas dahulu."
+      );
+    }
+
+    const jenisSudahAda = senaraiAktif.some(item => {
+      if (atas(item.device_id) === atas(deviceId)) return false;
+      const catatan = atas(item.catatan);
+      return jenis === "TELEFON"
+        ? catatan.includes("TELEFON")
+        : catatan.includes("LAPTOP");
+    });
+
+    if (!sudahAda && jenisSudahAda) {
+      throw new Error(
+        `Satu peranti khas jenis ${jenis} sudah didaftarkan. ` +
+        `Sistem hanya membenarkan 1 LAPTOP dan 1 TELEFON.`
+      );
+    }
+
+    const payload = {
+      device_id: deviceId,
+      akses_semua_petugas: true,
+      aktif: true,
+      catatan: `PERANTI KHAS ADMINF1 - ${jenis}`
+    };
+
+    /*
+      Cuba UPSERT terus ke device_whitelist.
+      device_id perlu mempunyai UNIQUE constraint.
+    */
+    const { error } = await denganHadMasa(
+      db.from("device_whitelist")
+        .upsert(payload, { onConflict: "device_id" })
+    );
+
+    if (error) throw error;
+
+    paparMesej(
+      "mesejPerantiKhasAdmin",
+      `<strong>PERANTI KHAS BERJAYA DIAKTIFKAN.</strong><br>` +
+      `${escapeHtml(jenis)} ini kini boleh digunakan untuk login sebagai petugas lain.`,
+      "success"
+    );
+
+    await muatPerantiKhasAdmin();
+
+  } catch (error) {
+    console.error("Gagal menjadikan peranti khas:", error);
+
+    const tambahan =
+      /row-level security|permission denied|policy/i.test(error.message || "")
+        ? " Semak RLS/policy INSERT dan UPDATE pada table device_whitelist."
+        : /duplicate|unique|on conflict/i.test(error.message || "")
+          ? " Pastikan device_whitelist.device_id mempunyai UNIQUE constraint."
+          : "";
+
+    paparMesej(
+      "mesejPerantiKhasAdmin",
+      `Gagal mendaftarkan peranti khas: ${escapeHtml(error.message)}${escapeHtml(tambahan)}`,
+      "error"
+    );
+
+  } finally {
+    btn.textContent = "JADIKAN PERANTI KHAS";
+    const aktif = dataPerantiKhasAdmin.some(
+      item => atas(item.device_id) === atas(deviceId) && item.aktif !== false
+    );
+    btn.disabled = aktif;
+  }
+}
+
+async function buangPerantiKhasAdmin() {
+  if (!adminLogin) return;
+
+  const deviceId = dapatkanDeviceIdAdmin();
+
+  if (!confirm(
+    "Buang status PERANTI KHAS daripada peranti ini? " +
+    "Selepas dibuang, peranti ini akan kembali tertakluk kepada kawalan device binding biasa."
+  )) return;
+
+  const btn = el("btnBuangPerantiKhas");
+  btn.disabled = true;
+  btn.textContent = "SEDANG MEMBUANG...";
+
+  try {
+    const { error } = await denganHadMasa(
+      db.from("device_whitelist")
+        .update({
+          akses_semua_petugas: false,
+          aktif: false
+        })
+        .eq("device_id", deviceId)
+    );
+
+    if (error) throw error;
+
+    paparMesej(
+      "mesejPerantiKhasAdmin",
+      "Status peranti khas berjaya dibuang.",
+      "success"
+    );
+
+    await muatPerantiKhasAdmin();
+
+  } catch (error) {
+    console.error("Gagal membuang peranti khas:", error);
+
+    paparMesej(
+      "mesejPerantiKhasAdmin",
+      `Gagal membuang peranti khas: ${escapeHtml(error.message)}`,
+      "error"
+    );
+
+  } finally {
+    btn.textContent = "BUANG PERANTI KHAS";
+  }
+}
+
+/* ================================================================
    LOGIN DAN SESI
 ================================================================ */
 
@@ -368,6 +657,7 @@ if (!semakPerananPentadbir(profil)) {
 
     paparMesej("loginStatus", "", "success");
     await muatData(true);
+    await muatPerantiKhasAdmin();
   } catch (error) {
     console.error("Login Pentadbir gagal:", error);
     await db?.auth?.signOut().catch(() => {});
@@ -433,6 +723,7 @@ if (!semakPerananPentadbir(profil)) {
     ].filter(Boolean).join(" ");
 
     await muatData(true);
+    await muatPerantiKhasAdmin();
   } catch (error) {
     console.error("Pemulihan sesi Pentadbir gagal:", error);
     paparMesej("loginStatus", escapeHtml(error.message), "error");
