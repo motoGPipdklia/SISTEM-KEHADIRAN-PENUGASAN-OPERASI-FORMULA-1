@@ -6943,25 +6943,25 @@ function paparCartaVvipVipPentadbir() {
     senarai.map((item, index) => {
       const butiran = [
         item.jawatan
-          ? `<div><span>Jawatan</span><b>${escapeHtml(item.jawatan)}</b></div>`
+          ? `<div><span>Jawatan :</span><b>${escapeHtml(item.jawatan)}</b></div>`
           : "",
         item.agensi
-          ? `<div><span>Agensi / Organisasi</span><b>${escapeHtml(item.agensi)}</b></div>`
+          ? `<div><span>Agensi / Organisasi :</span><b>${escapeHtml(item.agensi)}</b></div>`
           : "",
         item.lokasi
-          ? `<div><span>Lokasi</span><b>${escapeHtml(item.lokasi)}</b></div>`
+          ? `<div><span>Lokasi :</span><b>${escapeHtml(item.lokasi)}</b></div>`
           : "",
         item.masaTiba
-          ? `<div><span>Masa Ketibaan</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaTiba))}</b></div>`
+          ? `<div><span>Masa Ketibaan :</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaTiba))}</b></div>`
           : "",
         item.masaBeredar
-          ? `<div><span>Masa Beredar</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaBeredar))}</b></div>`
+          ? `<div><span>Masa Beredar :</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaBeredar))}</b></div>`
           : "",
         item.tujuan
-          ? `<div><span>Tujuan / Aktiviti</span><b>${escapeHtml(item.tujuan)}</b></div>`
+          ? `<div><span>Tujuan / Aktiviti :</span><b>${escapeHtml(item.tujuan)}</b></div>`
           : "",
         item.catatan
-          ? `<div><span>Catatan</span><b>${escapeHtml(item.catatan)}</b></div>`
+          ? `<div><span>Catatan :</span><b>${escapeHtml(item.catatan)}</b></div>`
           : ""
       ]
         .filter(Boolean)
