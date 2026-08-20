@@ -1357,7 +1357,169 @@ async function muatLaporanPenyelia() {
    PAPAR SENARAI LAPORAN
 ================================================================ */
 
+
+function pastikanPilihanPenapisLaporanPenyelia() {
+  const penapis =
+    elemenPenyelia("penapisLaporan");
+
+  if (!penapis) {
+    return;
+  }
+
+  const nilaiSemasa =
+    penapis.value || "SEMUA";
+
+  const pilihan = [
+    {
+      value: "SEMUA",
+      label: "SEMUA"
+    },
+    {
+      value: "BELUM DIBACA",
+      label: "BELUM DIBACA"
+    },
+    {
+      value: "TELAH DIBACA",
+      label: "TELAH DIBACA"
+    },
+
+    /*
+      VVIP hanya merujuk kepada laporan yang datang
+      daripada JENIS TUGAS = LITUPAN KESELAMATAN.
+    */
+    {
+      value: "LAPORAN VVIP",
+      label: "VVIP"
+    },
+
+    {
+      value: "LAPORAN PENGUNJUNG",
+      label: "PENGUNJUNG"
+    },
+    {
+      value: "LAPORAN JENAYAH",
+      label: "JENAYAH"
+    },
+    {
+      value: "LAPORAN JENAYAH NARKOTIK",
+      label: "JENAYAH NARKOTIK"
+    },
+    {
+      value: "LAPORAN JENAYAH KOMERSIL",
+      label: "JENAYAH KOMERSIL"
+    },
+    {
+      value: "LAPORAN BALAI / PONDOK POLIS",
+      label: "BALAI POLIS BERGERAK / PONDOK POLIS"
+    },
+    {
+      value: "LAPORAN UNIT PEMUSNAH BOM",
+      label: "UNIT PEMUSNAH BOM"
+    },
+    {
+      value: "LAPORAN KAWALAN LALULINTAS",
+      label: "KAWALAN LALULINTAS"
+    }
+  ];
+
+  const htmlPilihan =
+    pilihan.map(item => `
+      <option value="${htmlPenyelia(item.value)}">
+        ${htmlPenyelia(item.label)}
+      </option>
+    `).join("");
+
+  /*
+    Bina semula pilihan jika pilihan VVIP/kategori belum ada.
+    Ini membolehkan HTML lama yang hanya mempunyai
+    SEMUA / BELUM DIBACA / TELAH DIBACA terus digunakan.
+  */
+  const sudahLengkap =
+    Array.from(penapis.options || [])
+      .some(option =>
+        option.value === "LAPORAN VVIP"
+      ) &&
+    Array.from(penapis.options || [])
+      .some(option =>
+        option.value === "LAPORAN PENGUNJUNG"
+      );
+
+  if (!sudahLengkap) {
+    penapis.innerHTML = htmlPilihan;
+  }
+
+  const nilaiMasihSah =
+    Array.from(penapis.options || [])
+      .some(option =>
+        option.value === nilaiSemasa
+      );
+
+  penapis.value =
+    nilaiMasihSah
+      ? nilaiSemasa
+      : "SEMUA";
+}
+
+
+function kategoriLaporanPenyelia(item) {
+  const jenis =
+    normalisasiJenisTugasLaporanPenyelia(
+      item?.jenisTugas ||
+      item?.tugas?.jenis_tugas
+    );
+
+  /*
+    PENTING:
+    VVIP hanya sumber daripada LITUPAN KESELAMATAN.
+  */
+  if (jenis === "LITUPAN KESELAMATAN") {
+    return "LAPORAN VVIP";
+  }
+
+  if (jenis === "KAWALAN KESELAMATAN") {
+    return "LAPORAN PENGUNJUNG";
+  }
+
+  if (jenis === "RONDAAN PENCEGAHAN JENAYAH") {
+    return "LAPORAN JENAYAH";
+  }
+
+  if (
+    jenis ===
+    "RONDAAN PENCEGAHAN JENAYAH NARKOTIK"
+  ) {
+    return "LAPORAN JENAYAH NARKOTIK";
+  }
+
+  if (
+    jenis ===
+    "RONDAAN PENCEGAHAN JENAYAH KOMERSIL"
+  ) {
+    return "LAPORAN JENAYAH KOMERSIL";
+  }
+
+  if (
+    jenis === "BALAI POLIS BERGERAK" ||
+    jenis === "PONDOK POLIS"
+  ) {
+    return "LAPORAN BALAI / PONDOK POLIS";
+  }
+
+  if (jenis === "UNIT PEMUSNAH BOM") {
+    return "LAPORAN UNIT PEMUSNAH BOM";
+  }
+
+  if (jenis === "KAWALAN LALULINTAS") {
+    return "LAPORAN KAWALAN LALULINTAS";
+  }
+
+  return "";
+}
+
+
 function paparSenaraiLaporan() {
+  pastikanPilihanPenapisLaporanPenyelia();
+
   const carian = atasPenyelia(
     elemenPenyelia(
       "carianLaporan"
@@ -1427,14 +1589,33 @@ function paparSenaraiLaporan() {
             carian
           );
 
-        const padanStatus =
-          penapis === "SEMUA" ||
-          penapis ===
-            statusBacaan;
+        const kategoriLaporan =
+          kategoriLaporanPenyelia(item);
+
+        let padanPenapis = false;
+
+        if (penapis === "SEMUA") {
+          padanPenapis = true;
+
+        } else if (
+          penapis === "BELUM DIBACA" ||
+          penapis === "TELAH DIBACA"
+        ) {
+          padanPenapis =
+            penapis === statusBacaan;
+
+        } else {
+          /*
+            Penapis kategori:
+            VVIP, Pengunjung, Jenayah dan sebagainya.
+          */
+          padanPenapis =
+            penapis === kategoriLaporan;
+        }
 
         return (
           padanCarian &&
-          padanStatus
+          padanPenapis
         );
       }
     );
