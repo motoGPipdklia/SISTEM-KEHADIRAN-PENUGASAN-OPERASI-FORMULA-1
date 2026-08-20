@@ -443,6 +443,7 @@ let dataPilihanPetugasJawatankuasaPentadbir = [];
 let rekodJawatankuasaSedangEditPentadbir = null;
 let dataVvipVipOperasiPentadbir = [];
 let rekodVvipVipSedangEditPentadbir = null;
+let idVvipVipDipilihPentadbir = "";
 let cartaKehadiranPentadbir = null;
 let statusKehadiranCartaDipilihPentadbir = "HADIR";
 let cartaInsidenPentadbir = null;
@@ -3989,7 +3990,7 @@ function kumpulanVvipVipCarta() {
       .filter(Boolean)
       .forEach(teksItem => {
         hasil.push({
-          id: `LAPORAN-${item.id || Math.random()}`,
+          id: `LAPORAN-${item.id || `${teks(item.tarikh_masa)}-${teksItem}`}`,
           jenisRekod: "LAPORAN",
           kategori: "VVIP / VIP",
           nama: teksItem,
@@ -6930,73 +6931,270 @@ function formatMasaVvipVipPentadbir(nilai) {
 }
 
 
+function sumberKawalanKeselamatanVvipVipPentadbir(item) {
+  return (
+    item?.jenisRekod === "LAPORAN" &&
+    atas(item?.sumber).includes("KAWALAN KESELAMATAN")
+  );
+}
+
+
+function kosongkanButiranVvipVipPentadbir() {
+  idVvipVipDipilihPentadbir = "";
+
+  const tajuk =
+    el("tajukButiranVvipVipPentadbir");
+
+  const ruang =
+    el("butiranVvipVipPentadbir");
+
+  if (tajuk) {
+    tajuk.textContent =
+      "PILIH VVIP / VIP";
+  }
+
+  if (ruang) {
+    ruang.innerHTML = `
+      <div class="admin-vvip-detail-empty">
+        <strong>KAWALAN KESELAMATAN</strong>
+        <p>
+          Klik nama VVIP / VIP daripada sumber Kawalan Keselamatan
+          untuk melihat butiran laporan.
+        </p>
+      </div>
+    `;
+  }
+}
+
+
+function pilihVvipVipPentadbir(id) {
+  const senarai =
+    kumpulanVvipVipCarta();
+
+  const item =
+    senarai.find(
+      rekod =>
+        teks(rekod.id) === teks(id)
+    );
+
+  /*
+    Rekod Urusetia / Pentadbir tidak membuka panel kanan.
+  */
+  if (
+    !item ||
+    !sumberKawalanKeselamatanVvipVipPentadbir(item)
+  ) {
+    return;
+  }
+
+  idVvipVipDipilihPentadbir =
+    item.id;
+
+  document
+    .querySelectorAll(
+      ".admin-vvip-name-item"
+    )
+    .forEach(elemen =>
+      elemen.classList.remove("active")
+    );
+
+  const aktif =
+    document.querySelector(
+      `.admin-vvip-name-item[data-vvip-id="${CSS.escape(String(item.id))}"]`
+    );
+
+  if (aktif) {
+    aktif.classList.add("active");
+  }
+
+  paparButiranVvipVipPentadbir(
+    item
+  );
+}
+
+
+function paparButiranVvipVipPentadbir(item) {
+  const tajuk =
+    el("tajukButiranVvipVipPentadbir");
+
+  const ruang =
+    el("butiranVvipVipPentadbir");
+
+  if (!tajuk || !ruang) return;
+
+  /*
+    Keselamatan tambahan:
+    panel kanan hanya untuk laporan Kawalan Keselamatan.
+  */
+  if (
+    !sumberKawalanKeselamatanVvipVipPentadbir(item)
+  ) {
+    kosongkanButiranVvipVipPentadbir();
+    return;
+  }
+
+  tajuk.textContent =
+    item.nama || "VVIP / VIP";
+
+  const butiran = [];
+
+  butiran.push(`
+    <div>
+      <span>Nama :</span>
+      <b>${escapeHtml(item.nama || "-")}</b>
+    </div>
+  `);
+
+  butiran.push(`
+    <div>
+      <span>Sumber :</span>
+      <b>${escapeHtml(item.sumber || "KAWALAN KESELAMATAN")}</b>
+    </div>
+  `);
+
+  if (item.tempatTugas) {
+    butiran.push(`
+      <div>
+        <span>Tempat Tugas :</span>
+        <b>${escapeHtml(item.tempatTugas)}</b>
+      </div>
+    `);
+  }
+
+  if (item.lokasi) {
+    butiran.push(`
+      <div>
+        <span>Lokasi :</span>
+        <b>${escapeHtml(item.lokasi)}</b>
+      </div>
+    `);
+  }
+
+  if (item.masaTiba) {
+    butiran.push(`
+      <div>
+        <span>Masa Ketibaan :</span>
+        <b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaTiba))}</b>
+      </div>
+    `);
+  }
+
+  if (item.jawatan) {
+    butiran.push(`
+      <div>
+        <span>Jawatan :</span>
+        <b>${escapeHtml(item.jawatan)}</b>
+      </div>
+    `);
+  }
+
+  if (item.agensi) {
+    butiran.push(`
+      <div>
+        <span>Agensi / Organisasi :</span>
+        <b>${escapeHtml(item.agensi)}</b>
+      </div>
+    `);
+  }
+
+  if (item.tujuan) {
+    butiran.push(`
+      <div class="admin-vvip-detail-wide">
+        <span>Tujuan / Aktiviti :</span>
+        <b>${escapeHtml(item.tujuan)}</b>
+      </div>
+    `);
+  }
+
+  if (item.catatan) {
+    butiran.push(`
+      <div class="admin-vvip-detail-wide">
+        <span>Catatan :</span>
+        <b>${escapeHtml(item.catatan)}</b>
+      </div>
+    `);
+  }
+
+  ruang.innerHTML = `
+    <div class="admin-vvip-detail-source">
+      LAPORAN KAWALAN KESELAMATAN
+    </div>
+
+    <div class="admin-vvip-detail-grid">
+      ${butiran.join("")}
+    </div>
+  `;
+}
+
+
 function paparCartaVvipVipPentadbir() {
   const ruang =
     el("senaraiCartaVvipVip");
+
+  const jumlah =
+    el("jumlahSenaraiVvipVipPentadbir");
 
   if (!ruang) return;
 
   const senarai =
     kumpulanVvipVipCarta();
 
+  if (jumlah) {
+    jumlah.textContent =
+      `${senarai.length.toLocaleString("ms-MY")} REKOD`;
+  }
+
   if (!senarai.length) {
     ruang.innerHTML =
       '<div class="empty-row">Tiada maklumat VVIP / VIP untuk tarikh ini.</div>';
+
+    kosongkanButiranVvipVipPentadbir();
     return;
+  }
+
+  /*
+    Jika rekod yang sedang dipilih sudah tiada selepas refresh,
+    kosongkan panel kanan.
+  */
+  if (
+    idVvipVipDipilihPentadbir &&
+    !senarai.some(
+      item =>
+        teks(item.id) ===
+        teks(idVvipVipDipilihPentadbir)
+    )
+  ) {
+    kosongkanButiranVvipVipPentadbir();
   }
 
   ruang.innerHTML =
     senarai.map((item, index) => {
-      const butiran = [
-        item.jawatan
-          ? `<div><span>Jawatan :</span><b>${escapeHtml(item.jawatan)}</b></div>`
-          : "",
-        item.agensi
-          ? `<div><span>Agensi / Organisasi :</span><b>${escapeHtml(item.agensi)}</b></div>`
-          : "",
+      const bolehBukaButiran =
+        sumberKawalanKeselamatanVvipVipPentadbir(
+          item
+        );
 
-        /*
-          Jika rekod datang daripada LAPORAN PETUGAS,
-          paparkan TEMPAT TUGAS. Untuk rekod manual
-          Urusetia/Pentadbir, kekalkan label LOKASI.
-        */
-        item.jenisRekod === "LAPORAN" && item.tempatTugas
-          ? `<div><span>Tempat Tugas :</span><b>${escapeHtml(item.tempatTugas)}</b></div>`
-          : item.lokasi
-            ? `<div><span>Lokasi :</span><b>${escapeHtml(item.lokasi)}</b></div>`
-            : "",
+      const aktif =
+        bolehBukaButiran &&
+        teks(item.id) ===
+          teks(idVvipVipDipilihPentadbir);
 
-        item.masaTiba
-          ? `<div><span>Masa Ketibaan :</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaTiba))}</b></div>`
-          : "",
-        item.masaBeredar
-          ? `<div><span>Masa Beredar :</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaBeredar))}</b></div>`
-          : "",
-        item.tujuan
-          ? `<div><span>Tujuan / Aktiviti :</span><b>${escapeHtml(item.tujuan)}</b></div>`
-          : "",
-        item.catatan
-          ? `<div><span>Catatan :</span><b>${escapeHtml(item.catatan)}</b></div>`
-          : ""
-      ]
-        .filter(Boolean)
-        .join("");
-
-      const tindakan =
+      const tindakanManual =
         item.jenisRekod === "MANUAL"
           ? `
-            <div class="admin-committee-row-actions">
+            <div class="admin-vvip-manual-actions">
               <button
                 class="admin-committee-edit-button"
                 type="button"
-                onclick="bukaEditVvipVipPentadbir('${escapeHtml(item.id)}')"
+                onclick="event.stopPropagation();bukaEditVvipVipPentadbir('${escapeHtml(item.id)}')"
               >
                 EDIT
               </button>
+
               <button
                 class="admin-committee-delete-button"
                 type="button"
-                onclick="padamVvipVipPentadbir('${escapeHtml(item.id)}')"
+                onclick="event.stopPropagation();padamVvipVipPentadbir('${escapeHtml(item.id)}')"
               >
                 PADAM
               </button>
@@ -7004,13 +7202,30 @@ function paparCartaVvipVipPentadbir() {
           `
           : "";
 
+      const petunjuk =
+        bolehBukaButiran
+          ? `
+            <span class="admin-vvip-open-hint">
+              KLIK UNTUK BUTIRAN
+            </span>
+          `
+          : "";
+
       return `
-        <article class="admin-chart-list-item">
-          <span class="admin-chart-list-number">
+        <article
+          class="admin-vvip-name-item ${bolehBukaButiran ? "clickable" : "manual"} ${aktif ? "active" : ""}"
+          data-vvip-id="${escapeHtml(item.id)}"
+          ${
+            bolehBukaButiran
+              ? `onclick="pilihVvipVipPentadbir('${escapeHtml(item.id)}')"`
+              : ""
+          }
+        >
+          <span class="admin-vvip-name-number">
             ${index + 1}
           </span>
 
-          <div style="width:100%">
+          <div class="admin-vvip-name-main">
             <strong>
               ${escapeHtml(item.kategori || "VVIP / VIP")}
               — ${escapeHtml(item.nama || "-")}
@@ -7020,17 +7235,31 @@ function paparCartaVvipVipPentadbir() {
               SUMBER: ${escapeHtml(item.sumber || "-")}
             </small>
 
-            ${
-              butiran
-                ? `<div class="admin-chart-detail-grid" style="margin-top:10px">${butiran}</div>`
-                : ""
-            }
-
-            ${tindakan}
+            ${petunjuk}
+            ${tindakanManual}
           </div>
         </article>
       `;
     }).join("");
+
+  /*
+    Kekalkan butiran yang sedang dipilih selepas render semula.
+  */
+  if (idVvipVipDipilihPentadbir) {
+    const dipilih =
+      senarai.find(
+        item =>
+          teks(item.id) ===
+          teks(idVvipVipDipilihPentadbir) &&
+          sumberKawalanKeselamatanVvipVipPentadbir(item)
+      );
+
+    if (dipilih) {
+      paparButiranVvipVipPentadbir(
+        dipilih
+      );
+    }
+  }
 }
 
 
