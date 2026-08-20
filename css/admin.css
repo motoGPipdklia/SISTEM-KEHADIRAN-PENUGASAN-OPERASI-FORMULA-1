@@ -1128,3 +1128,578 @@ tbody tr:hover{
     flex:1 0 auto;
   }
 }
+
+
+/* ================================================================
+   MODUL CARTA OPERASI PENTADBIR
+================================================================ */
+
+.header-charts{
+  background:#9a661b;
+  color:#fff;
+}
+
+.admin-chart-module{
+  margin-top:20px;
+}
+
+.admin-chart-toolbar{
+  display:grid;
+  grid-template-columns:minmax(180px,.7fr) minmax(230px,1fr) auto;
+  gap:14px;
+  align-items:end;
+  margin:18px 0;
+}
+
+.admin-chart-toolbar input,
+.admin-chart-toolbar select{
+  min-height:50px;
+}
+
+.admin-chart-refresh{
+  min-height:50px;
+  padding:0 24px;
+}
+
+.admin-chart-summary-grid{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(130px,1fr));
+  gap:12px;
+  margin:18px 0;
+}
+
+.admin-chart-summary-card{
+  min-width:0;
+  padding:17px 14px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:var(--surface-dark);
+}
+
+.admin-chart-summary-card span{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.03em;
+}
+
+.admin-chart-summary-card strong{
+  display:block;
+  overflow:hidden;
+  margin-top:7px;
+  color:var(--gold);
+  font-size:27px;
+  text-overflow:ellipsis;
+}
+
+.admin-chart-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin-top:14px;
+}
+
+.admin-chart-card{
+  min-width:0;
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:#181818;
+}
+
+.admin-chart-card[hidden]{
+  display:none !important;
+}
+
+.admin-chart-card h3{
+  margin:0 0 6px;
+  color:var(--gold);
+}
+
+.admin-chart-canvas-wrap{
+  position:relative;
+  width:100%;
+  height:310px;
+  margin-top:14px;
+}
+
+.admin-chart-list{
+  display:grid;
+  gap:8px;
+  margin-top:14px;
+}
+
+.admin-chart-list-item{
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  padding:12px;
+  border:1px solid #333;
+  border-radius:10px;
+  background:#121212;
+}
+
+.admin-chart-list-number{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 30px;
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:var(--gold-dark);
+  color:#fff;
+  font-weight:800;
+}
+
+.admin-chart-list-item strong,
+.admin-chart-list-item small{
+  display:block;
+}
+
+.admin-chart-list-item small{
+  margin-top:5px;
+  color:var(--muted);
+}
+
+
+/* ================================================================
+   PETA OPERASI
+================================================================ */
+
+.admin-operation-map-card{
+  margin-top:14px;
+}
+
+.admin-operation-map-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.8fr) minmax(320px,.8fr);
+  gap:14px;
+  align-items:start;
+}
+
+.admin-operation-map-stage,
+.admin-map-location-panel{
+  min-width:0;
+}
+
+.admin-operation-map-viewport{
+  position:relative;
+  width:100%;
+  min-height:520px;
+  overflow:auto;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#090909;
+}
+
+.admin-operation-map-canvas{
+  position:relative;
+  width:100%;
+  min-width:760px;
+  transform-origin:center center;
+  transition:transform .16s ease;
+}
+
+.admin-operation-map-image{
+  display:block;
+  width:100%;
+  height:auto;
+  min-height:520px;
+  object-fit:contain;
+  user-select:none;
+}
+
+.admin-map-marker-layer{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+}
+
+.admin-map-marker{
+  position:absolute;
+  z-index:3;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  transform:translate(-50%,-50%);
+  min-width:64px;
+  min-height:50px;
+  padding:7px 9px;
+  border:2px solid rgba(255,255,255,.88);
+  border-radius:12px;
+  background:#277a49;
+  color:#fff;
+  box-shadow:0 5px 14px rgba(0,0,0,.55);
+  pointer-events:auto;
+  cursor:pointer;
+}
+
+.admin-map-marker:hover{
+  z-index:8;
+  transform:translate(-50%,-50%) scale(1.06);
+}
+
+.admin-map-marker-perhatian{
+  background:#a56d13;
+}
+
+.admin-map-marker-insiden{
+  background:#a33b30;
+}
+
+.admin-map-marker-kritikal{
+  background:#7b1f1f;
+  box-shadow:
+    0 0 0 4px rgba(255,64,64,.15),
+    0 5px 14px rgba(0,0,0,.55);
+}
+
+.admin-map-marker-count{
+  font-size:15px;
+  font-weight:900;
+  line-height:1;
+}
+
+.admin-map-marker-label{
+  display:block;
+  max-width:150px;
+  margin-top:4px;
+  overflow:hidden;
+  font-size:10px;
+  font-weight:800;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.admin-map-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.admin-map-legend{
+  display:flex;
+  align-items:center;
+  gap:8px 14px;
+  flex-wrap:wrap;
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+}
+
+.admin-map-location-panel{
+  min-height:520px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#111;
+}
+
+.admin-map-location-empty{
+  display:flex;
+  min-height:470px;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  color:var(--muted);
+  text-align:center;
+}
+
+.admin-map-location-empty strong{
+  color:var(--gold);
+  font-size:17px;
+}
+
+.admin-map-location-title{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.admin-map-location-title h3{
+  margin:4px 0 0;
+}
+
+.admin-map-location-status{
+  padding:6px 9px;
+  border-radius:999px;
+  background:#244f32;
+  color:#b9f6ca;
+  font-size:10px;
+  font-weight:800;
+}
+
+.admin-map-location-stats{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:14px 0;
+}
+
+.admin-map-location-stats > div{
+  padding:11px;
+  border:1px solid #333;
+  border-radius:9px;
+  background:#171717;
+}
+
+.admin-map-location-stats span{
+  display:block;
+  color:var(--muted);
+  font-size:9px;
+  font-weight:800;
+}
+
+.admin-map-location-stats strong{
+  display:block;
+  margin-top:5px;
+  color:var(--gold);
+  font-size:22px;
+}
+
+.admin-map-location-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin:12px 0;
+}
+
+.admin-map-location-tab{
+  min-height:38px;
+  padding:7px 6px;
+  background:#292929;
+  color:#ccc;
+  font-size:9px;
+}
+
+.admin-map-location-tab.active{
+  background:var(--gold);
+  color:#111;
+}
+
+.admin-map-personnel-list{
+  display:grid;
+  gap:8px;
+  max-height:385px;
+  overflow:auto;
+}
+
+.admin-map-personnel-card{
+  display:grid;
+  grid-template-columns:34px 1fr;
+  gap:10px;
+  padding:11px;
+  border:1px solid #333;
+  border-radius:10px;
+  background:#171717;
+}
+
+.admin-map-personnel-number{
+  display:flex;
+  width:30px;
+  height:30px;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#333;
+  color:var(--gold);
+  font-weight:800;
+}
+
+.admin-map-personnel-main strong{
+  display:block;
+  line-height:1.4;
+}
+
+.admin-map-personnel-main small{
+  display:block;
+  margin-top:7px;
+  color:var(--muted);
+}
+
+.admin-map-personnel-meta{
+  display:flex;
+  gap:5px 10px;
+  flex-wrap:wrap;
+  margin-top:6px;
+  color:#ccc;
+  font-size:11px;
+}
+
+
+/* ================================================================
+   URUS PETA
+================================================================ */
+
+.admin-map-manage-modal{
+  width:min(100%,1050px);
+}
+
+.admin-map-manage-preview{
+  width:100%;
+  max-height:68vh;
+  overflow:auto;
+  margin-top:16px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background:#090909;
+}
+
+.admin-map-manage-canvas{
+  position:relative;
+  width:100%;
+  min-width:760px;
+  cursor:crosshair;
+}
+
+.admin-map-manage-canvas > img{
+  display:block;
+  width:100%;
+  height:auto;
+  min-height:500px;
+  object-fit:contain;
+}
+
+.admin-map-marker-manage{
+  min-width:52px;
+  min-height:38px;
+  background:#356da4;
+  pointer-events:none;
+}
+
+
+/* ================================================================
+   KRONOLOGI
+================================================================ */
+
+.admin-chronology-card{
+  margin-top:14px;
+}
+
+.admin-chronology-list{
+  display:grid;
+  gap:9px;
+  margin-top:14px;
+}
+
+.admin-chronology-item{
+  display:grid;
+  grid-template-columns:180px minmax(0,1fr);
+  gap:14px;
+  padding:13px;
+  border-left:4px solid var(--gold);
+  border-radius:8px;
+  background:#151515;
+}
+
+.admin-chronology-item time{
+  color:var(--gold);
+  font-size:12px;
+  font-weight:800;
+}
+
+.admin-chronology-item strong,
+.admin-chronology-item span{
+  display:block;
+}
+
+.admin-chronology-item span{
+  margin-top:3px;
+  color:#ccc;
+  font-size:12px;
+}
+
+.admin-chronology-item p{
+  margin:6px 0 0;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+
+/* ================================================================
+   RESPONSIVE CARTA
+================================================================ */
+
+@media(max-width:1250px){
+  .admin-chart-summary-grid{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .admin-operation-map-layout{
+    grid-template-columns:1fr;
+  }
+
+  .admin-map-location-panel{
+    min-height:0;
+  }
+
+  .admin-map-location-empty{
+    min-height:180px;
+  }
+}
+
+@media(max-width:900px){
+  .admin-chart-toolbar,
+  .admin-chart-grid{
+    grid-template-columns:1fr;
+  }
+
+  .admin-chart-summary-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:700px){
+  .admin-chart-summary-grid{
+    grid-template-columns:1fr;
+  }
+
+  .admin-chart-canvas-wrap{
+    height:280px;
+  }
+
+  .admin-operation-map-viewport{
+    min-height:360px;
+  }
+
+  .admin-operation-map-canvas,
+  .admin-map-manage-canvas{
+    min-width:680px;
+  }
+
+  .admin-operation-map-image,
+  .admin-map-manage-canvas > img{
+    min-height:360px;
+  }
+
+  .admin-map-location-tabs{
+    grid-template-columns:1fr;
+  }
+
+  .admin-chronology-item{
+    grid-template-columns:1fr;
+  }
+}
+
+@media print{
+  .admin-chart-module{
+    break-before:page;
+  }
+
+  .admin-map-actions,
+  .admin-chart-refresh{
+    display:none !important;
+  }
+
+  .admin-operation-map-viewport{
+    overflow:visible;
+  }
+}
