@@ -4420,6 +4420,55 @@ function pilihKategoriCartaInsidenPentadbir(index) {
 }
 
 
+
+function sorotBarInsidenPentadbir(indexDipilih) {
+  const carta =
+    cartaInsidenPentadbir;
+
+  if (!carta) return;
+
+  const dataset =
+    carta.data.datasets?.[0];
+
+  if (!dataset) return;
+
+  /*
+    Warna berbeza untuk kategori dipilih.
+    Tidak bergantung pada warna khusus untuk setiap kategori,
+    cuma beri opacity lebih jelas pada pilihan aktif.
+  */
+  const warnaAsal =
+    carta.options?.plugins?._warnaInsidenAsal ||
+    "rgba(54, 162, 235, 0.65)";
+
+  dataset.backgroundColor =
+    carta.data.labels.map(
+      (_, index) =>
+        index === indexDipilih
+          ? "rgba(212, 175, 55, 0.95)"
+          : "rgba(54, 162, 235, 0.48)"
+    );
+
+  dataset.borderColor =
+    carta.data.labels.map(
+      (_, index) =>
+        index === indexDipilih
+          ? "#ffffff"
+          : "rgba(255,255,255,.25)"
+    );
+
+  dataset.borderWidth =
+    carta.data.labels.map(
+      (_, index) =>
+        index === indexDipilih
+          ? 2
+          : 1
+    );
+
+  carta.update();
+}
+
+
 function paparCartaInsidenPentadbir() {
   const kanvas =
     el("canvasCartaInsiden");
@@ -4470,23 +4519,99 @@ function paparCartaInsidenPentadbir() {
         responsive: true,
         maintainAspectRatio: false,
 
-        onClick(event, elements) {
-          if (!elements?.length) return;
+        onClick(event) {
+          /*
+            Cuba kesan bar yang diklik terlebih dahulu.
+            intersect:false membolehkan bar yang sangat pendek
+            masih mudah dipilih.
+          */
+          const elemenTerdekat =
+            cartaInsidenPentadbir
+              ?.getElementsAtEventForMode(
+                event,
+                "nearest",
+                {
+                  intersect: false,
+                  axis: "x"
+                },
+                true
+              ) || [];
 
-          pilihKategoriCartaInsidenPentadbir(
-            elements[0].index
+          if (elemenTerdekat.length) {
+            pilihKategoriCartaInsidenPentadbir(
+              elemenTerdekat[0].index
+            );
+            sorotBarInsidenPentadbir(
+              elemenTerdekat[0].index
+            );
+            return;
+          }
+
+          /*
+            Fallback:
+            tentukan kategori berdasarkan kedudukan X klik.
+            Jadi walaupun nilai = 0 dan bar hampir tidak kelihatan,
+            kawasan kategorinya masih boleh diklik.
+          */
+          const carta =
+            cartaInsidenPentadbir;
+
+          const xScale =
+            carta?.scales?.x;
+
+          const nativeEvent =
+            event?.native;
+
+          if (
+            !carta ||
+            !xScale ||
+            !nativeEvent
+          ) {
+            return;
+          }
+
+          const rect =
+            carta.canvas.getBoundingClientRect();
+
+          const x =
+            nativeEvent.clientX -
+            rect.left;
+
+          let indexTerdekat = -1;
+          let jarakTerdekat = Infinity;
+
+          carta.data.labels.forEach(
+            (_, index) => {
+              const pixel =
+                xScale.getPixelForValue(index);
+
+              const jarak =
+                Math.abs(pixel - x);
+
+              if (jarak < jarakTerdekat) {
+                jarakTerdekat = jarak;
+                indexTerdekat = index;
+              }
+            }
           );
+
+          if (indexTerdekat >= 0) {
+            pilihKategoriCartaInsidenPentadbir(
+              indexTerdekat
+            );
+            sorotBarInsidenPentadbir(
+              indexTerdekat
+            );
+          }
         },
 
-        onHover(event, elements) {
+        onHover(event) {
           const sasaran =
             event?.native?.target;
 
           if (sasaran) {
             sasaran.style.cursor =
-              elements?.length
-                ? "pointer"
-                : "default";
+              "pointer";
           }
         },
 
@@ -4553,6 +4678,21 @@ function paparCartaInsidenPentadbir() {
   paparButiranInsidenPentadbir(
     kategoriInsidenDipilihPentadbir
   );
+
+  const indeksAktif = [
+    "TANGKAPAN",
+    "RAMPASAN",
+    "KEMALANGAN",
+    "ANCAMAN"
+  ].indexOf(
+    kategoriInsidenDipilihPentadbir
+  );
+
+  if (indeksAktif >= 0) {
+    sorotBarInsidenPentadbir(
+      indeksAktif
+    );
+  }
 }
 
 
