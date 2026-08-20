@@ -3123,3 +3123,41 @@ body.marker-dragging *{
   text-align: center !important;
   vertical-align: middle !important;
 }
+
+
+/* ================================================================
+   CETAK CARTA INDIVIDU
+================================================================ */
+
+.admin-chart-card-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+}
+
+.admin-chart-card-heading > div{
+  min-width:0;
+}
+
+.admin-chart-card-heading h3{
+  margin-top:0;
+}
+
+.admin-chart-print-button{
+  flex:0 0 auto;
+  min-width:88px;
+  white-space:nowrap;
+}
+
+/* Pada skrin kecil, butang cetak turun ke baris bawah */
+@media(max-width:760px){
+  .admin-chart-card-heading{
+    flex-direction:column;
+  }
+
+  .admin-chart-print-button{
+    width:100%;
+  }
+}
