@@ -43,6 +43,7 @@ let cartaJawatankuasaPentadbir = null;
 let cartaKehadiranPentadbir = null;
 let statusKehadiranCartaDipilihPentadbir = "HADIR";
 let cartaInsidenPentadbir = null;
+let kategoriInsidenDipilihPentadbir = "TANGKAPAN";
 
 let lokasiPetaDipilihPentadbir = "";
 let tabPetugasLokasiAktif = "BERTUGAS";
@@ -4166,6 +4167,259 @@ function paparCartaKehadiranPentadbir() {
 }
 
 
+function labelKategoriInsidenPentadbir(kategori) {
+  const peta = {
+    TANGKAPAN: "TANGKAPAN",
+    RAMPASAN: "RAMPASAN",
+    KEMALANGAN: "KEMALANGAN",
+    ANCAMAN: "ANCAMAN"
+  };
+
+  return peta[kategori] || kategori;
+}
+
+
+function nilaiInsidenDaripadaLaporanPentadbir(item, kategori) {
+  const data = dataLaporanCarta(item);
+
+  if (kategori === "TANGKAPAN") {
+    return data.tangkapan;
+  }
+
+  if (kategori === "RAMPASAN") {
+    return data.rampasan;
+  }
+
+  if (kategori === "KEMALANGAN") {
+    return data.kemalangan;
+  }
+
+  if (kategori === "ANCAMAN") {
+    return (
+      data.jenis_ancaman ??
+      data.ancaman
+    );
+  }
+
+  return null;
+}
+
+
+function senaraiInsidenMengikutKategoriPentadbir(kategori) {
+  return dataCartaLaporanPentadbir
+    .filter(item =>
+      nilaiAdaCarta(
+        nilaiInsidenDaripadaLaporanPentadbir(
+          item,
+          kategori
+        )
+      )
+    )
+    .sort((a, b) => {
+      const masaA = new Date(a.tarikh_masa || 0).getTime();
+      const masaB = new Date(b.tarikh_masa || 0).getTime();
+      return masaB - masaA;
+    });
+}
+
+
+function rekodPetugasUntukLaporanInsidenPentadbir(item) {
+  const petugasId =
+    item.petugas_id ||
+    item.profile_id ||
+    "";
+
+  if (!petugasId) return null;
+
+  return (
+    dataDashboard.find(
+      rekod => rekod.petugasId === petugasId
+    ) || null
+  );
+}
+
+
+function lokasiLaporanInsidenPentadbir(item, petugas) {
+  const data = dataLaporanCarta(item);
+
+  return (
+    teks(data.lokasi) ||
+    teks(data.tempat_tugas) ||
+    teks(item.tempat_tugas) ||
+    teks(petugas?.tempatTugas) ||
+    "-"
+  );
+}
+
+
+function paparButiranInsidenPentadbir(kategori) {
+  kategoriInsidenDipilihPentadbir =
+    kategori;
+
+  const label =
+    labelKategoriInsidenPentadbir(kategori);
+
+  const senarai =
+    senaraiInsidenMengikutKategoriPentadbir(
+      kategori
+    );
+
+  if (el("tajukButiranInsidenPentadbir")) {
+    el("tajukButiranInsidenPentadbir").textContent =
+      label;
+  }
+
+  if (el("jumlahButiranInsidenPentadbir")) {
+    el("jumlahButiranInsidenPentadbir").textContent =
+      senarai.length.toLocaleString("ms-MY");
+  }
+
+  const ruang =
+    el("senaraiButiranInsidenPentadbir");
+
+  if (!ruang) return;
+
+  if (!senarai.length) {
+    ruang.innerHTML = `
+      <div class="empty-row">
+        Tiada laporan ${escapeHtml(label)} untuk tarikh ini.
+      </div>
+    `;
+    return;
+  }
+
+  ruang.innerHTML =
+    senarai.map((item, index) => {
+      const data =
+        dataLaporanCarta(item);
+
+      const petugas =
+        rekodPetugasUntukLaporanInsidenPentadbir(item);
+
+      const nilai =
+        nilaiInsidenDaripadaLaporanPentadbir(
+          item,
+          kategori
+        );
+
+      const butiran =
+        teksNilaiCarta(nilai) || "-";
+
+      const jenisTugas =
+        jenisTugasCarta(item) ||
+        petugas?.jenisTugas ||
+        "-";
+
+      const lokasi =
+        lokasiLaporanInsidenPentadbir(
+          item,
+          petugas
+        );
+
+      const namaPetugas =
+        petugas
+          ? `${teks(petugas.pangkat)} ${teks(petugas.nama)}`.trim()
+          : teks(item.nama_petugas || item.nama) || "-";
+
+      const noBadan =
+        teks(petugas?.noBadan) ||
+        teks(item.no_badan) ||
+        "-";
+
+      const telefon =
+        teks(petugas?.telefon) ||
+        teks(item.no_telefon) ||
+        teks(item.telefon) ||
+        "-";
+
+      const catatanTambahan =
+        teksNilaiCarta(
+          data.catatan ??
+          data.perkara_menarik ??
+          data.catatan_no_repot
+        );
+
+      return `
+        <article class="admin-incident-detail-item">
+          <div class="admin-incident-detail-number">
+            ${index + 1}
+          </div>
+
+          <div class="admin-incident-detail-main">
+            <div class="admin-incident-detail-top">
+              <strong>${escapeHtml(label)}</strong>
+              <time>
+                ${escapeHtml(
+                  formatMasaLaporanAdmin(
+                    item.tarikh_masa
+                  )
+                )}
+              </time>
+            </div>
+
+            <div class="admin-incident-detail-body">
+              <div>
+                <span>Butiran</span>
+                <b>${escapeHtml(butiran)}</b>
+              </div>
+
+              <div>
+                <span>Lokasi</span>
+                <b>${escapeHtml(lokasi)}</b>
+              </div>
+
+              <div>
+                <span>Jenis Tugas</span>
+                <b>${escapeHtml(jenisTugas)}</b>
+              </div>
+
+              <div>
+                <span>Petugas</span>
+                <b>${escapeHtml(namaPetugas)}</b>
+              </div>
+
+              <div>
+                <span>No Badan</span>
+                <b>${escapeHtml(noBadan)}</b>
+              </div>
+
+              <div>
+                <span>No. Telefon</span>
+                <b>${escapeHtml(telefon)}</b>
+              </div>
+            </div>
+
+            ${
+              catatanTambahan
+                ? `
+                  <div class="admin-incident-note">
+                    <span>Catatan</span>
+                    <p>${escapeHtml(catatanTambahan)}</p>
+                  </div>
+                `
+                : ""
+            }
+          </div>
+        </article>
+      `;
+    }).join("");
+}
+
+
+function pilihKategoriCartaInsidenPentadbir(index) {
+  const kategori = [
+    "TANGKAPAN",
+    "RAMPASAN",
+    "KEMALANGAN",
+    "ANCAMAN"
+  ][index];
+
+  if (!kategori) return;
+
+  paparButiranInsidenPentadbir(kategori);
+}
+
+
 function paparCartaInsidenPentadbir() {
   const kanvas =
     el("canvasCartaInsiden");
@@ -4181,6 +4435,13 @@ function paparCartaInsidenPentadbir() {
   const insiden =
     kiraInsidenCarta();
 
+  const nilaiCarta = [
+    insiden.tangkapan,
+    insiden.rampasan,
+    insiden.kemalangan,
+    insiden.ancaman
+  ];
+
   kemusnahkanCartaPentadbir(
     cartaInsidenPentadbir
   );
@@ -4188,6 +4449,7 @@ function paparCartaInsidenPentadbir() {
   cartaInsidenPentadbir =
     new Chart(kanvas, {
       type: "bar",
+
       data: {
         labels: [
           "Tangkapan",
@@ -4195,22 +4457,102 @@ function paparCartaInsidenPentadbir() {
           "Kemalangan",
           "Ancaman"
         ],
+
         datasets: [
           {
             label: "Bilangan Laporan",
-            data: [
-              insiden.tangkapan,
-              insiden.rampasan,
-              insiden.kemalangan,
-              insiden.ancaman
-            ]
+            data: nilaiCarta
           }
         ]
       },
-      options: pilihanCartaPentadbir(
-        "Bilangan Insiden"
-      )
+
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        onClick(event, elements) {
+          if (!elements?.length) return;
+
+          pilihKategoriCartaInsidenPentadbir(
+            elements[0].index
+          );
+        },
+
+        onHover(event, elements) {
+          const sasaran =
+            event?.native?.target;
+
+          if (sasaran) {
+            sasaran.style.cursor =
+              elements?.length
+                ? "pointer"
+                : "default";
+          }
+        },
+
+        plugins: {
+          legend: {
+            labels: {
+              color: "#ffffff",
+              font: {
+                size: 12,
+                weight: "700"
+              }
+            }
+          },
+
+          tooltip: {
+            callbacks: {
+              label(context) {
+                return `${context.label}: ${Number(context.raw) || 0} laporan`;
+              },
+
+              afterLabel() {
+                return "Klik untuk papar butiran";
+              }
+            }
+          }
+        },
+
+        scales: {
+          x: {
+            ticks: {
+              color: "#ffffff",
+              font: {
+                weight: "700"
+              }
+            },
+
+            grid: {
+              color: "rgba(255,255,255,.06)"
+            }
+          },
+
+          y: {
+            beginAtZero: true,
+
+            ticks: {
+              color: "#c8c8c8",
+              precision: 0
+            },
+
+            grid: {
+              color: "rgba(255,255,255,.06)"
+            },
+
+            title: {
+              display: true,
+              text: "Bilangan Insiden",
+              color: "#c8c8c8"
+            }
+          }
+        }
+      }
     });
+
+  paparButiranInsidenPentadbir(
+    kategoriInsidenDipilihPentadbir
+  );
 }
 
 
