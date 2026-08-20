@@ -2513,3 +2513,82 @@ body.marker-dragging *{
     height:290px;
   }
 }
+
+
+/* ================================================================
+   CARTA PENGUNJUNG — SAMAKAN SAIZ DENGAN CARTA KENDERAAN
+================================================================ */
+
+/* Pastikan keseluruhan kad Pengunjung memenuhi 2 kolum seperti Kenderaan */
+.admin-chart-card[data-chart-section="PENGUNJUNG"]{
+  grid-column:1 / -1 !important;
+  width:100% !important;
+  min-width:0 !important;
+}
+
+/* Susunan carta kiri + butiran kanan sama seperti Carta Kenderaan */
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-layout{
+  display:grid !important;
+  grid-template-columns:minmax(420px,.95fr) minmax(420px,1.05fr) !important;
+  gap:16px !important;
+  align-items:stretch !important;
+  width:100% !important;
+  margin-top:14px !important;
+}
+
+/* Kedua-dua panel mempunyai saiz dan rupa yang sama */
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-chart-panel,
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-panel{
+  min-width:0 !important;
+  min-height:390px !important;
+  border:1px solid #303030 !important;
+  border-radius:12px !important;
+  background:#121212 !important;
+}
+
+/* Panel carta kiri */
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-chart-panel{
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:center !important;
+  padding:12px !important;
+}
+
+/* Saiz canvas sama seperti Carta Kenderaan */
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-chart-panel
+.admin-chart-canvas-wrap{
+  width:100% !important;
+  height:330px !important;
+  min-height:330px !important;
+  margin-top:0 !important;
+}
+
+/* Panel butiran kanan */
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-panel{
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+}
+
+/* Senarai butiran boleh scroll tanpa mengubah tinggi kad */
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-list{
+  max-height:420px !important;
+  overflow:auto !important;
+}
+
+/* Desktop sederhana / tablet */
+@media(max-width:1050px){
+  .admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-layout{
+    grid-template-columns:1fr !important;
+  }
+}
+
+/* Telefon */
+@media(max-width:620px){
+  .admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-chart-panel
+  .admin-chart-canvas-wrap{
+    height:290px !important;
+    min-height:290px !important;
+  }
+}
+
