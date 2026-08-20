@@ -41,6 +41,9 @@ let cartaPengunjungPentadbir = null;
 let cartaKenderaanPentadbir = null;
 let kategoriKenderaanDipilihPentadbir = "BAS";
 let cartaJawatankuasaPentadbir = null;
+let dataJawatankuasaOperasiPentadbir = [];
+let dataPilihanPetugasJawatankuasaPentadbir = [];
+let rekodJawatankuasaSedangEditPentadbir = null;
 let cartaKehadiranPentadbir = null;
 let statusKehadiranCartaDipilihPentadbir = "HADIR";
 let cartaInsidenPentadbir = null;
@@ -113,6 +116,48 @@ function hariIniMalaysia() {
     day: "2-digit"
   }).format(new Date());
 }
+
+
+function formatTarikhMalaysia(nilai) {
+  if (!nilai) return "-";
+
+  const input = teks(nilai);
+
+  /*
+    YYYY-MM-DD diproses tanpa timezone supaya tarikh
+    tidak berubah akibat zon masa browser.
+  */
+  const padanan =
+    input.match(
+      /^(\d{4})-(\d{2})-(\d{2})$/
+    );
+
+  if (padanan) {
+    return `${padanan[3]}/${padanan[2]}/${padanan[1]}`;
+  }
+
+  const tarikh =
+    new Date(input);
+
+  if (
+    Number.isNaN(
+      tarikh.getTime()
+    )
+  ) {
+    return input || "-";
+  }
+
+  return new Intl.DateTimeFormat(
+    "ms-MY",
+    {
+      timeZone: ZON_MASA,
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    }
+  ).format(tarikh);
+}
+
 
 function formatTarikhMasa(nilai) {
   if (!nilai) return "-";
@@ -3406,6 +3451,11 @@ async function muatDataCartaPentadbir() {
           tarikhMalaysiaDaripadaMasa(item.tarikh_masa) === tarikh
         );
 
+    await muatJawatankuasaOperasiPentadbir(
+      tarikh,
+      false
+    );
+
     paparRingkasanCartaPentadbir();
     paparCartaPengunjungPentadbir();
     paparCartaKenderaanPentadbir();
@@ -6020,28 +6070,37 @@ function paparCartaVvipVipPentadbir() {
 }
 
 
-function dataJawatankuasaPentadbir() {
-  return [...dataDashboard]
-    .filter(item =>
-      atas(item.statusKehadiran) !== "DIGANTI"
-    )
-    .sort((a, b) => {
-      const tugasA = atas(a.jenisTugas);
-      const tugasB = atas(b.jenisTugas);
+/* ================================================================
+   JAWATANKUASA OPERASI — SUPABASE CRUD
+================================================================ */
 
-      if (tugasA !== tugasB) {
-        return tugasA.localeCompare(
-          tugasB,
+function dataJawatankuasaPentadbir() {
+  return [...dataJawatankuasaOperasiPentadbir]
+    .sort((a, b) => {
+      const kumpulanA =
+        atas(a.jawatankuasa);
+
+      const kumpulanB =
+        atas(b.jawatankuasa);
+
+      if (
+        kumpulanA !== kumpulanB
+      ) {
+        return kumpulanA.localeCompare(
+          kumpulanB,
           "ms"
         );
       }
 
-      const pangkatA = atas(a.pangkat);
-      const pangkatB = atas(b.pangkat);
+      const tugasA =
+        atas(a.tugas);
 
-      if (pangkatA !== pangkatB) {
-        return pangkatA.localeCompare(
-          pangkatB,
+      const tugasB =
+        atas(b.tugas);
+
+      if (tugasA !== tugasB) {
+        return tugasA.localeCompare(
+          tugasB,
           "ms"
         );
       }
@@ -6055,36 +6114,616 @@ function dataJawatankuasaPentadbir() {
 
 
 function teksPangkatNoNamaJawatankuasaPentadbir(item) {
-  const bahagian = [];
+  return [
+    teks(item.pangkat),
+    teks(item.no_badan),
+    teks(item.nama)
+  ]
+    .filter(
+      nilai =>
+        nilai &&
+        nilai !== "-"
+    )
+    .join(" ") || "-";
+}
+
+
+function ralatJadualJawatankuasaBelumWujud(error) {
+  return (
+    error?.code === "42P01" ||
+    /jawatankuasa_operasi|relation.*does not exist|could not find.*table/i.test(
+      error?.message || ""
+    )
+  );
+}
+
+
+async function muatJawatankuasaOperasiPentadbir(
+  tarikh,
+  paparStatus = true
+) {
+  const tarikhDipilih =
+    tarikh ||
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    hariIniMalaysia();
+
+  try {
+    const { data, error } =
+      await denganHadMasa(
+        db.from("jawatankuasa_operasi")
+          .select("*")
+          .eq("tarikh", tarikhDipilih)
+          .order("jawatankuasa", { ascending: true })
+          .order("tugas", { ascending: true })
+          .order("nama", { ascending: true })
+      );
+
+    if (error) throw error;
+
+    dataJawatankuasaOperasiPentadbir =
+      data || [];
+
+    paparCartaJawatankuasaPentadbir();
+
+    if (paparStatus) {
+      paparMesej(
+        "statusJawatankuasaPentadbir",
+        `${dataJawatankuasaOperasiPentadbir.length} rekod jawatankuasa berjaya dimuatkan.`,
+        "success"
+      );
+    }
+
+    return true;
+
+  } catch (error) {
+    console.error(
+      "Gagal memuatkan jawatankuasa:",
+      error
+    );
+
+    dataJawatankuasaOperasiPentadbir = [];
+    paparCartaJawatankuasaPentadbir();
+
+    const mesej =
+      ralatJadualJawatankuasaBelumWujud(error)
+        ? "Jadual jawatankuasa_operasi belum diwujudkan. Jalankan fail SQL yang disediakan dalam Supabase SQL Editor."
+        : `Ralat jawatankuasa: ${error.message || "Ralat tidak diketahui."}`;
+
+    paparMesej(
+      "statusJawatankuasaPentadbir",
+      escapeHtml(mesej),
+      "error"
+    );
+
+    /*
+      Jangan rosakkan carta lain jika table Jawatankuasa
+      belum diwujudkan.
+    */
+    return false;
+  }
+}
+
+
+async function muatSemulaJawatankuasaPentadbir() {
+  const tarikh =
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    hariIniMalaysia();
+
+  await muatJawatankuasaOperasiPentadbir(
+    tarikh,
+    true
+  );
+}
+
+
+async function muatPilihanPetugasJawatankuasaPentadbir() {
+  const select =
+    el("petugasJawatankuasaPentadbir");
+
+  if (!select) return;
+
+  select.disabled = true;
+  select.innerHTML =
+    '<option value="">SEDANG MEMUATKAN PETUGAS...</option>';
+
+  try {
+    const { data, error } =
+      await denganHadMasa(
+        db.from("profiles")
+          .select("*")
+          .order("nama", { ascending: true })
+      );
+
+    if (error) throw error;
+
+    dataPilihanPetugasJawatankuasaPentadbir =
+      (data || [])
+        .filter(item =>
+          item.aktif !== false
+        );
+
+    select.innerHTML =
+      '<option value="">PILIH PETUGAS</option>' +
+      dataPilihanPetugasJawatankuasaPentadbir
+        .map(item => {
+          const label = [
+            teks(item.pangkat),
+            teks(item.no_badan),
+            teks(item.nama)
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+          return `
+            <option value="${escapeHtml(item.id || "")}">
+              ${escapeHtml(label || item.no_badan || item.nama || "-")}
+            </option>
+          `;
+        })
+        .join("");
+
+  } catch (error) {
+    console.error(
+      "Gagal memuat pilihan petugas:",
+      error
+    );
+
+    dataPilihanPetugasJawatankuasaPentadbir = [];
+
+    select.innerHTML =
+      '<option value="">GAGAL MEMUATKAN PETUGAS</option>';
+
+    paparMesej(
+      "statusModalJawatankuasaPentadbir",
+      `Gagal mendapatkan senarai petugas: ${escapeHtml(error.message)}`,
+      "error"
+    );
+
+  } finally {
+    select.disabled = false;
+  }
+}
+
+
+function petugasPilihanJawatankuasaPentadbir() {
+  const id =
+    teks(
+      el(
+        "petugasJawatankuasaPentadbir"
+      )?.value
+    );
+
+  return (
+    dataPilihanPetugasJawatankuasaPentadbir
+      .find(item =>
+        teks(item.id) === id
+      ) ||
+    null
+  );
+}
+
+
+function kemasKiniPreviewPetugasJawatankuasaPentadbir(
+  petugas
+) {
+  const nilai = {
+    previewPangkatJawatankuasa:
+      petugas?.pangkat || "-",
+
+    previewNoBadanJawatankuasa:
+      petugas?.no_badan || "-",
+
+    previewNamaJawatankuasa:
+      petugas?.nama || "-",
+
+    previewTelefonJawatankuasa:
+      petugas?.telefon ||
+      petugas?.no_telefon ||
+      "-"
+  };
+
+  Object.entries(nilai)
+    .forEach(([id, teksPaparan]) => {
+      if (el(id)) {
+        el(id).textContent =
+          teks(teksPaparan) || "-";
+      }
+    });
+}
+
+
+function pilihPetugasJawatankuasaPentadbir() {
+  const petugas =
+    petugasPilihanJawatankuasaPentadbir();
+
+  kemasKiniPreviewPetugasJawatankuasaPentadbir(
+    petugas
+  );
+
+  /*
+    Unit boleh dicadangkan daripada profil,
+    tetapi masih boleh diubah oleh Pentadbir.
+  */
+  const unitInput =
+    el("unitJawatankuasaPentadbir");
 
   if (
-    item.pangkat &&
-    item.pangkat !== "-"
+    petugas &&
+    unitInput &&
+    !teks(unitInput.value)
   ) {
-    bahagian.push(
-      teks(item.pangkat)
-    );
+    unitInput.value =
+      petugas.bahagian ||
+      petugas.balai ||
+      petugas.cawangan ||
+      petugas.unit ||
+      petugas.bahagian_unit ||
+      "";
   }
+}
+
+
+function kosongkanBorangJawatankuasaPentadbir() {
+  rekodJawatankuasaSedangEditPentadbir = null;
+
+  if (el("idJawatankuasaPentadbir")) {
+    el("idJawatankuasaPentadbir").value = "";
+  }
+
+  if (el("petugasJawatankuasaPentadbir")) {
+    el("petugasJawatankuasaPentadbir").value = "";
+  }
+
+  if (el("namaJawatankuasaPentadbir")) {
+    el("namaJawatankuasaPentadbir").value = "";
+  }
+
+  if (el("unitJawatankuasaPentadbir")) {
+    el("unitJawatankuasaPentadbir").value = "";
+  }
+
+  if (el("tugasJawatankuasaPentadbir")) {
+    el("tugasJawatankuasaPentadbir").value = "";
+  }
+
+  kemasKiniPreviewPetugasJawatankuasaPentadbir(
+    null
+  );
+
+  const status =
+    el("statusModalJawatankuasaPentadbir");
+
+  if (status) {
+    status.className = "status-box";
+    status.innerHTML = "";
+  }
+}
+
+
+async function bukaTambahJawatankuasaPentadbir() {
+  kosongkanBorangJawatankuasaPentadbir();
+
+  const tarikh =
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    hariIniMalaysia();
+
+  if (el("tarikhJawatankuasaPentadbir")) {
+    el("tarikhJawatankuasaPentadbir").value =
+      tarikh;
+  }
+
+  if (el("tajukModalJawatankuasaPentadbir")) {
+    el("tajukModalJawatankuasaPentadbir").textContent =
+      "Tambah Jawatankuasa";
+  }
+
+  const modal =
+    el("modalJawatankuasaPentadbir");
+
+  if (modal) {
+    modal.hidden = false;
+    modal.classList.add("open");
+  }
+
+  await muatPilihanPetugasJawatankuasaPentadbir();
+}
+
+
+async function bukaEditJawatankuasaPentadbir(id) {
+  const rekod =
+    dataJawatankuasaOperasiPentadbir.find(
+      item =>
+        teks(item.id) === teks(id)
+    );
+
+  if (!rekod) {
+    alert(
+      "Rekod jawatankuasa tidak dijumpai."
+    );
+    return;
+  }
+
+  rekodJawatankuasaSedangEditPentadbir =
+    rekod;
+
+  const modal =
+    el("modalJawatankuasaPentadbir");
+
+  if (modal) {
+    modal.hidden = false;
+    modal.classList.add("open");
+  }
+
+  if (el("tajukModalJawatankuasaPentadbir")) {
+    el("tajukModalJawatankuasaPentadbir").textContent =
+      "Edit Jawatankuasa";
+  }
+
+  await muatPilihanPetugasJawatankuasaPentadbir();
+
+  if (el("idJawatankuasaPentadbir")) {
+    el("idJawatankuasaPentadbir").value =
+      rekod.id || "";
+  }
+
+  if (el("tarikhJawatankuasaPentadbir")) {
+    el("tarikhJawatankuasaPentadbir").value =
+      rekod.tarikh || "";
+  }
+
+  if (el("petugasJawatankuasaPentadbir")) {
+    el("petugasJawatankuasaPentadbir").value =
+      rekod.petugas_id || "";
+  }
+
+  if (el("namaJawatankuasaPentadbir")) {
+    el("namaJawatankuasaPentadbir").value =
+      rekod.jawatankuasa || "";
+  }
+
+  if (el("unitJawatankuasaPentadbir")) {
+    el("unitJawatankuasaPentadbir").value =
+      rekod.unit || "";
+  }
+
+  if (el("tugasJawatankuasaPentadbir")) {
+    el("tugasJawatankuasaPentadbir").value =
+      rekod.tugas || "";
+  }
+
+  const petugas =
+    petugasPilihanJawatankuasaPentadbir();
+
+  kemasKiniPreviewPetugasJawatankuasaPentadbir(
+    petugas || {
+      pangkat: rekod.pangkat,
+      no_badan: rekod.no_badan,
+      nama: rekod.nama,
+      telefon: rekod.telefon
+    }
+  );
+}
+
+
+function tutupModalJawatankuasaPentadbir() {
+  const modal =
+    el("modalJawatankuasaPentadbir");
+
+  if (modal) {
+    modal.classList.remove("open");
+    modal.hidden = true;
+  }
+
+  kosongkanBorangJawatankuasaPentadbir();
+}
+
+
+async function simpanJawatankuasaPentadbir() {
+  const btn =
+    el("btnSimpanJawatankuasaPentadbir");
+
+  const id =
+    teks(
+      el("idJawatankuasaPentadbir")?.value
+    );
+
+  const tarikh =
+    teks(
+      el("tarikhJawatankuasaPentadbir")?.value
+    );
+
+  const petugas =
+    petugasPilihanJawatankuasaPentadbir();
+
+  const jawatankuasa =
+    atas(
+      el("namaJawatankuasaPentadbir")?.value
+    );
+
+  const unit =
+    atas(
+      el("unitJawatankuasaPentadbir")?.value
+    );
+
+  const tugas =
+    atas(
+      el("tugasJawatankuasaPentadbir")?.value
+    );
 
   if (
-    item.noBadan &&
-    item.noBadan !== "-"
+    !tarikh ||
+    !petugas ||
+    !jawatankuasa ||
+    !unit ||
+    !tugas
   ) {
-    bahagian.push(
-      teks(item.noBadan)
+    paparMesej(
+      "statusModalJawatankuasaPentadbir",
+      "Lengkapkan Tarikh, Petugas, Jawatankuasa, Unit dan Tugas.",
+      "error"
     );
+    return;
   }
+
+  const payload = {
+    tarikh,
+    petugas_id: petugas.id,
+    jawatankuasa,
+    unit,
+    tugas,
+    pangkat: atas(petugas.pangkat),
+    no_badan: atas(petugas.no_badan),
+    nama: atas(petugas.nama),
+    telefon:
+      teks(
+        petugas.telefon ||
+        petugas.no_telefon
+      ),
+    dikemaskini_oleh:
+      adminLogin?.id || null
+  };
+
+  btn.disabled = true;
+  btn.textContent =
+    id
+      ? "SEDANG MENGEMAS KINI..."
+      : "SEDANG MENYIMPAN...";
+
+  try {
+    let hasil;
+
+    if (id) {
+      hasil =
+        await denganHadMasa(
+          db.from("jawatankuasa_operasi")
+            .update(payload)
+            .eq("id", id)
+            .select()
+            .single()
+        );
+    } else {
+      hasil =
+        await denganHadMasa(
+          db.from("jawatankuasa_operasi")
+            .insert({
+              ...payload,
+              dicipta_oleh:
+                adminLogin?.id || null
+            })
+            .select()
+            .single()
+        );
+    }
+
+    if (hasil.error) {
+      throw hasil.error;
+    }
+
+    const tarikhCarta =
+      el("tarikhCartaPentadbir");
+
+    if (tarikhCarta) {
+      tarikhCarta.value =
+        tarikh;
+    }
+
+    paparMesej(
+      "statusModalJawatankuasaPentadbir",
+      id
+        ? "Rekod jawatankuasa berjaya dikemas kini."
+        : "Rekod jawatankuasa berjaya ditambah.",
+      "success"
+    );
+
+    await muatJawatankuasaOperasiPentadbir(
+      tarikh,
+      false
+    );
+
+    setTimeout(
+      () =>
+        tutupModalJawatankuasaPentadbir(),
+      450
+    );
+
+  } catch (error) {
+    console.error(
+      "Simpan jawatankuasa gagal:",
+      error
+    );
+
+    const mesej =
+      ralatJadualJawatankuasaBelumWujud(error)
+        ? "Jadual jawatankuasa_operasi belum diwujudkan. Jalankan SQL yang disediakan dahulu."
+        : error.message;
+
+    paparMesej(
+      "statusModalJawatankuasaPentadbir",
+      `Gagal menyimpan: ${escapeHtml(mesej || "Ralat tidak diketahui.")}`,
+      "error"
+    );
+
+  } finally {
+    btn.disabled = false;
+    btn.textContent =
+      "SIMPAN JAWATANKUASA";
+  }
+}
+
+
+async function padamJawatankuasaPentadbir(id) {
+  const rekod =
+    dataJawatankuasaOperasiPentadbir.find(
+      item =>
+        teks(item.id) === teks(id)
+    );
+
+  if (!rekod) return;
 
   if (
-    item.nama &&
-    item.nama !== "-"
+    !confirm(
+      `Padam ${rekod.pangkat || ""} ${rekod.nama || ""} daripada ${rekod.jawatankuasa || "jawatankuasa"}?`
+    )
   ) {
-    bahagian.push(
-      teks(item.nama)
-    );
+    return;
   }
 
-  return bahagian.join(" ") || "-";
+  try {
+    const { error } =
+      await denganHadMasa(
+        db.from("jawatankuasa_operasi")
+          .delete()
+          .eq("id", id)
+      );
+
+    if (error) throw error;
+
+    await muatJawatankuasaOperasiPentadbir(
+      rekod.tarikh,
+      false
+    );
+
+    paparMesej(
+      "statusJawatankuasaPentadbir",
+      "Rekod jawatankuasa berjaya dipadam.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Padam jawatankuasa gagal:",
+      error
+    );
+
+    paparMesej(
+      "statusJawatankuasaPentadbir",
+      `Gagal memadam rekod: ${escapeHtml(error.message)}`,
+      "error"
+    );
+  }
 }
 
 
@@ -6094,10 +6733,6 @@ function paparCartaJawatankuasaPentadbir() {
 
   if (!tbody) return;
 
-  /*
-    Carta lama tidak lagi digunakan untuk Jawatankuasa.
-    Jika instance lama masih wujud, musnahkan.
-  */
   if (cartaJawatankuasaPentadbir) {
     kemusnahkanCartaPentadbir(
       cartaJawatankuasaPentadbir
@@ -6117,7 +6752,7 @@ function paparCartaJawatankuasaPentadbir() {
   if (el("tajukJawatankuasaPentadbir")) {
     el("tajukJawatankuasaPentadbir").textContent =
       tarikh
-        ? `JAWATANKUASA OPERASI — ${escapeHtml(formatTarikhMalaysia(tarikh))}`
+        ? `JAWATANKUASA OPERASI — ${formatTarikhMalaysia(tarikh)}`
         : "JAWATANKUASA OPERASI";
   }
 
@@ -6132,36 +6767,37 @@ function paparCartaJawatankuasaPentadbir() {
     return;
   }
 
-  /*
-    Gaya seperti jadual contoh:
-    - baris petugas biasa
-    - apabila jenis tugas berubah, masukkan baris pemisah hitam
-      sebagai tajuk kumpulan/jawatankuasa.
-  */
-  let tugasSemasa = "";
-
+  let kumpulanSemasa = "";
+  let bil = 0;
   const baris = [];
 
-  senarai.forEach((item, index) => {
-    const tugas =
-      atas(item.jenisTugas) || "LAIN-LAIN";
+  senarai.forEach(item => {
+    const kumpulan =
+      atas(item.jawatankuasa) ||
+      "LAIN-LAIN";
 
-    if (tugas !== tugasSemasa) {
-      tugasSemasa = tugas;
+    if (
+      kumpulan !==
+      kumpulanSemasa
+    ) {
+      kumpulanSemasa =
+        kumpulan;
 
       baris.push(`
         <tr class="admin-committee-group-row">
           <td colspan="5">
-            ${escapeHtml(tugas)}
+            ${escapeHtml(kumpulan)}
           </td>
         </tr>
       `);
     }
 
+    bil += 1;
+
     baris.push(`
       <tr>
         <td class="col-bil">
-          ${index + 1}
+          ${bil}
         </td>
 
         <td class="col-nama">
@@ -6174,14 +6810,34 @@ function paparCartaJawatankuasaPentadbir() {
 
         <td class="col-unit">
           ${escapeHtml(
-            item.bahagian || "-"
+            item.unit || "-"
           )}
         </td>
 
         <td class="col-tugas">
-          ${escapeHtml(
-            item.jenisTugas || "-"
-          )}
+          <div class="admin-committee-task-text">
+            ${escapeHtml(
+              item.tugas || "-"
+            )}
+          </div>
+
+          <div class="admin-committee-row-actions">
+            <button
+              class="admin-committee-edit-button"
+              type="button"
+              onclick="bukaEditJawatankuasaPentadbir('${escapeHtml(item.id)}')"
+            >
+              EDIT
+            </button>
+
+            <button
+              class="admin-committee-delete-button"
+              type="button"
+              onclick="padamJawatankuasaPentadbir('${escapeHtml(item.id)}')"
+            >
+              PADAM
+            </button>
+          </div>
         </td>
 
         <td class="col-telefon">
