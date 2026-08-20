@@ -3023,3 +3023,75 @@ body.marker-dragging *{
     min-width:900px !important;
   }
 }
+
+
+/* ================================================================
+   JAWATANKUASA — FIX AKHIR SAIZ KOLUM
+   BIL sangat kecil, PANGKAT / NO / NAMA lebih besar
+================================================================ */
+
+/*
+  Gunakan AUTO layout supaya browser menghormati lebar sebenar
+  kolum BIL. table-layout:fixed sebelum ini menyebabkan BIL
+  kelihatan terlalu besar kerana baris tajuk menggunakan colspan.
+*/
+.admin-chart-card[data-chart-section="JAWATANKUASA"] .admin-committee-table,
+.admin-committee-card .admin-committee-table{
+  table-layout:auto !important;
+  width:100% !important;
+}
+
+/* BIL — hanya untuk nombor 1, 2, 3... */
+.admin-committee-table th.col-bil,
+.admin-committee-table td.col-bil,
+.admin-committee-table th:nth-child(1):not([colspan]),
+.admin-committee-table td:nth-child(1):not([colspan]){
+  width:42px !important;
+  min-width:42px !important;
+  max-width:42px !important;
+  padding-left:4px !important;
+  padding-right:4px !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+}
+
+/* PANGKAT / NO / NAMA — beri ruang paling besar */
+.admin-committee-table th.col-nama,
+.admin-committee-table td.col-nama,
+.admin-committee-table th:nth-child(2),
+.admin-committee-table td:nth-child(2){
+  width:44% !important;
+  min-width:340px !important;
+  text-align:left !important;
+}
+
+/* Kolum lain kekal hampir sama */
+.admin-committee-table th.col-unit,
+.admin-committee-table td.col-unit,
+.admin-committee-table th:nth-child(3),
+.admin-committee-table td:nth-child(3){
+  width:20% !important;
+}
+
+.admin-committee-table th.col-tugas,
+.admin-committee-table td.col-tugas,
+.admin-committee-table th:nth-child(4),
+.admin-committee-table td:nth-child(4){
+  width:22% !important;
+}
+
+.admin-committee-table th.col-telefon,
+.admin-committee-table td.col-telefon,
+.admin-committee-table th:nth-child(5),
+.admin-committee-table td:nth-child(5){
+  width:14% !important;
+  white-space:nowrap !important;
+}
+
+/* Tajuk colspan jangan mempengaruhi saiz kolum */
+.admin-committee-table .admin-committee-title-row th[colspan],
+.admin-committee-table .admin-committee-group-row td[colspan]{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:none !important;
+}
