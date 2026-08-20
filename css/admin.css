@@ -2045,3 +2045,22 @@ body.marker-dragging *{
     min-height:320px;
   }
 }
+
+
+/* ================================================================
+   CARTA KEHADIRAN — LEGEND PUTIH & NO. TELEFON
+================================================================ */
+
+.admin-attendance-person-meta{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+
+.admin-attendance-person-meta b{
+  color:#ffffff;
+}
+
+@media(max-width:620px){
+  .admin-attendance-person-meta{
+    grid-template-columns:1fr;
+  }
+}
