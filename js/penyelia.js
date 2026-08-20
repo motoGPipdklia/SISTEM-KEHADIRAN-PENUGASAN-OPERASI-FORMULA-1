@@ -1357,295 +1357,7 @@ async function muatLaporanPenyelia() {
    PAPAR SENARAI LAPORAN
 ================================================================ */
 
-
-function ringkasanKadLaporanPenyelia(item) {
-  const jenis = normalisasiJenisTugasLaporanPenyelia(
-    item?.jenisTugas ||
-    item?.tugas?.jenis_tugas
-  );
-
-  const data =
-    item?.dataLaporan &&
-    typeof item.dataLaporan === "object"
-      ? item.dataLaporan
-      : {};
-
-  if (
-    jenis === "RONDAAN PENCEGAHAN JENAYAH" ||
-    jenis === "RONDAAN PENCEGAHAN JENAYAH NARKOTIK" ||
-    jenis === "RONDAAN PENCEGAHAN JENAYAH KOMERSIL"
-  ) {
-    const pemeriksaan =
-      data.pemeriksaan &&
-      typeof data.pemeriksaan === "object"
-        ? data.pemeriksaan
-        : {};
-
-    return {
-      label1: "Jumlah Pemeriksaan",
-      nilai1: pemeriksaan.jumlah ?? 0,
-
-      label2: "Tangkapan",
-      nilai2: butiranAdaTiadaLaporan(
-        data.tangkapan
-      ),
-
-      label3: "Rampasan",
-      nilai3: butiranAdaTiadaLaporan(
-        data.rampasan
-      ),
-
-      label4: "Catatan / No. Repot",
-      nilai4:
-        data.catatan_no_repot ||
-        item.perkaraMenarik ||
-        "TIADA"
-    };
-  }
-
-
-  if (jenis === "KAWALAN LALULINTAS") {
-    return {
-      label1: "Keadaan Trafik",
-      nilai1:
-        data.keadaan_trafik ||
-        "TIADA",
-
-      label2: "Kenderaan",
-      nilai2:
-        data.jumlah_kenderaan ??
-        item.jumlahKenderaan ??
-        0,
-
-      label3: "Kemalangan",
-      nilai3:
-        butiranAdaTiadaLaporan(
-          data.kemalangan
-        ),
-
-      label4: "Catatan",
-      nilai4:
-        data.catatan_tindakan ||
-        item.perkaraMenarik ||
-        "TIADA"
-    };
-  }
-
-  if (jenis === "UNIT PEMUSNAH BOM") {
-    return {
-      label1: "Lokasi",
-      nilai1:
-        data.lokasi ||
-        item.tugas?.tempat_tugas ||
-        item.tugas?.lokasi ||
-        "-",
-
-      label2: "VVIP / VIP",
-      nilai2:
-        formatVvipVipBerbaris(
-          butiranAdaTiadaLaporan(
-            data.vvip_vip
-          )
-        ),
-
-      label3: "Ancaman",
-      nilai3:
-        butiranAdaTiadaLaporan(
-          data.jenis_ancaman
-        ),
-
-      label4: "Catatan",
-      nilai4:
-        data.catatan ||
-        item.perkaraMenarik ||
-        "TIADA"
-    };
-  }
-
-
-  if (
-    jenis === "BALAI POLIS BERGERAK" ||
-    jenis === "PONDOK POLIS"
-  ) {
-    return {
-      label1: "No. Repot",
-      nilai1:
-        data.no_repot ||
-        data.no_report ||
-        data.nombor_repot ||
-        data.nombor_report ||
-        "TIADA",
-
-      label2: "",
-      nilai2: "",
-
-      label3: "",
-      nilai3: "",
-
-      label4: "Catatan",
-      nilai4:
-        data.catatan ||
-        data.catatan_tindakan ||
-        item.perkaraMenarik ||
-        "TIADA"
-    };
-  }
-
-  return {
-    label1: "Pengunjung",
-    nilai1: item.jumlahPengunjung,
-
-    label2: "Kenderaan",
-    nilai2: item.jumlahKenderaan,
-
-    label3: "VVIP / VIP",
-    nilai3: item.vvipVip || "TIADA",
-
-    label4: "Perkara Menarik",
-    nilai4: item.perkaraMenarik || "TIADA"
-  };
-}
-
-
-
-function pastikanPilihanPenapisLaporanPenyelia() {
-  const penapis =
-    elemenPenyelia("penapisLaporan");
-
-  if (!penapis) {
-    return;
-  }
-
-  const nilaiSemasa =
-    penapis.value || "SEMUA";
-
-  const pilihan = [
-    {
-      value: "SEMUA",
-      label: "SEMUA"
-    },
-    {
-      value: "BELUM DIBACA",
-      label: "BELUM DIBACA"
-    },
-    {
-      value: "TELAH DIBACA",
-      label: "TELAH DIBACA"
-    },
-    {
-      value: "LAPORAN PENGUNJUNG",
-      label: "PENGUNJUNG"
-    },
-    {
-      value: "LAPORAN JENAYAH",
-      label: "JENAYAH"
-    },
-    {
-      value: "LAPORAN JENAYAH NARKOTIK",
-      label: "JENAYAH NARKOTIK"
-    },
-    {
-      value: "LAPORAN JENAYAH KOMERSIL",
-      label: "JENAYAH KOMERSIL"
-    },
-    {
-      value: "LAPORAN BALAI / PONDOK POLIS",
-      label: "BALAI POLIS BERGERAK / PONDOK POLIS"
-    },
-    {
-      value: "LAPORAN UNIT PEMUSNAH BOM",
-      label: "UNIT PEMUSNAH BOM"
-    },
-    {
-      value: "LAPORAN KAWALAN LALULINTAS",
-      label: "KAWALAN LALULINTAS"
-    }
-  ];
-
-  const htmlPilihan =
-    pilihan.map(item => `
-      <option value="${htmlPenyelia(item.value)}">
-        ${htmlPenyelia(item.label)}
-      </option>
-    `).join("");
-
-  /*
-    Hanya bina semula jika pilihan kategori belum ada.
-    Ini mengelakkan dropdown di-reset setiap kali carian dibuat.
-  */
-  if (
-    !Array.from(penapis.options || [])
-      .some(option =>
-        option.value === "LAPORAN PENGUNJUNG"
-      )
-  ) {
-    penapis.innerHTML = htmlPilihan;
-  }
-
-  const nilaiMasihSah =
-    Array.from(penapis.options || [])
-      .some(option =>
-        option.value === nilaiSemasa
-      );
-
-  penapis.value =
-    nilaiMasihSah
-      ? nilaiSemasa
-      : "SEMUA";
-}
-
-
-function kategoriLaporanPenyelia(item) {
-  const jenis =
-    normalisasiJenisTugasLaporanPenyelia(
-      item?.jenisTugas ||
-      item?.tugas?.jenis_tugas
-    );
-
-  if (jenis === "KAWALAN KESELAMATAN") {
-    return "LAPORAN PENGUNJUNG";
-  }
-
-  if (jenis === "RONDAAN PENCEGAHAN JENAYAH") {
-    return "LAPORAN JENAYAH";
-  }
-
-  if (
-    jenis ===
-    "RONDAAN PENCEGAHAN JENAYAH NARKOTIK"
-  ) {
-    return "LAPORAN JENAYAH NARKOTIK";
-  }
-
-  if (
-    jenis ===
-    "RONDAAN PENCEGAHAN JENAYAH KOMERSIL"
-  ) {
-    return "LAPORAN JENAYAH KOMERSIL";
-  }
-
-  if (
-    jenis === "BALAI POLIS BERGERAK" ||
-    jenis === "PONDOK POLIS"
-  ) {
-    return "LAPORAN BALAI / PONDOK POLIS";
-  }
-
-  if (jenis === "UNIT PEMUSNAH BOM") {
-    return "LAPORAN UNIT PEMUSNAH BOM";
-  }
-
-  if (jenis === "KAWALAN LALULINTAS") {
-    return "LAPORAN KAWALAN LALULINTAS";
-  }
-
-  return "";
-}
-
-
 function paparSenaraiLaporan() {
-  pastikanPilihanPenapisLaporanPenyelia();
-
   const carian = atasPenyelia(
     elemenPenyelia(
       "carianLaporan"
@@ -1715,29 +1427,14 @@ function paparSenaraiLaporan() {
             carian
           );
 
-        const kategoriLaporan =
-          kategoriLaporanPenyelia(item);
-
-        let padanPenapis = false;
-
-        if (penapis === "SEMUA") {
-          padanPenapis = true;
-
-        } else if (
-          penapis === "BELUM DIBACA" ||
-          penapis === "TELAH DIBACA"
-        ) {
-          padanPenapis =
-            penapis === statusBacaan;
-
-        } else {
-          padanPenapis =
-            penapis === kategoriLaporan;
-        }
+        const padanStatus =
+          penapis === "SEMUA" ||
+          penapis ===
+            statusBacaan;
 
         return (
           padanCarian &&
-          padanPenapis
+          padanStatus
         );
       }
     );
@@ -1767,19 +1464,6 @@ function paparSenaraiLaporan() {
         item.telahDibaca
           ? "TELAH DIBACA"
           : "BELUM DIBACA";
-
-      const ringkasan =
-        ringkasanKadLaporanPenyelia(item);
-
-      const jenisRingkasan =
-        normalisasiJenisTugasLaporanPenyelia(
-          item?.jenisTugas ||
-          item?.tugas?.jenis_tugas
-        );
-
-      const ringkasanBalaiPondok =
-        jenisRingkasan === "BALAI POLIS BERGERAK" ||
-        jenisRingkasan === "PONDOK POLIS";
 
       return `
         <article
@@ -1856,81 +1540,76 @@ function paparSenaraiLaporan() {
             </div>
 
             ${
-              ringkasanBalaiPondok
+              normalisasiJenisTugasLaporanPenyelia(
+                item.jenisTugas
+              ) === "LITUPAN KESELAMATAN"
                 ? `
-                  <div
-                    class="label"
-                    style="margin:0 !important; padding:0 !important;"
-                  >No. Repot</div>
-                  <div
-                    style="
-                      margin:0 !important;
-                      padding:0 !important;
-                      white-space:pre-line;
-                    "
-                  >${htmlPenyelia(ringkasan.nilai1)}</div>
+                  <div class="label">
+                    Lokasi
+                  </div>
 
-                  <div
-                    class="label"
-                    style="margin:0 !important; padding:0 !important;"
-                  >Catatan</div>
-                  <div
-                    class="teks-ringkas"
-                    style="
-                      margin:0 !important;
-                      padding:0 !important;
-                      white-space:pre-line;
-                    "
-                  >${htmlPenyelia(ringkasan.nilai4)}</div>
+                  <div>
+                    ${htmlPenyelia(
+                      item.dataLaporan?.lokasi ||
+                      item.tugas?.tempat_tugas ||
+                      item.tugas?.lokasi ||
+                      "-"
+                    )}
+                  </div>
                 `
                 : `
-                  ${
-                    ringkasan.label1
-                      ? `
-                        <div class="label">${htmlPenyelia(ringkasan.label1)}</div>
-                        <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai1)}</div>
-                      `
-                      : ""
-                  }
+                  <div class="label">
+                    Pengunjung
+                  </div>
 
-                  ${
-                    ringkasan.label2
-                      ? `
-                        <div class="label">${htmlPenyelia(ringkasan.label2)}</div>
-                        <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai2)}</div>
-                      `
-                      : ""
-                  }
+                  <div>
+                    ${htmlPenyelia(
+                      item.jumlahPengunjung
+                    )}
+                  </div>
 
-                  ${
-                    ringkasan.label3
-                      ? `
-                        <div class="label">${htmlPenyelia(ringkasan.label3)}</div>
-                        <div style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai3)}</div>
-                      `
-                      : ""
-                  }
+                  <div class="label">
+                    Kenderaan
+                  </div>
 
-                  ${
-                    ringkasan.label4
-                      ? `
-                        <div class="label">${htmlPenyelia(ringkasan.label4)}</div>
-                        <div class="teks-ringkas" style="white-space:pre-line;">${htmlPenyelia(ringkasan.nilai4)}</div>
-                      `
-                      : ""
-                  }
+                  <div>
+                    ${htmlPenyelia(
+                      item.jumlahKenderaan
+                    )}
+                  </div>
                 `
             }
+
+            <div class="label">
+              VVIP / VIP
+            </div>
+
+            <div>
+              ${htmlPenyelia(
+                item.vvipVip ||
+                "TIADA"
+              )}
+            </div>
+
+            <div class="label">
+              Perkara Menarik
+            </div>
+
+            <div class="teks-ringkas">
+              ${htmlPenyelia(
+                item.perkaraMenarik ||
+                "TIADA"
+              )}
+            </div>
+
           </div>
 
           <div
             class="actions"
             style="
-              display:grid !important;
-              grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) !important;
-              gap:10px !important;
-              width:100% !important;
-              align-items:stretch !important;
+              display:flex;
+              gap:10px;
+              align-items:stretch;
             "
           >
 
@@ -1938,17 +1617,8 @@ function paparSenaraiLaporan() {
               class="btn-main"
               type="button"
               style="
-                display:flex !important;
-                align-items:center !important;
-                justify-content:center !important;
-                width:100% !important;
-                min-width:0 !important;
-                height:46px !important;
-                min-height:46px !important;
-                max-height:46px !important;
-                margin:0 !important;
-                padding:0 16px !important;
-                box-sizing:border-box !important;
+                flex:1 1 0;
+                width:50%;
               "
               onclick="bukaLaporanPenyelia('${htmlPenyelia(
                 item.id
@@ -1964,17 +1634,8 @@ function paparSenaraiLaporan() {
                     class="btn-ok"
                     type="button"
                     style="
-                      display:flex !important;
-                      align-items:center !important;
-                      justify-content:center !important;
-                      width:100% !important;
-                      min-width:0 !important;
-                      height:46px !important;
-                      min-height:46px !important;
-                      max-height:46px !important;
-                      margin:0 !important;
-                      padding:0 16px !important;
-                      box-sizing:border-box !important;
+                      flex:1 1 0;
+                      width:50%;
                     "
                     onclick="tandaLaporanDibaca('${htmlPenyelia(
                       item.id
@@ -1988,15 +1649,10 @@ function paparSenaraiLaporan() {
                     class="btn-secondary"
                     type="button"
                     style="
-                      display:flex !important;
-                      width:100% !important;
-                      min-width:0 !important;
-                      height:46px !important;
-                      margin:0 !important;
-                      padding:0 16px !important;
-                      box-sizing:border-box !important;
-                      visibility:hidden !important;
-                      pointer-events:none !important;
+                      flex:1 1 0;
+                      width:50%;
+                      visibility:hidden;
+                      pointer-events:none;
                     "
                     tabindex="-1"
                     aria-hidden="true"
@@ -2165,6 +1821,10 @@ function normalisasiJenisTugasLaporanPenyelia(nilai) {
     .replace(/\s+/g, " ")
     .trim();
 
+  if (jenis.includes("LITUPAN KESELAMATAN")) {
+    return "LITUPAN KESELAMATAN";
+  }
+
   if (jenis.includes("KAWALAN KESELAMATAN")) {
     return "KAWALAN KESELAMATAN";
   }
@@ -2220,32 +1880,6 @@ function nilaiPaparanLaporan(nilai, nilaiKosong = "TIADA") {
 }
 
 
-function formatVvipVipBerbaris(nilai) {
-  const teks = teksPenyelia(nilai);
-
-  if (!teks) {
-    return "TIADA";
-  }
-
-  /*
-    Contoh:
-      PMX TIMBALAN PERDANA MENTERI 1
-    menjadi:
-      PMX
-      TIMBALAN PERDANA MENTERI 1
-  */
-  const padanan = teks.match(
-    /^(PMX|PM|TPM|VVIP|VIP)\s+(.+)$/i
-  );
-
-  if (padanan) {
-    return `${padanan[1].toUpperCase()}\n${padanan[2]}`;
-  }
-
-  return teks;
-}
-
-
 function butiranAdaTiadaLaporan(objek) {
   if (!objek || typeof objek !== "object") {
     const nilai = teksPenyelia(objek);
@@ -2266,7 +1900,7 @@ function butiranAdaTiadaLaporan(objek) {
 function barisModalLaporan(label, nilai) {
   return `
     <div class="label">${htmlPenyelia(label)}</div>
-    <div style="white-space:pre-line;">${htmlPenyelia(nilaiPaparanLaporan(nilai))}</div>
+    <div>${htmlPenyelia(nilaiPaparanLaporan(nilai))}</div>
   `;
 }
 
@@ -2307,6 +1941,58 @@ function binaButiranDinamikLaporanPenyelia(item) {
   }
 
 
+  if (jenis === "LITUPAN KESELAMATAN") {
+    return `
+      ${barisModalLaporan(
+        "Kategori",
+        data.kategori
+      )}
+
+      ${barisModalLaporan(
+        "Nama",
+        data.nama
+      )}
+
+      ${barisModalLaporan(
+        "Jawatan",
+        data.jawatan
+      )}
+
+      ${barisModalLaporan(
+        "Agensi / Organisasi",
+        data.agensi_organisasi
+      )}
+
+      ${barisModalLaporan(
+        "Masa Ketibaan",
+        data.masa_ketibaan
+      )}
+
+      ${barisModalLaporan(
+        "Masa Beredar",
+        data.masa_beredar
+      )}
+
+      ${barisModalLaporan(
+        "Lokasi",
+        data.lokasi ||
+        item.tugas?.tempat_tugas ||
+        item.tugas?.lokasi
+      )}
+
+      ${barisModalLaporan(
+        "Tujuan / Aktiviti",
+        data.tujuan_aktiviti
+      )}
+
+      ${barisModalLaporan(
+        "Catatan",
+        data.catatan
+      )}
+    `;
+  }
+
+
   if (jenis === "KAWALAN KESELAMATAN") {
     const kenderaan =
       data.kenderaan &&
@@ -2315,10 +2001,8 @@ function binaButiranDinamikLaporanPenyelia(item) {
         : {};
 
     const vvip =
-      formatVvipVipBerbaris(
-        butiranAdaTiadaLaporan(
-          data.vvip_vip
-        )
+      butiranAdaTiadaLaporan(
+        data.vvip_vip
       );
 
     return `
@@ -2447,11 +2131,7 @@ function binaButiranDinamikLaporanPenyelia(item) {
 
       ${barisModalLaporan(
         "VVIP / VIP",
-        formatVvipVipBerbaris(
-          butiranAdaTiadaLaporan(
-            data.vvip_vip
-          )
-        )
+        butiranAdaTiadaLaporan(data.vvip_vip)
       )}
 
       ${barisModalLaporan(
@@ -3238,21 +2918,21 @@ function paparSenaraiSitrep() {
                   item.lampiran_path
                     ? `
                         <button
-                          class="btn-main sitrep-table-action sitrep-table-attachment"
+                          class="btn-main"
                           type="button"
                           onclick="bukaLampiranSitrep(
                             '${htmlPenyelia(item.lampiran_path)}',
                             '${htmlPenyelia(item.lampiran_nama || "lampiran")}'
                           )"
                         >
-                          LAMPIRAN
+                          📎 LAMPIRAN
                         </button>
                       `
                     : ""
                 }
 
                 <button
-                  class="btn-secondary sitrep-table-print sitrep-table-action"
+                  class="btn-secondary sitrep-table-print"
                   type="button"
                   onclick="cetakSitrep('${htmlPenyelia(item.id)}')"
                 >
