@@ -2021,3 +2021,27 @@ body.marker-dragging *{
     height:285px;
   }
 }
+
+
+/* ================================================================
+   CARTA KEHADIRAN — PAPAR JUMLAH + PERATUS
+================================================================ */
+
+.admin-attendance-chart-panel{
+  overflow:hidden;
+}
+
+.admin-attendance-canvas-wrap{
+  min-height:350px;
+}
+
+/* Chart.js legend akan wrap apabila ruang sempit */
+#canvasCartaKehadiran{
+  max-width:100%;
+}
+
+@media(max-width:700px){
+  .admin-attendance-canvas-wrap{
+    min-height:320px;
+  }
+}
