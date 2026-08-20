@@ -1833,3 +1833,191 @@ body.marker-dragging *{
     min-width:0;
   }
 }
+
+
+/* ================================================================
+   CARTA KEHADIRAN INTERAKTIF
+   Carta kiri + senarai kanan
+================================================================ */
+
+.admin-attendance-chart-card{
+  grid-column:1 / -1;
+}
+
+.admin-attendance-layout{
+  display:grid;
+  grid-template-columns:minmax(340px,.9fr) minmax(420px,1.1fr);
+  gap:16px;
+  align-items:stretch;
+  margin-top:14px;
+}
+
+.admin-attendance-list-panel,
+.admin-attendance-chart-panel{
+  min-width:0;
+  border:1px solid #303030;
+  border-radius:12px;
+  background:#121212;
+}
+
+.admin-attendance-list-panel{
+  display:flex;
+  min-height:380px;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.admin-attendance-list-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 15px;
+  border-bottom:1px solid #303030;
+  background:#171717;
+}
+
+.admin-attendance-list-heading span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.04em;
+}
+
+.admin-attendance-list-heading strong{
+  display:block;
+  margin-top:4px;
+  color:var(--gold);
+  font-size:18px;
+}
+
+.admin-attendance-list-count{
+  display:flex;
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:var(--gold);
+  color:#111;
+  font-size:18px;
+  font-weight:900;
+}
+
+.admin-attendance-list{
+  display:grid;
+  gap:8px;
+  max-height:390px;
+  padding:12px;
+  overflow:auto;
+}
+
+.admin-attendance-person{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:10px;
+  padding:11px;
+  border:1px solid #303030;
+  border-radius:10px;
+  background:#181818;
+}
+
+.admin-attendance-person-no{
+  display:flex;
+  width:30px;
+  height:30px;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#303030;
+  color:var(--gold);
+  font-size:12px;
+  font-weight:900;
+}
+
+.admin-attendance-person-main{
+  min-width:0;
+}
+
+.admin-attendance-person-main > strong{
+  display:block;
+  color:#f3f3f3;
+  line-height:1.35;
+}
+
+.admin-attendance-person-meta{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px 12px;
+  margin-top:7px;
+  color:#bcbcbc;
+  font-size:11px;
+}
+
+.admin-attendance-person-meta span{
+  min-width:0;
+  overflow-wrap:anywhere;
+}
+
+.admin-attendance-person-meta b{
+  color:#ededed;
+  font-weight:700;
+}
+
+.admin-attendance-person-footer{
+  display:flex;
+  align-items:center;
+  gap:6px 9px;
+  flex-wrap:wrap;
+  margin-top:8px;
+}
+
+.admin-attendance-person-footer small{
+  color:var(--muted);
+}
+
+.admin-attendance-chart-panel{
+  display:flex;
+  min-height:380px;
+  flex-direction:column;
+  justify-content:center;
+  padding:12px;
+}
+
+.admin-attendance-canvas-wrap{
+  height:330px;
+  margin-top:0;
+}
+
+.admin-attendance-hint{
+  margin-top:7px;
+  color:var(--muted);
+  font-size:11px;
+  text-align:center;
+}
+
+#canvasCartaKehadiran{
+  cursor:pointer;
+}
+
+@media(max-width:1050px){
+  .admin-attendance-layout{
+    grid-template-columns:1fr;
+  }
+
+  .admin-attendance-list-panel{
+    min-height:300px;
+  }
+}
+
+@media(max-width:620px){
+  .admin-attendance-person-meta{
+    grid-template-columns:1fr;
+  }
+
+  .admin-attendance-canvas-wrap{
+    height:285px;
+  }
+}
