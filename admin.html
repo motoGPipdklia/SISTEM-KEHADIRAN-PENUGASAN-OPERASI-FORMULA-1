@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-jawatankuasa-crud-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-cetak-carta-001">
 </head>
 
 <body>
@@ -479,8 +479,19 @@
 
         <div class="admin-chart-grid">
           <section class="admin-chart-card" data-chart-section="PENGUNJUNG">
-            <h3>Carta Pengunjung</h3>
-            <p class="muted">Trend jumlah pengunjung daripada laporan Kawalan Keselamatan.</p>
+            <div class="admin-chart-card-heading">
+              <div>
+                <h3>Carta Pengunjung</h3>
+                <p class="muted">Trend jumlah pengunjung daripada laporan Kawalan Keselamatan.</p>
+              </div>
+              <button
+                class="gray compact-button admin-chart-print-button"
+                type="button"
+                onclick="cetakCartaPentadbir('PENGUNJUNG','CARTA PENGUNJUNG')"
+              >
+                CETAK
+              </button>
+            </div>
             <div class="admin-chart-canvas-wrap"><canvas id="canvasCartaPengunjung"></canvas></div>
           </section>
 
@@ -488,10 +499,21 @@
             class="admin-chart-card admin-vehicle-chart-card"
             data-chart-section="KENDERAAN"
           >
-            <h3>Carta Kenderaan</h3>
-            <p class="muted">
-              Klik Bas, Motosikal atau Motokar untuk melihat butiran di sebelah kanan.
-            </p>
+            <div class="admin-chart-card-heading">
+              <div>
+                <h3>Carta Kenderaan</h3>
+                <p class="muted">
+                  Klik Bas, Motosikal atau Motokar untuk melihat butiran di sebelah kanan.
+                </p>
+              </div>
+              <button
+                class="gray compact-button admin-chart-print-button"
+                type="button"
+                onclick="cetakCartaPentadbir('KENDERAAN','CARTA KENDERAAN')"
+              >
+                CETAK
+              </button>
+            </div>
 
             <div class="admin-vehicle-layout">
 
@@ -548,6 +570,14 @@
 
               <div class="section-heading-actions">
                 <button
+                  class="gray compact-button admin-chart-print-button"
+                  type="button"
+                  onclick="cetakCartaPentadbir('VVIP_VIP','VVIP / VIP')"
+                >
+                  CETAK
+                </button>
+
+                <button
                   class="green-button compact-button"
                   type="button"
                   onclick="bukaTambahVvipVipPentadbir()"
@@ -591,6 +621,14 @@
               </div>
 
               <div class="admin-committee-heading-actions">
+                <button
+                  class="gray admin-chart-print-button"
+                  type="button"
+                  onclick="cetakCartaPentadbir('JAWATANKUASA','JAWATANKUASA OPERASI')"
+                >
+                  CETAK
+                </button>
+
                 <button
                   class="green-button"
                   type="button"
@@ -649,10 +687,21 @@
             class="admin-chart-card admin-attendance-chart-card"
             data-chart-section="KEHADIRAN"
           >
-            <h3>Kehadiran Petugas</h3>
-            <p class="muted">
-              Klik bahagian carta atau label status untuk memaparkan senarai nama petugas.
-            </p>
+            <div class="admin-chart-card-heading">
+              <div>
+                <h3>Kehadiran Petugas</h3>
+                <p class="muted">
+                  Klik bahagian carta atau label status untuk memaparkan senarai nama petugas.
+                </p>
+              </div>
+              <button
+                class="gray compact-button admin-chart-print-button"
+                type="button"
+                onclick="cetakCartaPentadbir('KEHADIRAN','KEHADIRAN PETUGAS')"
+              >
+                CETAK
+              </button>
+            </div>
 
             <div class="admin-attendance-layout">
 
@@ -702,10 +751,21 @@
             class="admin-chart-card admin-incident-chart-card"
             data-chart-section="INSIDEN"
           >
-            <h3>Insiden Operasi</h3>
-            <p class="muted">
-              Klik Tangkapan, Rampasan, Kemalangan atau Ancaman untuk melihat butiran di sebelah kanan.
-            </p>
+            <div class="admin-chart-card-heading">
+              <div>
+                <h3>Insiden Operasi</h3>
+                <p class="muted">
+                  Klik Tangkapan, Rampasan, Kemalangan atau Ancaman untuk melihat butiran di sebelah kanan.
+                </p>
+              </div>
+              <button
+                class="gray compact-button admin-chart-print-button"
+                type="button"
+                onclick="cetakCartaPentadbir('INSIDEN','INSIDEN OPERASI')"
+              >
+                CETAK
+              </button>
+            </div>
 
             <div class="admin-incident-layout">
 
@@ -762,6 +822,14 @@
               </p>
             </div>
             <div class="section-heading-actions">
+              <button
+                class="gray compact-button admin-chart-print-button"
+                type="button"
+                onclick="cetakCartaPentadbir('PETA','PETA LOKASI PENUGASAN')"
+              >
+                CETAK
+              </button>
+
               <button
                 class="gray compact-button"
                 type="button"
@@ -858,7 +926,22 @@
               <h3>Kronologi Operasi</h3>
               <p class="muted">Gabungan kejadian daripada laporan petugas dan catatan Urusetia.</p>
             </div>
-            <button class="gold compact-button" type="button" onclick="bukaTambahKronologiPentadbir()">TAMBAH KRONOLOGI</button>
+            <div class="section-heading-actions">
+              <button
+                class="gray compact-button admin-chart-print-button"
+                type="button"
+                onclick="cetakCartaPentadbir('KRONOLOGI','KRONOLOGI OPERASI')"
+              >
+                CETAK
+              </button>
+              <button
+                class="gold compact-button"
+                type="button"
+                onclick="bukaTambahKronologiPentadbir()"
+              >
+                TAMBAH KRONOLOGI
+              </button>
+            </div>
           </div>
 
           <div class="admin-committee-table-wrap">
@@ -1785,7 +1868,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-kronologi-table-001"></script>
+<script src="js/admin.js?v=20260820-cetak-carta-001"></script>
 
 </body>
 </html>
