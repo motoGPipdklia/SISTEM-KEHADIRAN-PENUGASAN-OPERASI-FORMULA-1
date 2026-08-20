@@ -3107,3 +3107,19 @@ body.marker-dragging *{
   text-align: center !important;
   vertical-align: middle !important;
 }
+
+/* =========================================================
+   KRONOLOGI OPERASI - PELARASAN TEKS
+========================================================= */
+
+/* TAJUK - contoh "PMX TIBA" tidak bold */
+.admin-chronology-table tbody td:nth-child(2),
+.admin-chronology-table tbody td:nth-child(2) strong {
+  font-weight: 400 !important;
+}
+
+/* CATATAN - contoh "PMX TIBA DI PADDOCK" di tengah */
+.admin-chronology-table tbody td:nth-child(4) {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
