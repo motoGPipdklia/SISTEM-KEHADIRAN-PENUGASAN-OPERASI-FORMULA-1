@@ -41,6 +41,7 @@ let cartaPengunjungPentadbir = null;
 let cartaKenderaanPentadbir = null;
 let cartaJawatankuasaPentadbir = null;
 let cartaKehadiranPentadbir = null;
+let statusKehadiranCartaDipilihPentadbir = "HADIR";
 let cartaInsidenPentadbir = null;
 
 let lokasiPetaDipilihPentadbir = "";
@@ -3727,6 +3728,180 @@ function paparCartaKenderaanPentadbir() {
 }
 
 
+function kategoriKehadiranCartaPentadbir(item) {
+  if (item.checkout) {
+    return "SELESAI";
+  }
+
+  if (item.statusKehadiran === "HADIR") {
+    return "HADIR";
+  }
+
+  if (item.statusKehadiran === "MENUNGGU") {
+    return "MENUNGGU";
+  }
+
+  return "TIDAK_HADIR";
+}
+
+
+function labelKategoriKehadiranPentadbir(kategori) {
+  const peta = {
+    HADIR: "HADIR",
+    TIDAK_HADIR: "TIDAK HADIR",
+    SELESAI: "SELESAI",
+    MENUNGGU: "MENUNGGU"
+  };
+
+  return peta[kategori] || kategori;
+}
+
+
+function senaraiMengikutKehadiranPentadbir(kategori) {
+  return dataDashboard
+    .filter(item =>
+      kategoriKehadiranCartaPentadbir(item) === kategori
+    )
+    .sort((a, b) => {
+      const pangkatA = atas(a.pangkat);
+      const pangkatB = atas(b.pangkat);
+
+      if (pangkatA !== pangkatB) {
+        return pangkatA.localeCompare(pangkatB, "ms");
+      }
+
+      return atas(a.nama).localeCompare(
+        atas(b.nama),
+        "ms"
+      );
+    });
+}
+
+
+function paparSenaraiKehadiranPentadbir(kategori) {
+  statusKehadiranCartaDipilihPentadbir =
+    kategori;
+
+  const label =
+    labelKategoriKehadiranPentadbir(kategori);
+
+  const senarai =
+    senaraiMengikutKehadiranPentadbir(kategori);
+
+  if (el("tajukSenaraiKehadiranPentadbir")) {
+    el("tajukSenaraiKehadiranPentadbir").textContent =
+      label;
+  }
+
+  if (el("jumlahSenaraiKehadiranPentadbir")) {
+    el("jumlahSenaraiKehadiranPentadbir").textContent =
+      senarai.length.toLocaleString("ms-MY");
+  }
+
+  const ruang =
+    el("senaraiKehadiranPentadbir");
+
+  if (!ruang) return;
+
+  if (!senarai.length) {
+    ruang.innerHTML = `
+      <div class="empty-row">
+        Tiada petugas dalam status ${escapeHtml(label)}.
+      </div>
+    `;
+    return;
+  }
+
+  ruang.innerHTML =
+    senarai.map((item, index) => {
+      const masa =
+        item.checkout
+          ? item.checkout.masa_checkout
+          : item.masaCheckin;
+
+      const teksMasa =
+        masa
+          ? formatTarikhMasa(masa)
+          : "-";
+
+      return `
+        <article class="admin-attendance-person">
+          <div class="admin-attendance-person-no">
+            ${index + 1}
+          </div>
+
+          <div class="admin-attendance-person-main">
+            <strong>
+              ${escapeHtml(item.pangkat || "")}
+              ${escapeHtml(item.nama || "-")}
+            </strong>
+
+            <div class="admin-attendance-person-meta">
+              <span>
+                No Badan:
+                <b>${escapeHtml(item.noBadan || "-")}</b>
+              </span>
+
+              <span>
+                Call Sign:
+                <b>${escapeHtml(item.callSign || "-")}</b>
+              </span>
+
+              <span>
+                Tempat:
+                <b>${escapeHtml(item.tempatTugas || "-")}</b>
+              </span>
+
+              <span>
+                Tugas:
+                <b>${escapeHtml(item.jenisTugas || "-")}</b>
+              </span>
+            </div>
+
+            <div class="admin-attendance-person-footer">
+              ${
+                item.penyelia
+                  ? '<span class="badge badge-yellow">PENYELIA</span>'
+                  : ""
+              }
+
+              ${
+                item.pemegangSet
+                  ? '<span class="badge badge-blue">PEMEGANG SET</span>'
+                  : ""
+              }
+
+              <small>
+                ${
+                  kategori === "SELESAI"
+                    ? "Check-Out"
+                    : kategori === "HADIR"
+                      ? "Check-In"
+                      : "Masa"
+                }: ${escapeHtml(teksMasa)}
+              </small>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+}
+
+
+function pilihKategoriCartaKehadiranPentadbir(index) {
+  const kategori = [
+    "HADIR",
+    "TIDAK_HADIR",
+    "SELESAI",
+    "MENUNGGU"
+  ][index];
+
+  if (!kategori) return;
+
+  paparSenaraiKehadiranPentadbir(kategori);
+}
+
+
 function paparCartaKehadiranPentadbir() {
   const kanvas =
     el("canvasCartaKehadiran");
@@ -3739,25 +3914,24 @@ function paparCartaKehadiranPentadbir() {
     return;
   }
 
-  const sedangBertugas =
-    dataDashboard.filter(item =>
-      item.statusKehadiran === "HADIR" &&
-      !item.checkout
+  const hadir =
+    senaraiMengikutKehadiranPentadbir(
+      "HADIR"
     ).length;
 
-  const belumHadir =
-    dataDashboard.filter(item =>
-      item.statusKehadiran === "BELUM HADIR"
+  const tidakHadir =
+    senaraiMengikutKehadiranPentadbir(
+      "TIDAK_HADIR"
     ).length;
 
   const selesai =
-    dataDashboard.filter(item =>
-      Boolean(item.checkout)
+    senaraiMengikutKehadiranPentadbir(
+      "SELESAI"
     ).length;
 
   const menunggu =
-    dataDashboard.filter(item =>
-      item.statusKehadiran === "MENUNGGU"
+    senaraiMengikutKehadiranPentadbir(
+      "MENUNGGU"
     ).length;
 
   kemusnahkanCartaPentadbir(
@@ -3767,28 +3941,91 @@ function paparCartaKehadiranPentadbir() {
   cartaKehadiranPentadbir =
     new Chart(kanvas, {
       type: "doughnut",
+
       data: {
         labels: [
-          "Sedang Bertugas",
-          "Belum Hadir",
+          "Hadir",
+          "Tidak Hadir",
           "Selesai",
           "Menunggu"
         ],
+
         datasets: [
           {
             data: [
-              sedangBertugas,
-              belumHadir,
+              hadir,
+              tidakHadir,
               selesai,
               menunggu
             ]
           }
         ]
       },
-      options: pilihanCartaPentadbir(
-        "Kehadiran"
-      )
+
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+
+        onClick(event, elements) {
+          if (!elements?.length) return;
+
+          pilihKategoriCartaKehadiranPentadbir(
+            elements[0].index
+          );
+        },
+
+        onHover(event, elements) {
+          const sasaran =
+            event?.native?.target;
+
+          if (sasaran) {
+            sasaran.style.cursor =
+              elements?.length
+                ? "pointer"
+                : "default";
+          }
+        },
+
+        plugins: {
+          legend: {
+            position: "top",
+
+            labels: {
+              color: "#eeeeee",
+              usePointStyle: false
+            },
+
+            onClick(event, legendItem) {
+              /*
+                Klik label legend tidak lagi hide/show data.
+                Ia digunakan untuk memilih senarai petugas.
+              */
+              pilihKategoriCartaKehadiranPentadbir(
+                legendItem.index
+              );
+            }
+          },
+
+          tooltip: {
+            enabled: true,
+
+            callbacks: {
+              afterLabel(context) {
+                return "Klik untuk papar senarai nama";
+              }
+            }
+          }
+        }
+      }
     });
+
+  /*
+    Kekalkan kategori terakhir yang dipilih.
+    Untuk kali pertama, default = HADIR.
+  */
+  paparSenaraiKehadiranPentadbir(
+    statusKehadiranCartaDipilihPentadbir
+  );
 }
 
 
