@@ -32,6 +32,403 @@ const KUNCI_DEVICE_F1_ADMIN = "skpoF1DeviceId";
 const HAD_PERANTI_KHAS_ADMIN = 2;
 let dataPerantiKhasAdmin = [];
 
+
+/* ================================================================
+   CETAK CARTA INDIVIDU
+================================================================ */
+
+function tajukCetakanCartaPentadbir(jenis, tajuk) {
+  const tarikh =
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    hariIniMalaysia();
+
+  return {
+    tajuk:
+      teks(tajuk) ||
+      atas(jenis).replace(/_/g, " "),
+    tarikh:
+      formatTarikhMalaysia(tarikh)
+  };
+}
+
+
+function tukarCanvasKeImejUntukCetakanPentadbir(
+  asal,
+  salinan
+) {
+  const canvasAsal =
+    [...asal.querySelectorAll("canvas")];
+
+  const canvasSalinan =
+    [...salinan.querySelectorAll("canvas")];
+
+  canvasAsal.forEach((canvas, index) => {
+    const canvasClone =
+      canvasSalinan[index];
+
+    if (!canvasClone) return;
+
+    try {
+      const imej =
+        document.createElement("img");
+
+      imej.src =
+        canvas.toDataURL(
+          "image/png",
+          1
+        );
+
+      imej.alt =
+        canvas.getAttribute("aria-label") ||
+        "Carta operasi";
+
+      imej.className =
+        "print-chart-image";
+
+      canvasClone.replaceWith(
+        imej
+      );
+
+    } catch (error) {
+      console.warn(
+        "Canvas gagal ditukar kepada imej untuk cetakan:",
+        error
+      );
+    }
+  });
+}
+
+
+function bersihkanSalinanCetakanCartaPentadbir(
+  salinan
+) {
+  /*
+    Butang dan kawalan interaktif tidak perlu dicetak.
+  */
+  salinan
+    .querySelectorAll(
+      "button, select, input, textarea, .admin-chart-print-button, " +
+      ".admin-vehicle-hint, .admin-attendance-hint, .admin-incident-hint, " +
+      ".admin-map-controls, .admin-map-marker-controls"
+    )
+    .forEach(item =>
+      item.remove()
+    );
+
+  /*
+    Status berjaya / ralat sistem tidak dimasukkan dalam laporan cetak.
+  */
+  salinan
+    .querySelectorAll(
+      ".status-box"
+    )
+    .forEach(item =>
+      item.remove()
+    );
+
+  return salinan;
+}
+
+
+function cetakCartaPentadbir(
+  jenis,
+  tajuk
+) {
+  const jenisBersih =
+    atas(jenis);
+
+  const asal =
+    document.querySelector(
+      `[data-chart-section="${jenisBersih}"]`
+    );
+
+  if (!asal) {
+    alert(
+      "Bahagian carta untuk dicetak tidak dijumpai."
+    );
+    return;
+  }
+
+  const salinan =
+    asal.cloneNode(true);
+
+  tukarCanvasKeImejUntukCetakanPentadbir(
+    asal,
+    salinan
+  );
+
+  bersihkanSalinanCetakanCartaPentadbir(
+    salinan
+  );
+
+  const maklumat =
+    tajukCetakanCartaPentadbir(
+      jenisBersih,
+      tajuk
+    );
+
+  const cssLinks =
+    [...document.querySelectorAll(
+      'link[rel="stylesheet"]'
+    )]
+      .map(link => {
+        const href =
+          new URL(
+            link.getAttribute("href"),
+            document.baseURI
+          ).href;
+
+        return `<link rel="stylesheet" href="${escapeHtml(href)}">`;
+      })
+      .join("\n");
+
+  const tetingkap =
+    window.open(
+      "",
+      "_blank",
+      "width=1400,height=900"
+    );
+
+  if (!tetingkap) {
+    alert(
+      "Pelayar menghalang tetingkap cetak. Benarkan pop-up untuk laman ini dan cuba semula."
+    );
+    return;
+  }
+
+  tetingkap.document.open();
+
+  tetingkap.document.write(`
+    <!DOCTYPE html>
+    <html lang="ms">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>${escapeHtml(maklumat.tajuk)}</title>
+
+      ${cssLinks}
+
+      <style>
+        @page {
+          size: A4 landscape;
+          margin: 10mm;
+        }
+
+        html,
+        body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: #ffffff !important;
+          color: #111111 !important;
+          font-family: Arial, Helvetica, sans-serif !important;
+        }
+
+        body {
+          padding: 8mm !important;
+        }
+
+        .print-report-header {
+          margin-bottom: 16px;
+          padding-bottom: 12px;
+          border-bottom: 3px solid #d4af37;
+          text-align: center;
+        }
+
+        .print-report-header h1 {
+          margin: 0;
+          color: #111111 !important;
+          font-size: 22px;
+        }
+
+        .print-report-header h2 {
+          margin: 6px 0 0;
+          color: #111111 !important;
+          font-size: 17px;
+        }
+
+        .print-report-header p {
+          margin: 5px 0 0;
+          color: #444444 !important;
+          font-size: 12px;
+        }
+
+        .print-chart-container {
+          width: 100%;
+        }
+
+        .print-chart-container .admin-chart-card {
+          width: 100% !important;
+          max-width: none !important;
+          min-width: 0 !important;
+          margin: 0 !important;
+          padding: 14px !important;
+          border: 1px solid #b8b8b8 !important;
+          box-shadow: none !important;
+          background: #ffffff !important;
+          color: #111111 !important;
+        }
+
+        .print-chart-container h3,
+        .print-chart-container strong,
+        .print-chart-container b,
+        .print-chart-container td,
+        .print-chart-container th,
+        .print-chart-container span,
+        .print-chart-container div {
+          color: #111111;
+        }
+
+        .print-chart-container .muted,
+        .print-chart-container small {
+          color: #555555 !important;
+        }
+
+        .print-chart-container .admin-chart-card-heading,
+        .print-chart-container .section-heading,
+        .print-chart-container .admin-committee-heading {
+          margin-bottom: 12px !important;
+        }
+
+        .print-chart-container .section-heading-actions,
+        .print-chart-container .admin-committee-heading-actions {
+          display: none !important;
+        }
+
+        .print-chart-image {
+          display: block;
+          width: 100% !important;
+          max-width: 900px !important;
+          height: auto !important;
+          margin: 0 auto !important;
+          object-fit: contain;
+        }
+
+        .print-chart-container .admin-chart-canvas-wrap,
+        .print-chart-container .admin-vehicle-canvas-wrap,
+        .print-chart-container .admin-attendance-canvas-wrap,
+        .print-chart-container .admin-incident-canvas-wrap {
+          height: auto !important;
+          min-height: 0 !important;
+          background: #ffffff !important;
+        }
+
+        .print-chart-container .admin-vehicle-layout,
+        .print-chart-container .admin-attendance-layout,
+        .print-chart-container .admin-incident-layout,
+        .print-chart-container .admin-operation-map-layout {
+          display: grid !important;
+          grid-template-columns: minmax(0, 1fr) minmax(280px, .72fr) !important;
+          gap: 12px !important;
+        }
+
+        .print-chart-container .admin-vehicle-chart-panel,
+        .print-chart-container .admin-vehicle-detail-panel,
+        .print-chart-container .admin-attendance-chart-panel,
+        .print-chart-container .admin-attendance-list-panel,
+        .print-chart-container .admin-incident-chart-panel,
+        .print-chart-container .admin-incident-detail-panel,
+        .print-chart-container .admin-operation-map-panel,
+        .print-chart-container .admin-operation-map-detail {
+          border: 1px solid #bcbcbc !important;
+          background: #ffffff !important;
+          color: #111111 !important;
+        }
+
+        .print-chart-container table {
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
+          table-layout: auto !important;
+          border-collapse: collapse !important;
+          background: #ffffff !important;
+        }
+
+        .print-chart-container th,
+        .print-chart-container td {
+          position: static !important;
+          padding: 7px 8px !important;
+          border: 1px solid #777777 !important;
+          background: #ffffff !important;
+          color: #111111 !important;
+          font-size: 10px !important;
+        }
+
+        .print-chart-container th {
+          font-weight: 700 !important;
+          text-align: center !important;
+        }
+
+        .print-chart-container .admin-committee-title-row th {
+          background: #202020 !important;
+          color: #ffffff !important;
+        }
+
+        .print-chart-container .admin-committee-group-row td {
+          background: #ece2b8 !important;
+          color: #111111 !important;
+          font-weight: 700 !important;
+        }
+
+        .print-chart-container .admin-chronology-table tbody td:nth-child(2) {
+          font-weight: 400 !important;
+        }
+
+        .print-chart-container .admin-chronology-table tbody td:nth-child(4) {
+          text-align: center !important;
+          vertical-align: middle !important;
+        }
+
+        .print-chart-container .admin-chart-list-item,
+        .print-chart-container .admin-vehicle-detail-item,
+        .print-chart-container .admin-attendance-person,
+        .print-chart-container .admin-incident-detail-item {
+          break-inside: avoid;
+          border-color: #cccccc !important;
+          background: #ffffff !important;
+          color: #111111 !important;
+        }
+
+        .print-chart-container img {
+          max-width: 100%;
+        }
+
+        @media print {
+          body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
+      </style>
+    </head>
+
+    <body>
+      <header class="print-report-header">
+        <h1>OP LITAR FORMULA 1 2026</h1>
+        <h2>${escapeHtml(maklumat.tajuk)}</h2>
+        <p>TARIKH: ${escapeHtml(maklumat.tarikh)}</p>
+      </header>
+
+      <main class="print-chart-container">
+        ${salinan.outerHTML}
+      </main>
+
+      <script>
+        window.addEventListener("load", function () {
+          setTimeout(function () {
+            window.focus();
+            window.print();
+          }, 500);
+        });
+      <\/script>
+    </body>
+    </html>
+  `);
+
+  tetingkap.document.close();
+}
+
+
 /* ================================================================
    MODUL CARTA OPERASI
 ================================================================ */
