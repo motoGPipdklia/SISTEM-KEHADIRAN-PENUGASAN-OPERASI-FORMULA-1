@@ -47,6 +47,11 @@ let lokasiPetaDipilihPentadbir = "";
 let tabPetugasLokasiAktif = "BERTUGAS";
 let zumPetaCartaPentadbir = 1;
 
+let sedangSeretMarkerPetaPentadbir = false;
+let lokasiMarkerSeretPentadbir = "";
+let kanvasMarkerSeretPentadbir = null;
+
+
 const KUNCI_TETAPAN_PETA_CARTA_F1 = "skpoF1TetapanPetaCarta";
 const KUNCI_KRONOLOGI_CARTA_F1 = "skpoF1KronologiCarta";
 
@@ -4443,6 +4448,29 @@ function binaPilihanLokasiMarkerPentadbir() {
   if (lokasi.includes(semasa)) {
     select.value = semasa;
   }
+
+  if (!select.dataset.listenerLokasiMarker) {
+    select.dataset.listenerLokasiMarker = "1";
+
+    select.addEventListener("change", () => {
+      const nama = teks(select.value);
+
+      if (el("lokasiMarkerDipilihPentadbir")) {
+        el("lokasiMarkerDipilihPentadbir").textContent =
+          nama || "BELUM DIPILIH";
+      }
+
+      const tetapan = tetapanPetaCartaPentadbir();
+      const status = atas(
+        tetapan.marker?.[nama]?.status ||
+        "NORMAL"
+      );
+
+      if (el("statusMarkerPentadbir")) {
+        el("statusMarkerPentadbir").value = status;
+      }
+    });
+  }
 }
 
 
@@ -4459,6 +4487,14 @@ function bukaUrusPetaPentadbir() {
 
   binaPilihanLokasiMarkerPentadbir();
   muatPetaCartaPentadbir();
+
+  if (el("lokasiMarkerDipilihPentadbir")) {
+    const lokasiSemasa =
+      el("pilihanLokasiMarkerPentadbir")?.value || "";
+
+    el("lokasiMarkerDipilihPentadbir").textContent =
+      lokasiSemasa || "BELUM DIPILIH";
+  }
 
   modal.hidden = false;
   modal.removeAttribute("hidden");
@@ -4561,19 +4597,34 @@ function paparMarkerUrusPetaPentadbir() {
           lokasi.length
         );
 
+      const status =
+        atas(posisi.status || "NORMAL");
+
+      const namaAtribut =
+        escapeHtml(nama);
+
+      const namaJs =
+        nama
+          .replace(/\\/g, "\\\\")
+          .replace(/'/g, "\\'");
+
       return `
-        <div
-          class="admin-map-marker admin-map-marker-manage"
+        <button
+          class="admin-map-marker admin-map-marker-manage admin-map-marker-${escapeHtml(status.toLowerCase())}"
+          type="button"
           style="
             left:${Number(posisi.x).toFixed(3)}%;
             top:${Number(posisi.y).toFixed(3)}%;
           "
-          title="${escapeHtml(nama)}"
+          data-lokasi="${namaAtribut}"
+          title="Seret untuk pindahkan: ${namaAtribut}"
+          onpointerdown="mulaSeretMarkerPetaPentadbir(event, '${namaJs}')"
+          onclick="event.stopPropagation(); pilihLokasiUrusMarkerPentadbir('${namaJs}')"
         >
           <span class="admin-map-marker-label">
-            ${escapeHtml(nama)}
+            ${namaAtribut}
           </span>
-        </div>
+        </button>
       `;
     }).join("");
 
@@ -4589,12 +4640,165 @@ function paparMarkerUrusPetaPentadbir() {
 
     kanvas.addEventListener(
       "click",
-      event =>
-        letakMarkerPetaPentadbir(
-          event
-        )
+      event => {
+        if (sedangSeretMarkerPetaPentadbir) {
+          return;
+        }
+
+        letakMarkerPetaPentadbir(event);
+      }
     );
   }
+}
+
+
+function pilihLokasiUrusMarkerPentadbir(lokasi) {
+  const select =
+    el("pilihanLokasiMarkerPentadbir");
+
+  if (select) {
+    select.value = lokasi;
+    select.dispatchEvent(
+      new Event("change")
+    );
+  }
+}
+
+
+function mulaSeretMarkerPetaPentadbir(event, lokasi) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  sedangSeretMarkerPetaPentadbir = true;
+  lokasiMarkerSeretPentadbir = lokasi;
+  kanvasMarkerSeretPentadbir =
+    el("kanvasUrusPetaPentadbir");
+
+  pilihLokasiUrusMarkerPentadbir(lokasi);
+
+  document.body.classList.add(
+    "marker-dragging"
+  );
+
+  window.addEventListener(
+    "pointermove",
+    gerakSeretMarkerPetaPentadbir
+  );
+
+  window.addEventListener(
+    "pointerup",
+    tamatSeretMarkerPetaPentadbir,
+    { once: true }
+  );
+}
+
+
+function gerakSeretMarkerPetaPentadbir(event) {
+  if (
+    !sedangSeretMarkerPetaPentadbir ||
+    !lokasiMarkerSeretPentadbir ||
+    !kanvasMarkerSeretPentadbir
+  ) {
+    return;
+  }
+
+  const rect =
+    kanvasMarkerSeretPentadbir
+      .getBoundingClientRect();
+
+  if (!rect.width || !rect.height) return;
+
+  const x =
+    ((event.clientX - rect.left) /
+    rect.width) *
+    100;
+
+  const y =
+    ((event.clientY - rect.top) /
+    rect.height) *
+    100;
+
+  const tetapan =
+    tetapanPetaCartaPentadbir();
+
+  const lama =
+    tetapan.marker?.[
+      lokasiMarkerSeretPentadbir
+    ] || {};
+
+  tetapan.marker[
+    lokasiMarkerSeretPentadbir
+  ] = {
+    ...lama,
+    x: Math.max(
+      0,
+      Math.min(100, x)
+    ),
+    y: Math.max(
+      0,
+      Math.min(100, y)
+    ),
+    status: atas(
+      el("statusMarkerPentadbir")?.value ||
+      lama.status ||
+      "NORMAL"
+    )
+  };
+
+  simpanTetapanPetaCartaTempatan(
+    tetapan
+  );
+
+  const marker =
+    el("lapisanMarkerUrusPetaPentadbir")
+      ?.querySelector(
+        `[data-lokasi="${CSS.escape(
+          lokasiMarkerSeretPentadbir
+        )}"]`
+      );
+
+  if (marker) {
+    marker.style.left =
+      `${tetapan.marker[
+        lokasiMarkerSeretPentadbir
+      ].x}%`;
+
+    marker.style.top =
+      `${tetapan.marker[
+        lokasiMarkerSeretPentadbir
+      ].y}%`;
+  }
+}
+
+
+function tamatSeretMarkerPetaPentadbir() {
+  if (!sedangSeretMarkerPetaPentadbir) {
+    return;
+  }
+
+  window.removeEventListener(
+    "pointermove",
+    gerakSeretMarkerPetaPentadbir
+  );
+
+  document.body.classList.remove(
+    "marker-dragging"
+  );
+
+  const lokasi =
+    lokasiMarkerSeretPentadbir;
+
+  sedangSeretMarkerPetaPentadbir = false;
+  lokasiMarkerSeretPentadbir = "";
+  kanvasMarkerSeretPentadbir = null;
+
+  paparMarkerPetaPentadbir();
+
+  paparMesej(
+    "statusUrusPetaPentadbir",
+    `Marker ${escapeHtml(lokasi)} telah dipindahkan. Tekan SIMPAN MARKER.`,
+    "success"
+  );
 }
 
 
@@ -4663,11 +4867,13 @@ function letakMarkerPetaPentadbir(
     tetapan
   );
 
+  pilihLokasiUrusMarkerPentadbir(lokasi);
   paparMarkerUrusPetaPentadbir();
+  paparMarkerPetaPentadbir();
 
   paparMesej(
     "statusUrusPetaPentadbir",
-    `Marker ${escapeHtml(lokasi)} telah diletakkan. Tekan SIMPAN PETA & MARKER.`,
+    `Marker ${escapeHtml(lokasi)} telah diletakkan. Anda boleh seret marker untuk melaras kedudukan.`,
     "success"
   );
 }
@@ -4722,7 +4928,7 @@ function simpanTetapanPetaPentadbir() {
 
   paparMesej(
     "statusUrusPetaPentadbir",
-    "Peta dan marker berjaya disimpan pada peranti Pentadbir ini.",
+    "Marker dan tetapan peta berjaya disimpan pada peranti Pentadbir ini.",
     "success"
   );
 }
