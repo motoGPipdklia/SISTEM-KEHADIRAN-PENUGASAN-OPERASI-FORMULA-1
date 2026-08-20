@@ -3217,7 +3217,7 @@ body.marker-dragging *{
 
 /* ================================================================
    VVIP / VIP — SENARAI KIRI + BUTIRAN KANAN
-   Panel kanan hanya digunakan untuk sumber KAWALAN KESELAMATAN.
+   Panel kanan digunakan untuk semua sumber VVIP / VIP.
 ================================================================ */
 
 .admin-chart-card[data-chart-section="VVIP_VIP"]{
