@@ -3095,3 +3095,15 @@ body.marker-dragging *{
   min-width:0 !important;
   max-width:none !important;
 }
+
+/* ================================================================
+   JAWATANKUASA — PANGKAT / NO / NAMA DI TENGAH
+================================================================ */
+
+.admin-committee-table th.col-nama,
+.admin-committee-table td.col-nama,
+.admin-committee-table th:nth-child(2),
+.admin-committee-table td:nth-child(2){
+  text-align: center !important;
+  vertical-align: middle !important;
+}
