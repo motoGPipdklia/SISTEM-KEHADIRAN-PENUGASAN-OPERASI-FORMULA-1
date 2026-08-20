@@ -39,6 +39,7 @@ let dataPerantiKhasAdmin = [];
 let dataCartaLaporanPentadbir = [];
 let cartaPengunjungPentadbir = null;
 let cartaKenderaanPentadbir = null;
+let kategoriKenderaanDipilihPentadbir = "BAS";
 let cartaJawatankuasaPentadbir = null;
 let cartaKehadiranPentadbir = null;
 let statusKehadiranCartaDipilihPentadbir = "HADIR";
@@ -3683,6 +3684,366 @@ function paparCartaPengunjungPentadbir() {
 }
 
 
+function labelKategoriKenderaanPentadbir(kategori) {
+  const peta = {
+    BAS: "BAS",
+    MOTOSIKAL: "MOTOSIKAL",
+    MOTOKAR: "MOTOKAR"
+  };
+
+  return peta[kategori] || kategori;
+}
+
+
+function nilaiKenderaanDaripadaLaporanPentadbir(item, kategori) {
+  const data = dataLaporanCarta(item);
+
+  const kenderaan =
+    data.kenderaan &&
+    typeof data.kenderaan === "object"
+      ? data.kenderaan
+      : {};
+
+  if (kategori === "BAS") {
+    return nomborCarta(
+      kenderaan.bas ??
+      data.bas,
+      0
+    );
+  }
+
+  if (kategori === "MOTOSIKAL") {
+    return nomborCarta(
+      kenderaan.motosikal ??
+      data.motosikal,
+      0
+    );
+  }
+
+  if (kategori === "MOTOKAR") {
+    return nomborCarta(
+      kenderaan.motokar ??
+      data.motokar,
+      0
+    );
+  }
+
+  return 0;
+}
+
+
+function jumlahKeseluruhanKenderaanLaporanPentadbir(item) {
+  const data = dataLaporanCarta(item);
+
+  const kenderaan =
+    data.kenderaan &&
+    typeof data.kenderaan === "object"
+      ? data.kenderaan
+      : {};
+
+  const bas =
+    nomborCarta(
+      kenderaan.bas ??
+      data.bas,
+      0
+    );
+
+  const motosikal =
+    nomborCarta(
+      kenderaan.motosikal ??
+      data.motosikal,
+      0
+    );
+
+  const motokar =
+    nomborCarta(
+      kenderaan.motokar ??
+      data.motokar,
+      0
+    );
+
+  return nomborCarta(
+    kenderaan.jumlah ??
+    item.jumlah_kenderaan,
+    bas + motosikal + motokar
+  );
+}
+
+
+function senaraiKenderaanMengikutKategoriPentadbir(kategori) {
+  return laporanKeselamatanCarta()
+    .filter(item =>
+      nilaiKenderaanDaripadaLaporanPentadbir(
+        item,
+        kategori
+      ) > 0
+    )
+    .sort((a, b) => {
+      const masaA =
+        new Date(
+          a.tarikh_masa || 0
+        ).getTime();
+
+      const masaB =
+        new Date(
+          b.tarikh_masa || 0
+        ).getTime();
+
+      return masaB - masaA;
+    });
+}
+
+
+function rekodPetugasUntukLaporanKenderaanPentadbir(item) {
+  const petugasId =
+    item.petugas_id ||
+    item.profile_id ||
+    "";
+
+  if (!petugasId) return null;
+
+  return (
+    dataDashboard.find(
+      rekod =>
+        rekod.petugasId === petugasId
+    ) ||
+    null
+  );
+}
+
+
+function paparButiranKenderaanPentadbir(kategori) {
+  kategoriKenderaanDipilihPentadbir =
+    kategori;
+
+  const label =
+    labelKategoriKenderaanPentadbir(
+      kategori
+    );
+
+  const senarai =
+    senaraiKenderaanMengikutKategoriPentadbir(
+      kategori
+    );
+
+  const jumlahKategori =
+    senarai.reduce(
+      (jumlah, item) =>
+        jumlah +
+        nilaiKenderaanDaripadaLaporanPentadbir(
+          item,
+          kategori
+        ),
+      0
+    );
+
+  if (el("tajukButiranKenderaanPentadbir")) {
+    el("tajukButiranKenderaanPentadbir").textContent =
+      label;
+  }
+
+  if (el("jumlahButiranKenderaanPentadbir")) {
+    el("jumlahButiranKenderaanPentadbir").textContent =
+      jumlahKategori.toLocaleString("ms-MY");
+  }
+
+  const ruang =
+    el("senaraiButiranKenderaanPentadbir");
+
+  if (!ruang) return;
+
+  if (!senarai.length) {
+    ruang.innerHTML = `
+      <div class="empty-row">
+        Tiada rekod ${escapeHtml(label)} untuk tarikh ini.
+      </div>
+    `;
+    return;
+  }
+
+  ruang.innerHTML =
+    senarai.map((item, index) => {
+      const data =
+        dataLaporanCarta(item);
+
+      const petugas =
+        rekodPetugasUntukLaporanKenderaanPentadbir(
+          item
+        );
+
+      const nilaiKategori =
+        nilaiKenderaanDaripadaLaporanPentadbir(
+          item,
+          kategori
+        );
+
+      const jumlahKenderaan =
+        jumlahKeseluruhanKenderaanLaporanPentadbir(
+          item
+        );
+
+      const lokasi =
+        teks(
+          data.lokasi ??
+          data.tempat_tugas ??
+          item.tempat_tugas ??
+          petugas?.tempatTugas
+        ) || "-";
+
+      const namaPetugas =
+        petugas
+          ? `${teks(petugas.pangkat)} ${teks(petugas.nama)}`.trim()
+          : teks(
+              item.nama_petugas ||
+              item.nama
+            ) || "-";
+
+      const noBadan =
+        teks(petugas?.noBadan) ||
+        teks(item.no_badan) ||
+        "-";
+
+      const callSign =
+        teks(petugas?.callSign) ||
+        teks(item.call_sign) ||
+        "-";
+
+      const jenisTugas =
+        jenisTugasCarta(item) ||
+        petugas?.jenisTugas ||
+        "-";
+
+      return `
+        <article class="admin-vehicle-detail-item">
+          <div class="admin-vehicle-detail-number">
+            ${index + 1}
+          </div>
+
+          <div class="admin-vehicle-detail-main">
+
+            <div class="admin-vehicle-detail-top">
+              <strong>
+                ${escapeHtml(label)}
+                :
+                ${nilaiKategori.toLocaleString("ms-MY")}
+              </strong>
+
+              <time>
+                ${escapeHtml(
+                  formatMasaLaporanAdmin(
+                    item.tarikh_masa
+                  )
+                )}
+              </time>
+            </div>
+
+            <div class="admin-vehicle-detail-body">
+
+              <div>
+                <span>Jumlah ${escapeHtml(label)}</span>
+                <b>
+                  ${nilaiKategori.toLocaleString("ms-MY")}
+                </b>
+              </div>
+
+              <div>
+                <span>Jumlah Kenderaan</span>
+                <b>
+                  ${jumlahKenderaan.toLocaleString("ms-MY")}
+                </b>
+              </div>
+
+              <div>
+                <span>Lokasi</span>
+                <b>${escapeHtml(lokasi)}</b>
+              </div>
+
+              <div>
+                <span>Call Sign</span>
+                <b>${escapeHtml(callSign)}</b>
+              </div>
+
+              <div>
+                <span>Petugas</span>
+                <b>${escapeHtml(namaPetugas)}</b>
+              </div>
+
+              <div>
+                <span>No Badan</span>
+                <b>${escapeHtml(noBadan)}</b>
+              </div>
+
+              <div class="admin-vehicle-detail-wide">
+                <span>Jenis Tugas</span>
+                <b>${escapeHtml(jenisTugas)}</b>
+              </div>
+
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+}
+
+
+function pilihKategoriCartaKenderaanPentadbir(index) {
+  const kategori = [
+    "BAS",
+    "MOTOSIKAL",
+    "MOTOKAR"
+  ][index];
+
+  if (!kategori) return;
+
+  paparButiranKenderaanPentadbir(
+    kategori
+  );
+
+  sorotBarKenderaanPentadbir(
+    index
+  );
+}
+
+
+function sorotBarKenderaanPentadbir(indexDipilih) {
+  const carta =
+    cartaKenderaanPentadbir;
+
+  if (!carta) return;
+
+  const dataset =
+    carta.data.datasets?.[0];
+
+  if (!dataset) return;
+
+  dataset.backgroundColor =
+    carta.data.labels.map(
+      (_, index) =>
+        index === indexDipilih
+          ? "rgba(212,175,55,.95)"
+          : "rgba(54,162,235,.48)"
+    );
+
+  dataset.borderColor =
+    carta.data.labels.map(
+      (_, index) =>
+        index === indexDipilih
+          ? "#ffffff"
+          : "rgba(255,255,255,.25)"
+    );
+
+  dataset.borderWidth =
+    carta.data.labels.map(
+      (_, index) =>
+        index === indexDipilih
+          ? 2
+          : 1
+    );
+
+  carta.update();
+}
+
+
 function paparCartaKenderaanPentadbir() {
   const kanvas =
     el("canvasCartaKenderaan");
@@ -3698,6 +4059,12 @@ function paparCartaKenderaanPentadbir() {
   const data =
     pecahanKenderaanSemasaCarta();
 
+  const nilaiCarta = [
+    data.bas,
+    data.motosikal,
+    data.motokar
+  ];
+
   kemusnahkanCartaPentadbir(
     cartaKenderaanPentadbir
   );
@@ -3705,278 +4072,195 @@ function paparCartaKenderaanPentadbir() {
   cartaKenderaanPentadbir =
     new Chart(kanvas, {
       type: "bar",
+
       data: {
         labels: [
           "Bas",
           "Motosikal",
           "Motokar"
         ],
+
         datasets: [
           {
             label: "Jumlah",
-            data: [
-              data.bas,
-              data.motosikal,
-              data.motokar
-            ]
+            data: nilaiCarta
           }
         ]
       },
-      options: pilihanCartaPentadbir(
-        "Jumlah Kenderaan"
-      )
-    });
-}
 
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
 
-function kategoriKehadiranCartaPentadbir(item) {
-  if (item.checkout) {
-    return "SELESAI";
-  }
+        onClick(event) {
+          /*
+            Klik bar, termasuk apabila nilai terlalu kecil.
+          */
+          const elemen =
+            cartaKenderaanPentadbir
+              ?.getElementsAtEventForMode(
+                event,
+                "nearest",
+                {
+                  intersect: false,
+                  axis: "x"
+                },
+                true
+              ) || [];
 
-  if (item.statusKehadiran === "HADIR") {
-    return "HADIR";
-  }
+          if (elemen.length) {
+            pilihKategoriCartaKenderaanPentadbir(
+              elemen[0].index
+            );
+            return;
+          }
 
-  if (item.statusKehadiran === "MENUNGGU") {
-    return "MENUNGGU";
-  }
+          /*
+            Fallback berdasarkan kedudukan X.
+            Ini membolehkan kategori bernilai 0 masih dipilih.
+          */
+          const carta =
+            cartaKenderaanPentadbir;
 
-  return "TIDAK_HADIR";
-}
+          const xScale =
+            carta?.scales?.x;
 
+          const nativeEvent =
+            event?.native;
 
-function labelKategoriKehadiranPentadbir(kategori) {
-  const peta = {
-    HADIR: "HADIR",
-    TIDAK_HADIR: "TIDAK HADIR",
-    SELESAI: "SELESAI",
-    MENUNGGU: "MENUNGGU"
-  };
+          if (
+            !carta ||
+            !xScale ||
+            !nativeEvent
+          ) {
+            return;
+          }
 
-  return peta[kategori] || kategori;
-}
+          const rect =
+            carta.canvas.getBoundingClientRect();
 
+          const x =
+            nativeEvent.clientX -
+            rect.left;
 
-function senaraiMengikutKehadiranPentadbir(kategori) {
-  return dataDashboard
-    .filter(item =>
-      kategoriKehadiranCartaPentadbir(item) === kategori
-    )
-    .sort((a, b) => {
-      const pangkatA = atas(a.pangkat);
-      const pangkatB = atas(b.pangkat);
+          let indexTerdekat = -1;
+          let jarakTerdekat = Infinity;
 
-      if (pangkatA !== pangkatB) {
-        return pangkatA.localeCompare(pangkatB, "ms");
+          carta.data.labels.forEach(
+            (_, index) => {
+              const pixel =
+                xScale.getPixelForValue(index);
+
+              const jarak =
+                Math.abs(pixel - x);
+
+              if (
+                jarak <
+                jarakTerdekat
+              ) {
+                jarakTerdekat =
+                  jarak;
+
+                indexTerdekat =
+                  index;
+              }
+            }
+          );
+
+          if (indexTerdekat >= 0) {
+            pilihKategoriCartaKenderaanPentadbir(
+              indexTerdekat
+            );
+          }
+        },
+
+        onHover(event) {
+          const sasaran =
+            event?.native?.target;
+
+          if (sasaran) {
+            sasaran.style.cursor =
+              "pointer";
+          }
+        },
+
+        plugins: {
+          legend: {
+            labels: {
+              color: "#ffffff",
+              font: {
+                size: 12,
+                weight: "700"
+              }
+            }
+          },
+
+          tooltip: {
+            callbacks: {
+              label(context) {
+                return `${context.label}: ${Number(context.raw) || 0}`;
+              },
+
+              afterLabel() {
+                return "Klik untuk papar butiran";
+              }
+            }
+          }
+        },
+
+        scales: {
+          x: {
+            ticks: {
+              color: "#ffffff",
+              font: {
+                weight: "700"
+              }
+            },
+
+            grid: {
+              color: "rgba(255,255,255,.06)"
+            }
+          },
+
+          y: {
+            beginAtZero: true,
+
+            ticks: {
+              color: "#c8c8c8",
+              precision: 0
+            },
+
+            grid: {
+              color: "rgba(255,255,255,.06)"
+            },
+
+            title: {
+              display: true,
+              text: "Jumlah Kenderaan",
+              color: "#c8c8c8"
+            }
+          }
+        }
       }
-
-      return atas(a.nama).localeCompare(
-        atas(b.nama),
-        "ms"
-      );
-    });
-}
-
-
-function paparSenaraiKehadiranPentadbir(kategori) {
-  statusKehadiranCartaDipilihPentadbir =
-    kategori;
-
-  const label =
-    labelKategoriKehadiranPentadbir(kategori);
-
-  const senarai =
-    senaraiMengikutKehadiranPentadbir(kategori);
-
-  if (el("tajukSenaraiKehadiranPentadbir")) {
-    el("tajukSenaraiKehadiranPentadbir").textContent =
-      label;
-  }
-
-  if (el("jumlahSenaraiKehadiranPentadbir")) {
-    el("jumlahSenaraiKehadiranPentadbir").textContent =
-      senarai.length.toLocaleString("ms-MY");
-  }
-
-  const ruang =
-    el("senaraiKehadiranPentadbir");
-
-  if (!ruang) return;
-
-  if (!senarai.length) {
-    ruang.innerHTML = `
-      <div class="empty-row">
-        Tiada petugas dalam status ${escapeHtml(label)}.
-      </div>
-    `;
-    return;
-  }
-
-  ruang.innerHTML =
-    senarai.map((item, index) => {
-      const masa =
-        item.checkout
-          ? item.checkout.masa_checkout
-          : item.masaCheckin;
-
-      const teksMasa =
-        masa
-          ? formatTarikhMasa(masa)
-          : "-";
-
-      return `
-        <article class="admin-attendance-person">
-          <div class="admin-attendance-person-no">
-            ${index + 1}
-          </div>
-
-          <div class="admin-attendance-person-main">
-            <strong>
-              ${escapeHtml(item.pangkat || "")}
-              ${escapeHtml(item.nama || "-")}
-            </strong>
-
-            <div class="admin-attendance-person-meta">
-              <span>
-                No Badan:
-                <b>${escapeHtml(item.noBadan || "-")}</b>
-              </span>
-
-              <span>
-                No. Telefon:
-                <b>${escapeHtml(item.telefon || "-")}</b>
-              </span>
-
-              <span>
-                Call Sign:
-                <b>${escapeHtml(item.callSign || "-")}</b>
-              </span>
-
-              <span>
-                Tempat:
-                <b>${escapeHtml(item.tempatTugas || "-")}</b>
-              </span>
-
-              <span>
-                Tugas:
-                <b>${escapeHtml(item.jenisTugas || "-")}</b>
-              </span>
-            </div>
-
-            <div class="admin-attendance-person-footer">
-              ${
-                item.penyelia
-                  ? '<span class="badge badge-yellow">PENYELIA</span>'
-                  : ""
-              }
-
-              ${
-                item.pemegangSet
-                  ? '<span class="badge badge-blue">PEMEGANG SET</span>'
-                  : ""
-              }
-
-              <small>
-                ${
-                  kategori === "SELESAI"
-                    ? "Check-Out"
-                    : kategori === "HADIR"
-                      ? "Check-In"
-                      : "Masa"
-                }: ${escapeHtml(teksMasa)}
-              </small>
-            </div>
-          </div>
-        </article>
-      `;
-    }).join("");
-}
-
-
-function pilihKategoriCartaKehadiranPentadbir(index) {
-  const kategori = [
-    "HADIR",
-    "TIDAK_HADIR",
-    "SELESAI",
-    "MENUNGGU"
-  ][index];
-
-  if (!kategori) return;
-
-  paparSenaraiKehadiranPentadbir(kategori);
-}
-
-
-
-const pluginPeratusCartaKehadiranPentadbir = {
-  id: "peratusCartaKehadiranPentadbir",
-
-  afterDatasetsDraw(chart) {
-    const { ctx } = chart;
-    const dataset = chart.data.datasets?.[0];
-    const meta = chart.getDatasetMeta(0);
-
-    if (!dataset || !meta?.data?.length) return;
-
-    const nilai = dataset.data.map(item => Number(item) || 0);
-    const jumlah = nilai.reduce((a, b) => a + b, 0);
-
-    if (!jumlah) return;
-
-    ctx.save();
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.font = "800 12px Arial";
-
-    meta.data.forEach((arc, index) => {
-      const bilangan = nilai[index];
-
-      if (!bilangan) return;
-
-      const peratus = Math.round((bilangan / jumlah) * 100);
-
-      // Elakkan tulisan terlalu padat pada slice yang sangat kecil.
-      if (peratus < 5) return;
-
-      const posisi = arc.tooltipPosition();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "rgba(0,0,0,.8)";
-      ctx.lineWidth = 4;
-
-      const teksPeratus = `${peratus}%`;
-
-      ctx.strokeText(
-        teksPeratus,
-        posisi.x,
-        posisi.y
-      );
-
-      ctx.fillText(
-        teksPeratus,
-        posisi.x,
-        posisi.y
-      );
     });
 
-    ctx.restore();
-  }
-};
-
-
-function peratusKategoriKehadiranPentadbir(nilai, semuaNilai) {
-  const jumlah =
-    semuaNilai.reduce(
-      (a, b) => a + (Number(b) || 0),
-      0
-    );
-
-  if (!jumlah) return 0;
-
-  return Math.round(
-    ((Number(nilai) || 0) / jumlah) * 100
+  paparButiranKenderaanPentadbir(
+    kategoriKenderaanDipilihPentadbir
   );
+
+  const indeksAktif = [
+    "BAS",
+    "MOTOSIKAL",
+    "MOTOKAR"
+  ].indexOf(
+    kategoriKenderaanDipilihPentadbir
+  );
+
+  if (indeksAktif >= 0) {
+    sorotBarKenderaanPentadbir(
+      indeksAktif
+    );
+  }
 }
 
 
