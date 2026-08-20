@@ -3902,6 +3902,78 @@ function pilihKategoriCartaKehadiranPentadbir(index) {
 }
 
 
+
+const pluginPeratusCartaKehadiranPentadbir = {
+  id: "peratusCartaKehadiranPentadbir",
+
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    const dataset = chart.data.datasets?.[0];
+    const meta = chart.getDatasetMeta(0);
+
+    if (!dataset || !meta?.data?.length) return;
+
+    const nilai = dataset.data.map(item => Number(item) || 0);
+    const jumlah = nilai.reduce((a, b) => a + b, 0);
+
+    if (!jumlah) return;
+
+    ctx.save();
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "800 12px Arial";
+
+    meta.data.forEach((arc, index) => {
+      const bilangan = nilai[index];
+
+      if (!bilangan) return;
+
+      const peratus = Math.round((bilangan / jumlah) * 100);
+
+      // Elakkan tulisan terlalu padat pada slice yang sangat kecil.
+      if (peratus < 5) return;
+
+      const posisi = arc.tooltipPosition();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "rgba(0,0,0,.8)";
+      ctx.lineWidth = 4;
+
+      const teksPeratus = `${peratus}%`;
+
+      ctx.strokeText(
+        teksPeratus,
+        posisi.x,
+        posisi.y
+      );
+
+      ctx.fillText(
+        teksPeratus,
+        posisi.x,
+        posisi.y
+      );
+    });
+
+    ctx.restore();
+  }
+};
+
+
+function peratusKategoriKehadiranPentadbir(nilai, semuaNilai) {
+  const jumlah =
+    semuaNilai.reduce(
+      (a, b) => a + (Number(b) || 0),
+      0
+    );
+
+  if (!jumlah) return 0;
+
+  return Math.round(
+    ((Number(nilai) || 0) / jumlah) * 100
+  );
+}
+
+
 function paparCartaKehadiranPentadbir() {
   const kanvas =
     el("canvasCartaKehadiran");
@@ -3934,6 +4006,13 @@ function paparCartaKehadiranPentadbir() {
       "MENUNGGU"
     ).length;
 
+  const nilaiCarta = [
+    hadir,
+    tidakHadir,
+    selesai,
+    menunggu
+  ];
+
   kemusnahkanCartaPentadbir(
     cartaKehadiranPentadbir
   );
@@ -3952,15 +4031,14 @@ function paparCartaKehadiranPentadbir() {
 
         datasets: [
           {
-            data: [
-              hadir,
-              tidakHadir,
-              selesai,
-              menunggu
-            ]
+            data: nilaiCarta
           }
         ]
       },
+
+      plugins: [
+        pluginPeratusCartaKehadiranPentadbir
+      ],
 
       options: {
         responsive: true,
@@ -3992,14 +4070,51 @@ function paparCartaKehadiranPentadbir() {
 
             labels: {
               color: "#eeeeee",
-              usePointStyle: false
+
+              generateLabels(chart) {
+                const data =
+                  chart.data;
+
+                const semuaNilai =
+                  data.datasets?.[0]?.data || [];
+
+                return data.labels.map(
+                  (label, index) => {
+                    const nilai =
+                      Number(
+                        semuaNilai[index]
+                      ) || 0;
+
+                    const peratus =
+                      peratusKategoriKehadiranPentadbir(
+                        nilai,
+                        semuaNilai
+                      );
+
+                    const style =
+                      chart.getDatasetMeta(0)
+                        .controller
+                        .getStyle(index);
+
+                    return {
+                      text:
+                        `${label}: ${nilai} (${peratus}%)`,
+                      fillStyle:
+                        style.backgroundColor,
+                      strokeStyle:
+                        style.borderColor,
+                      lineWidth:
+                        style.borderWidth,
+                      hidden:
+                        !chart.getDataVisibility(index),
+                      index
+                    };
+                  }
+                );
+              }
             },
 
             onClick(event, legendItem) {
-              /*
-                Klik label legend tidak lagi hide/show data.
-                Ia digunakan untuk memilih senarai petugas.
-              */
               pilihKategoriCartaKehadiranPentadbir(
                 legendItem.index
               );
@@ -4010,7 +4125,23 @@ function paparCartaKehadiranPentadbir() {
             enabled: true,
 
             callbacks: {
-              afterLabel(context) {
+              label(context) {
+                const semuaNilai =
+                  context.chart.data.datasets?.[0]?.data || [];
+
+                const nilai =
+                  Number(context.raw) || 0;
+
+                const peratus =
+                  peratusKategoriKehadiranPentadbir(
+                    nilai,
+                    semuaNilai
+                  );
+
+                return `${context.label}: ${nilai} petugas (${peratus}%)`;
+              },
+
+              afterLabel() {
                 return "Klik untuk papar senarai nama";
               }
             }
@@ -4019,10 +4150,6 @@ function paparCartaKehadiranPentadbir() {
       }
     });
 
-  /*
-    Kekalkan kategori terakhir yang dipilih.
-    Untuk kali pertama, default = HADIR.
-  */
   paparSenaraiKehadiranPentadbir(
     statusKehadiranCartaDipilihPentadbir
   );
