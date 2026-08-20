@@ -3965,6 +3965,48 @@ function pecahanKenderaanSemasaCarta() {
 }
 
 
+
+function rekodPetugasVvipVipPentadbir(item) {
+  const penugasanId =
+    item?.penugasan_id ||
+    item?.tugas_id ||
+    "";
+
+  if (penugasanId) {
+    const ikutPenugasan =
+      dataDashboard.find(
+        rekod =>
+          teks(rekod.idPenugasan) ===
+          teks(penugasanId)
+      );
+
+    if (ikutPenugasan) {
+      return ikutPenugasan;
+    }
+  }
+
+  const petugasId =
+    item?.petugas_id ||
+    item?.profile_id ||
+    "";
+
+  if (petugasId) {
+    const ikutPetugas =
+      dataDashboard.find(
+        rekod =>
+          teks(rekod.petugasId) ===
+          teks(petugasId)
+      );
+
+    if (ikutPetugas) {
+      return ikutPetugas;
+    }
+  }
+
+  return null;
+}
+
+
 function kumpulanVvipVipCarta() {
   const hasil = [];
 
@@ -3973,6 +4015,9 @@ function kumpulanVvipVipCarta() {
   */
   dataCartaLaporanPentadbir.forEach(item => {
     const data = dataLaporanCarta(item);
+
+    const petugas =
+      rekodPetugasVvipVipPentadbir(item);
 
     const nilai =
       data.vvip_vip ??
@@ -3999,15 +4044,38 @@ function kumpulanVvipVipCarta() {
           masaTiba: item.tarikh_masa || null,
           masaBeredar: null,
           lokasi:
-            data.lokasi ||
-            item.lokasi ||
+            petugas?.tempatTugas ||
             item.tempat_tugas ||
+            item.lokasi ||
+            data.lokasi ||
             "",
           tempatTugas:
+            petugas?.tempatTugas ||
             item.tempat_tugas ||
             item.lokasi ||
             data.lokasi ||
             "",
+          petugasNama:
+            petugas
+              ? `${petugas.pangkat || ""} ${petugas.nama || ""}`.trim()
+              : (
+                  item.nama_petugas ||
+                  item.nama ||
+                  "-"
+                ),
+          noBadan:
+            petugas?.noBadan ||
+            item.no_badan ||
+            "-",
+          jenisTugasPetugas:
+            petugas?.jenisTugas ||
+            item.jenis_tugas ||
+            jenisTugasCarta(item) ||
+            "-",
+          callSign:
+            petugas?.callSign ||
+            item.call_sign ||
+            "-",
           tujuan: "",
           catatan: "",
           sumber:
@@ -4031,7 +4099,11 @@ function kumpulanVvipVipCarta() {
       masaTiba: item.masa_tiba || null,
       masaBeredar: item.masa_beredar || null,
       lokasi: item.lokasi || "",
-      tempatTugas: "",
+      tempatTugas: item.lokasi || "",
+      petugasNama: "URUSETIA / PENTADBIR",
+      noBadan: "-",
+      jenisTugasPetugas: "-",
+      callSign: "-",
       tujuan: item.tujuan || "",
       catatan: item.catatan || "",
       sumber: "URUSETIA / PENTADBIR"
@@ -6931,12 +7003,10 @@ function formatMasaVvipVipPentadbir(nilai) {
 }
 
 
-function sumberKawalanKeselamatanVvipVipPentadbir(item) {
-  return (
-    item?.jenisRekod === "LAPORAN" &&
-    atas(item?.sumber).includes("KAWALAN KESELAMATAN")
-  );
+function bolehBukaButiranVvipVipPentadbir(item) {
+  return Boolean(item);
 }
+
 
 
 function kosongkanButiranVvipVipPentadbir() {
@@ -6956,10 +7026,10 @@ function kosongkanButiranVvipVipPentadbir() {
   if (ruang) {
     ruang.innerHTML = `
       <div class="admin-vvip-detail-empty">
-        <strong>KAWALAN KESELAMATAN</strong>
+        <strong>BUTIRAN PETUGAS</strong>
         <p>
-          Klik nama VVIP / VIP daripada sumber Kawalan Keselamatan
-          untuk melihat butiran laporan.
+          Klik mana-mana nama VVIP / VIP untuk melihat maklumat
+          petugas yang menghantar laporan.
         </p>
       </div>
     `;
@@ -6977,13 +7047,7 @@ function pilihVvipVipPentadbir(id) {
         teks(rekod.id) === teks(id)
     );
 
-  /*
-    Rekod Urusetia / Pentadbir tidak membuka panel kanan.
-  */
-  if (
-    !item ||
-    !sumberKawalanKeselamatanVvipVipPentadbir(item)
-  ) {
+  if (!item) {
     return;
   }
 
@@ -7020,112 +7084,62 @@ function paparButiranVvipVipPentadbir(item) {
   const ruang =
     el("butiranVvipVipPentadbir");
 
-  if (!tajuk || !ruang) return;
-
-  /*
-    Keselamatan tambahan:
-    panel kanan hanya untuk laporan Kawalan Keselamatan.
-  */
-  if (
-    !sumberKawalanKeselamatanVvipVipPentadbir(item)
-  ) {
-    kosongkanButiranVvipVipPentadbir();
-    return;
-  }
+  if (!tajuk || !ruang || !item) return;
 
   tajuk.textContent =
     item.nama || "VVIP / VIP";
 
-  const butiran = [];
+  const petugasNama =
+    teks(item.petugasNama) || "-";
 
-  butiran.push(`
-    <div>
-      <span>Nama :</span>
-      <b>${escapeHtml(item.nama || "-")}</b>
-    </div>
-  `);
+  const noBadan =
+    teks(item.noBadan) || "-";
 
-  butiran.push(`
-    <div>
-      <span>Sumber :</span>
-      <b>${escapeHtml(item.sumber || "KAWALAN KESELAMATAN")}</b>
-    </div>
-  `);
+  const lokasi =
+    teks(
+      item.tempatTugas ||
+      item.lokasi
+    ) || "-";
 
-  if (item.tempatTugas) {
-    butiran.push(`
-      <div>
-        <span>Tempat Tugas :</span>
-        <b>${escapeHtml(item.tempatTugas)}</b>
-      </div>
-    `);
-  }
+  const jenisTugas =
+    teks(item.jenisTugasPetugas) || "-";
 
-  if (item.lokasi) {
-    butiran.push(`
-      <div>
-        <span>Lokasi :</span>
-        <b>${escapeHtml(item.lokasi)}</b>
-      </div>
-    `);
-  }
-
-  if (item.masaTiba) {
-    butiran.push(`
-      <div>
-        <span>Masa Ketibaan :</span>
-        <b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaTiba))}</b>
-      </div>
-    `);
-  }
-
-  if (item.jawatan) {
-    butiran.push(`
-      <div>
-        <span>Jawatan :</span>
-        <b>${escapeHtml(item.jawatan)}</b>
-      </div>
-    `);
-  }
-
-  if (item.agensi) {
-    butiran.push(`
-      <div>
-        <span>Agensi / Organisasi :</span>
-        <b>${escapeHtml(item.agensi)}</b>
-      </div>
-    `);
-  }
-
-  if (item.tujuan) {
-    butiran.push(`
-      <div class="admin-vvip-detail-wide">
-        <span>Tujuan / Aktiviti :</span>
-        <b>${escapeHtml(item.tujuan)}</b>
-      </div>
-    `);
-  }
-
-  if (item.catatan) {
-    butiran.push(`
-      <div class="admin-vvip-detail-wide">
-        <span>Catatan :</span>
-        <b>${escapeHtml(item.catatan)}</b>
-      </div>
-    `);
-  }
+  const callSign =
+    teks(item.callSign) || "-";
 
   ruang.innerHTML = `
     <div class="admin-vvip-detail-source">
-      LAPORAN KAWALAN KESELAMATAN
+      SUMBER: ${escapeHtml(item.sumber || "-")}
     </div>
 
     <div class="admin-vvip-detail-grid">
-      ${butiran.join("")}
+      <div class="admin-vvip-detail-wide">
+        <span>Petugas :</span>
+        <b>${escapeHtml(petugasNama)}</b>
+      </div>
+
+      <div>
+        <span>No. Badan :</span>
+        <b>${escapeHtml(noBadan)}</b>
+      </div>
+
+      <div>
+        <span>Call Sign :</span>
+        <b>${escapeHtml(callSign)}</b>
+      </div>
+
+      <div>
+        <span>Lokasi :</span>
+        <b>${escapeHtml(lokasi)}</b>
+      </div>
+
+      <div>
+        <span>Jenis Tugas :</span>
+        <b>${escapeHtml(jenisTugas)}</b>
+      </div>
     </div>
   `;
 }
-
 
 function paparCartaVvipVipPentadbir() {
   const ruang =
@@ -7170,9 +7184,7 @@ function paparCartaVvipVipPentadbir() {
   ruang.innerHTML =
     senarai.map((item, index) => {
       const bolehBukaButiran =
-        sumberKawalanKeselamatanVvipVipPentadbir(
-          item
-        );
+        bolehBukaButiranVvipVipPentadbir(item);
 
       const aktif =
         bolehBukaButiran &&
@@ -7250,8 +7262,7 @@ function paparCartaVvipVipPentadbir() {
       senarai.find(
         item =>
           teks(item.id) ===
-          teks(idVvipVipDipilihPentadbir) &&
-          sumberKawalanKeselamatanVvipVipPentadbir(item)
+          teks(idVvipVipDipilihPentadbir)
       );
 
     if (dipilih) {
