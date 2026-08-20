@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-marker-toggle-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-kehadiran-kanan-002">
 </head>
 
 <body>
@@ -504,10 +504,57 @@
             <div class="admin-chart-canvas-wrap"><canvas id="canvasCartaJawatankuasa"></canvas></div>
           </section>
 
-          <section class="admin-chart-card" data-chart-section="KEHADIRAN">
+          <section
+            class="admin-chart-card admin-attendance-chart-card"
+            data-chart-section="KEHADIRAN"
+          >
             <h3>Kehadiran Petugas</h3>
-            <p class="muted">Hadir, belum hadir, sedang bertugas dan selesai tugas.</p>
-            <div class="admin-chart-canvas-wrap"><canvas id="canvasCartaKehadiran"></canvas></div>
+            <p class="muted">
+              Klik bahagian carta atau label status untuk memaparkan senarai nama petugas.
+            </p>
+
+            <div class="admin-attendance-layout">
+
+              <!-- CARTA DI KIRI -->
+              <div class="admin-attendance-chart-panel">
+                <div class="admin-chart-canvas-wrap admin-attendance-canvas-wrap">
+                  <canvas id="canvasCartaKehadiran"></canvas>
+                </div>
+
+                <div class="admin-attendance-hint">
+                  Klik HADIR, TIDAK HADIR, SELESAI atau MENUNGGU.
+                </div>
+              </div>
+
+              <!-- SENARAI PETUGAS DI KANAN -->
+              <aside class="admin-attendance-list-panel">
+                <div class="admin-attendance-list-heading">
+                  <div>
+                    <span>STATUS DIPILIH</span>
+                    <strong id="tajukSenaraiKehadiranPentadbir">
+                      HADIR
+                    </strong>
+                  </div>
+
+                  <div
+                    class="admin-attendance-list-count"
+                    id="jumlahSenaraiKehadiranPentadbir"
+                  >
+                    0
+                  </div>
+                </div>
+
+                <div
+                  class="admin-attendance-list"
+                  id="senaraiKehadiranPentadbir"
+                >
+                  <div class="empty-row">
+                    Klik carta untuk memilih status.
+                  </div>
+                </div>
+              </aside>
+
+            </div>
           </section>
 
           <section class="admin-chart-card" data-chart-section="INSIDEN">
@@ -1263,7 +1310,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-marker-toggle-001"></script>
+<script src="js/admin.js?v=20260820-kehadiran-kanan-002"></script>
 
 </body>
 </html>
