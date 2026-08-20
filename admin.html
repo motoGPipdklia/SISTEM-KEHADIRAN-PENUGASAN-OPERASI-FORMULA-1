@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-marker-drag-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-marker-toggle-001">
 </head>
 
 <body>
@@ -527,8 +527,31 @@
               </p>
             </div>
             <div class="section-heading-actions">
-              <button class="gray compact-button" type="button" onclick="bukaUrusPetaPentadbir()">URUS MARKER</button>
-              <button class="gold compact-button" type="button" onclick="resetZumPetaCartaPentadbir()">RESET ZOOM</button>
+              <button
+                class="gray compact-button"
+                type="button"
+                onclick="bukaUrusPetaPentadbir()"
+              >
+                URUS MARKER
+              </button>
+
+              <button
+                class="green-button compact-button"
+                id="btnToggleMarkerPetaPentadbir"
+                type="button"
+                onclick="toggleMarkerPetaPentadbir()"
+                aria-pressed="true"
+              >
+                TUTUP MARKER
+              </button>
+
+              <button
+                class="gold compact-button"
+                type="button"
+                onclick="resetZumPetaCartaPentadbir()"
+              >
+                RESET ZOOM
+              </button>
             </div>
           </div>
 
@@ -1240,7 +1263,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-marker-drag-001"></script>
+<script src="js/admin.js?v=20260820-marker-toggle-001"></script>
 
 </body>
 </html>
