@@ -1794,3 +1794,42 @@ body.marker-dragging *{
     text-align:left;
   }
 }
+
+
+/* ================================================================
+   PAPAR / TUTUP MARKER PETA
+================================================================ */
+
+#btnToggleMarkerPetaPentadbir{
+  min-width:138px;
+}
+
+#btnToggleMarkerPetaPentadbir.marker-hidden{
+  background:#2e7d32;
+  color:#fff;
+}
+
+/*
+  Bila marker ditutup:
+  - panel kanan disembunyikan
+  - peta menggunakan keseluruhan lebar
+*/
+.admin-operation-map-layout.markers-off{
+  grid-template-columns:minmax(0,1fr);
+}
+
+.admin-operation-map-layout.markers-off
+.admin-map-location-panel{
+  display:none !important;
+}
+
+#lapisanMarkerPetaPentadbir[hidden]{
+  display:none !important;
+}
+
+@media(max-width:700px){
+  #btnToggleMarkerPetaPentadbir{
+    width:100%;
+    min-width:0;
+  }
+}
