@@ -2866,3 +2866,71 @@ body.marker-dragging *{
     grid-template-columns:1fr;
   }
 }
+
+
+/* ================================================================
+   JAWATANKUASA — TEMA GELAP SELARAS DENGAN CARTA LAIN
+================================================================ */
+
+.admin-committee-table-wrap{
+  background:#121212 !important;
+  border-color:#303030 !important;
+}
+
+.admin-committee-table{
+  background:#171717 !important;
+  color:#ffffff !important;
+}
+
+.admin-committee-table th,
+.admin-committee-table td{
+  border-color:#343434 !important;
+  color:#ffffff !important;
+}
+
+.admin-committee-table thead th{
+  background:#1a1a1a !important;
+  color:#ffffff !important;
+}
+
+.admin-committee-table .admin-committee-title-row th{
+  background:#111111 !important;
+  color:var(--gold) !important;
+  border-color:#2f2f2f !important;
+}
+
+.admin-committee-group-row td{
+  background:#2a2411 !important;
+  color:var(--gold) !important;
+  border-color:#4a3d18 !important;
+}
+
+.admin-committee-table tbody tr:not(.admin-committee-group-row){
+  background:#171717 !important;
+}
+
+.admin-committee-table tbody tr:not(.admin-committee-group-row):nth-child(even){
+  background:#1d1d1d !important;
+}
+
+.admin-committee-table tbody tr:not(.admin-committee-group-row):hover{
+  background:#262626 !important;
+}
+
+.admin-committee-table .empty-row{
+  background:#171717 !important;
+  color:#bdbdbd !important;
+}
+
+.admin-committee-table .col-bil,
+.admin-committee-table .col-nama,
+.admin-committee-table .col-unit,
+.admin-committee-table .col-tugas,
+.admin-committee-table .col-telefon{
+  color:#ffffff !important;
+}
+
+.admin-committee-task-text{
+  color:#ffffff !important;
+}
+
