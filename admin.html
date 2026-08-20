@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-jawatankuasa-table-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-jawatankuasa-crud-001">
 </head>
 
 <body>
@@ -549,10 +549,40 @@
             class="admin-chart-card admin-committee-card"
             data-chart-section="JAWATANKUASA"
           >
-            <h3>Jawatankuasa</h3>
-            <p class="muted">
-              Senarai penugasan jawatankuasa mengikut rekod penugasan bagi tarikh dipilih.
-            </p>
+            <div class="admin-committee-heading">
+              <div>
+                <h3>Jawatankuasa</h3>
+                <p class="muted">
+                  Senarai jawatankuasa operasi bagi tarikh dipilih.
+                  Pangkat, No. Badan, Nama dan No. Telefon diambil automatik daripada profil petugas.
+                </p>
+              </div>
+
+              <div class="admin-committee-heading-actions">
+                <button
+                  class="green-button"
+                  type="button"
+                  onclick="bukaTambahJawatankuasaPentadbir()"
+                >
+                  + TAMBAH JAWATANKUASA
+                </button>
+
+                <button
+                  class="gray"
+                  type="button"
+                  onclick="muatSemulaJawatankuasaPentadbir()"
+                >
+                  SEMAK SEMULA
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="status-box"
+              id="statusJawatankuasaPentadbir"
+              role="status"
+              aria-live="polite"
+            ></div>
 
             <div class="admin-committee-table-wrap">
               <table class="admin-committee-table">
@@ -1367,6 +1397,132 @@
     </div>
   </div>
 
+
+  <!-- =====================================================
+       MODAL TAMBAH / EDIT JAWATANKUASA
+  ====================================================== -->
+  <div
+    class="modal"
+    id="modalJawatankuasaPentadbir"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tajukModalJawatankuasaPentadbir"
+    hidden
+  >
+    <div class="modal-card admin-committee-modal-card">
+      <div class="admin-committee-modal-heading">
+        <div>
+          <h2 id="tajukModalJawatankuasaPentadbir">Tambah Jawatankuasa</h2>
+          <p class="muted">
+            Pilih petugas. Pangkat, No. Badan, Nama dan No. Telefon akan diisi automatik.
+          </p>
+        </div>
+
+        <button
+          class="gray compact-button"
+          type="button"
+          onclick="tutupModalJawatankuasaPentadbir()"
+        >
+          TUTUP
+        </button>
+      </div>
+
+      <input id="idJawatankuasaPentadbir" type="hidden">
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="tarikhJawatankuasaPentadbir">Tarikh *</label>
+          <input id="tarikhJawatankuasaPentadbir" type="date">
+        </div>
+
+        <div class="form-group">
+          <label for="petugasJawatankuasaPentadbir">Petugas *</label>
+          <select
+            id="petugasJawatankuasaPentadbir"
+            onchange="pilihPetugasJawatankuasaPentadbir()"
+          >
+            <option value="">PILIH PETUGAS</option>
+          </select>
+        </div>
+
+        <div class="form-group form-group-wide">
+          <label for="namaJawatankuasaPentadbir">Jawatankuasa / Subtek *</label>
+          <input
+            id="namaJawatankuasaPentadbir"
+            type="text"
+            placeholder="Contoh: SUBTEK / URUSETIA / MEDIA"
+            autocapitalize="characters"
+          >
+        </div>
+
+        <div class="form-group form-group-wide">
+          <label for="unitJawatankuasaPentadbir">Bhgn / Balai / Caw / Unit *</label>
+          <input
+            id="unitJawatankuasaPentadbir"
+            type="text"
+            placeholder="Contoh: BKDNKA IPD KLIA"
+            autocapitalize="characters"
+          >
+        </div>
+
+        <div class="form-group form-group-wide">
+          <label for="tugasJawatankuasaPentadbir">Tugas *</label>
+          <input
+            id="tugasJawatankuasaPentadbir"
+            type="text"
+            placeholder="Contoh: JURUTIP / KOMUNIKASI / PEGAWAI SUBTEK"
+            autocapitalize="characters"
+          >
+        </div>
+      </div>
+
+      <div class="admin-committee-profile-preview">
+        <div>
+          <span>PANGKAT</span>
+          <strong id="previewPangkatJawatankuasa">-</strong>
+        </div>
+        <div>
+          <span>NO. BADAN</span>
+          <strong id="previewNoBadanJawatankuasa">-</strong>
+        </div>
+        <div>
+          <span>NAMA</span>
+          <strong id="previewNamaJawatankuasa">-</strong>
+        </div>
+        <div>
+          <span>NO. TELEFON</span>
+          <strong id="previewTelefonJawatankuasa">-</strong>
+        </div>
+      </div>
+
+      <div
+        class="status-box"
+        id="statusModalJawatankuasaPentadbir"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          class="green-button"
+          id="btnSimpanJawatankuasaPentadbir"
+          type="button"
+          onclick="simpanJawatankuasaPentadbir()"
+        >
+          SIMPAN JAWATANKUASA
+        </button>
+
+        <button
+          class="gray"
+          type="button"
+          onclick="tutupModalJawatankuasaPentadbir()"
+        >
+          BATAL
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL TAMBAH KRONOLOGI -->
   <div class="modal" id="modalTambahKronologiPentadbir" role="dialog" aria-modal="true" hidden>
     <div class="modal-card">
@@ -1436,7 +1592,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-jawatankuasa-table-001"></script>
+<script src="js/admin.js?v=20260820-jawatankuasa-crud-001"></script>
 
 </body>
 </html>
