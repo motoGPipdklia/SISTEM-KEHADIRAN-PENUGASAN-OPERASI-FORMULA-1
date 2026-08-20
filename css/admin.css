@@ -2591,4 +2591,31 @@ body.marker-dragging *{
     min-height:290px !important;
   }
 }
+/* ================================================================
+   CARTA VVIP / VIP — PAPARAN PENUH 100%
+   Kad VVIP/VIP memenuhi keseluruhan lebar Carta Operasi.
+================================================================ */
+.admin-chart-card[data-chart-section="VVIP"],
+.admin-chart-card[data-chart-section="VIP"],
+.admin-chart-card[data-chart-section="VVIP / VIP"],
+.admin-chart-card[data-chart-section="VVIP/VIP"],
+#cartaVvipPentadbir,
+#cartaVvipVipPentadbir,
+.admin-vvip-chart-card,
+.admin-vvipvip-chart-card{
+  grid-column:1 / -1 !important;
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+}
 
+/* Jika kandungan VVIP/VIP mempunyai layout/panel dalaman, penuhkan juga */
+.admin-chart-card[data-chart-section="VVIP"] > *,
+.admin-chart-card[data-chart-section="VIP"] > *,
+.admin-chart-card[data-chart-section="VVIP / VIP"] > *,
+.admin-chart-card[data-chart-section="VVIP/VIP"] > *,
+.admin-vvip-chart-card > *,
+.admin-vvipvip-chart-card > *{
+  width:100%;
+  max-width:none;
+}
