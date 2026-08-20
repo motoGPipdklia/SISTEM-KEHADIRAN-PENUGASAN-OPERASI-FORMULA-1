@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-kenderaan-interaktif-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-jawatankuasa-table-001">
 </head>
 
 <body>
@@ -545,10 +545,42 @@
             </div>
           </section>
 
-          <section class="admin-chart-card" data-chart-section="JAWATANKUASA">
+          <section
+            class="admin-chart-card admin-committee-card"
+            data-chart-section="JAWATANKUASA"
+          >
             <h3>Jawatankuasa</h3>
-            <p class="muted">Kekuatan dan status jawatankuasa.</p>
-            <div class="admin-chart-canvas-wrap"><canvas id="canvasCartaJawatankuasa"></canvas></div>
+            <p class="muted">
+              Senarai penugasan jawatankuasa mengikut rekod penugasan bagi tarikh dipilih.
+            </p>
+
+            <div class="admin-committee-table-wrap">
+              <table class="admin-committee-table">
+                <thead>
+                  <tr class="admin-committee-title-row">
+                    <th colspan="5" id="tajukJawatankuasaPentadbir">
+                      JAWATANKUASA OPERASI
+                    </th>
+                  </tr>
+
+                  <tr>
+                    <th class="col-bil">BIL</th>
+                    <th class="col-nama">PANGKAT / NO / NAMA</th>
+                    <th class="col-unit">BHGN / BALAI / CAW / UNIT</th>
+                    <th class="col-tugas">TUGAS</th>
+                    <th class="col-telefon">NO. TELEFON</th>
+                  </tr>
+                </thead>
+
+                <tbody id="tbodyJawatankuasaPentadbir">
+                  <tr>
+                    <td colspan="5" class="empty-row">
+                      Tiada rekod jawatankuasa untuk tarikh ini.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section
@@ -1404,7 +1436,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-kenderaan-interaktif-001"></script>
+<script src="js/admin.js?v=20260820-jawatankuasa-table-001"></script>
 
 </body>
 </html>
