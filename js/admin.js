@@ -4002,6 +4002,11 @@ function kumpulanVvipVipCarta() {
             item.lokasi ||
             item.tempat_tugas ||
             "",
+          tempatTugas:
+            item.tempat_tugas ||
+            item.lokasi ||
+            data.lokasi ||
+            "",
           tujuan: "",
           catatan: "",
           sumber:
@@ -4025,6 +4030,7 @@ function kumpulanVvipVipCarta() {
       masaTiba: item.masa_tiba || null,
       masaBeredar: item.masa_beredar || null,
       lokasi: item.lokasi || "",
+      tempatTugas: "",
       tujuan: item.tujuan || "",
       catatan: item.catatan || "",
       sumber: "URUSETIA / PENTADBIR"
@@ -6948,9 +6954,18 @@ function paparCartaVvipVipPentadbir() {
         item.agensi
           ? `<div><span>Agensi / Organisasi :</span><b>${escapeHtml(item.agensi)}</b></div>`
           : "",
-        item.lokasi
-          ? `<div><span>Lokasi :</span><b>${escapeHtml(item.lokasi)}</b></div>`
-          : "",
+
+        /*
+          Jika rekod datang daripada LAPORAN PETUGAS,
+          paparkan TEMPAT TUGAS. Untuk rekod manual
+          Urusetia/Pentadbir, kekalkan label LOKASI.
+        */
+        item.jenisRekod === "LAPORAN" && item.tempatTugas
+          ? `<div><span>Tempat Tugas :</span><b>${escapeHtml(item.tempatTugas)}</b></div>`
+          : item.lokasi
+            ? `<div><span>Lokasi :</span><b>${escapeHtml(item.lokasi)}</b></div>`
+            : "",
+
         item.masaTiba
           ? `<div><span>Masa Ketibaan :</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaTiba))}</b></div>`
           : "",
