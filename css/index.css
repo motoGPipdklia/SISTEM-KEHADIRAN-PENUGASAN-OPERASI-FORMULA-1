@@ -847,3 +847,70 @@ body.peta-terbuka{ overflow:hidden; }
     color:#000;
   }
 }
+
+
+/* ==========================================
+   BORANG LITUPAN KESELAMATAN
+========================================== */
+
+.litupan-report-header{
+  margin:4px 0 18px;
+  padding:16px;
+  border:1px solid #6b581d;
+  border-radius:11px;
+  background:#211d10;
+  text-align:left;
+}
+
+.litupan-report-header h2{
+  margin:0 0 6px;
+  color:var(--gold);
+}
+
+.litupan-report-header p{
+  margin:0;
+  color:#d8d0b5;
+  font-size:13px;
+  line-height:1.55;
+}
+
+.litupan-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:4px 12px;
+  width:100%;
+}
+
+.litupan-field{
+  min-width:0;
+}
+
+.litupan-field-wide{
+  grid-column:1 / -1;
+}
+
+.litupan-field label{
+  margin-top:10px;
+}
+
+.litupan-field input,
+.litupan-field select,
+.litupan-field textarea{
+  margin-top:7px;
+  margin-bottom:5px;
+}
+
+.litupan-field textarea{
+  min-height:100px;
+}
+
+@media(max-width:520px){
+  .litupan-grid{
+    grid-template-columns:1fr;
+  }
+
+  .litupan-field-wide{
+    grid-column:auto;
+  }
+}
+
