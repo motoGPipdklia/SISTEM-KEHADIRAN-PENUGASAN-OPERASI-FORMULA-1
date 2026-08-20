@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-cetak-carta-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-vvip-panel-001">
 </head>
 
 <body>
@@ -602,8 +602,50 @@
               aria-live="polite"
             ></div>
 
-            <div class="admin-chart-list" id="senaraiCartaVvipVip">
-              <div class="empty-row">Belum ada data VVIP / VIP.</div>
+            <div class="admin-vvip-layout">
+
+              <!-- SENARAI NAMA VVIP / VIP DI KIRI -->
+              <div class="admin-vvip-list-panel">
+                <div class="admin-vvip-panel-heading">
+                  <div>
+                    <span>SENARAI VVIP / VIP</span>
+                    <strong id="jumlahSenaraiVvipVipPentadbir">0 REKOD</strong>
+                  </div>
+                </div>
+
+                <div
+                  class="admin-vvip-name-list"
+                  id="senaraiCartaVvipVip"
+                >
+                  <div class="empty-row">Belum ada data VVIP / VIP.</div>
+                </div>
+              </div>
+
+              <!-- BUTIRAN KAWALAN KESELAMATAN DI KANAN -->
+              <aside class="admin-vvip-detail-panel">
+                <div class="admin-vvip-detail-heading">
+                  <div>
+                    <span>BUTIRAN LAPORAN</span>
+                    <strong id="tajukButiranVvipVipPentadbir">
+                      PILIH VVIP / VIP
+                    </strong>
+                  </div>
+                </div>
+
+                <div
+                  class="admin-vvip-detail-content"
+                  id="butiranVvipVipPentadbir"
+                >
+                  <div class="admin-vvip-detail-empty">
+                    <strong>KAWALAN KESELAMATAN</strong>
+                    <p>
+                      Klik nama VVIP / VIP daripada sumber Kawalan Keselamatan
+                      untuk melihat butiran laporan.
+                    </p>
+                  </div>
+                </div>
+              </aside>
+
             </div>
           </section>
 
@@ -1868,7 +1910,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-cetak-carta-001"></script>
+<script src="js/admin.js?v=20260820-vvip-panel-001"></script>
 
 </body>
 </html>
