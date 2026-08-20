@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-insiden-clickbar-002">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-kenderaan-interaktif-001">
 </head>
 
 <body>
@@ -484,10 +484,57 @@
             <div class="admin-chart-canvas-wrap"><canvas id="canvasCartaPengunjung"></canvas></div>
           </section>
 
-          <section class="admin-chart-card" data-chart-section="KENDERAAN">
+          <section
+            class="admin-chart-card admin-vehicle-chart-card"
+            data-chart-section="KENDERAAN"
+          >
             <h3>Carta Kenderaan</h3>
-            <p class="muted">Pecahan Bas, Motosikal, Motokar dan jumlah keseluruhan.</p>
-            <div class="admin-chart-canvas-wrap"><canvas id="canvasCartaKenderaan"></canvas></div>
+            <p class="muted">
+              Klik Bas, Motosikal atau Motokar untuk melihat butiran di sebelah kanan.
+            </p>
+
+            <div class="admin-vehicle-layout">
+
+              <!-- CARTA DI KIRI -->
+              <div class="admin-vehicle-chart-panel">
+                <div class="admin-chart-canvas-wrap admin-vehicle-canvas-wrap">
+                  <canvas id="canvasCartaKenderaan"></canvas>
+                </div>
+
+                <div class="admin-vehicle-hint">
+                  Klik bar atau label Bas, Motosikal atau Motokar.
+                </div>
+              </div>
+
+              <!-- BUTIRAN DI KANAN -->
+              <aside class="admin-vehicle-detail-panel">
+                <div class="admin-vehicle-detail-heading">
+                  <div>
+                    <span>KATEGORI DIPILIH</span>
+                    <strong id="tajukButiranKenderaanPentadbir">
+                      BAS
+                    </strong>
+                  </div>
+
+                  <div
+                    class="admin-vehicle-detail-count"
+                    id="jumlahButiranKenderaanPentadbir"
+                  >
+                    0
+                  </div>
+                </div>
+
+                <div
+                  class="admin-vehicle-detail-list"
+                  id="senaraiButiranKenderaanPentadbir"
+                >
+                  <div class="empty-row">
+                    Klik carta untuk memilih kategori kenderaan.
+                  </div>
+                </div>
+              </aside>
+
+            </div>
           </section>
 
           <section class="admin-chart-card" data-chart-section="VVIP_VIP">
@@ -1357,7 +1404,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-insiden-clickbar-002"></script>
+<script src="js/admin.js?v=20260820-kenderaan-interaktif-001"></script>
 
 </body>
 </html>
