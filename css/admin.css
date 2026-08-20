@@ -2733,3 +2733,136 @@ body.marker-dragging *{
     min-width:900px;
   }
 }
+
+
+/* ================================================================
+   JAWATANKUASA OPERASI — TAMBAH / EDIT / PADAM
+================================================================ */
+
+.admin-committee-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+}
+
+.admin-committee-heading h3{
+  margin:0 0 7px;
+}
+
+.admin-committee-heading-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.admin-committee-heading-actions button{
+  min-height:42px;
+  white-space:nowrap;
+}
+
+.admin-committee-row-actions{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:7px;
+}
+
+.admin-committee-row-actions button{
+  min-height:28px;
+  padding:5px 9px;
+  border-radius:6px;
+  font-size:10px;
+  font-weight:900;
+}
+
+.admin-committee-edit-button{
+  background:#356da4;
+  color:#fff;
+}
+
+.admin-committee-delete-button{
+  background:#8f2e2e;
+  color:#fff;
+}
+
+.admin-committee-task-text{
+  font-weight:700;
+}
+
+.admin-committee-modal-card{
+  width:min(100%,760px);
+}
+
+.admin-committee-modal-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:18px;
+}
+
+.admin-committee-modal-heading h2{
+  margin:0 0 6px;
+}
+
+.admin-committee-profile-preview{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-top:16px;
+}
+
+.admin-committee-profile-preview > div{
+  min-width:0;
+  padding:12px;
+  border:1px solid #3a3a3a;
+  border-radius:10px;
+  background:#151515;
+}
+
+.admin-committee-profile-preview span{
+  display:block;
+  margin-bottom:5px;
+  color:#aaa;
+  font-size:10px;
+  font-weight:900;
+}
+
+.admin-committee-profile-preview strong{
+  display:block;
+  color:#fff;
+  font-size:13px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+
+@media(max-width:760px){
+  .admin-committee-heading,
+  .admin-committee-modal-heading{
+    flex-direction:column;
+  }
+
+  .admin-committee-heading-actions{
+    width:100%;
+    justify-content:stretch;
+  }
+
+  .admin-committee-heading-actions button{
+    flex:1 1 180px;
+  }
+
+  .admin-committee-profile-preview{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:480px){
+  .admin-committee-profile-preview{
+    grid-template-columns:1fr;
+  }
+}
