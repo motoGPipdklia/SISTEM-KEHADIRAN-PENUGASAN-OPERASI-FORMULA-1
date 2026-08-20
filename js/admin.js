@@ -3627,11 +3627,598 @@ function paparRingkasanCartaPentadbir() {
 }
 
 
+function binaPanelPengunjungPentadbir() {
+  const kanvas =
+    el("canvasCartaPengunjung");
+
+  if (!kanvas) return null;
+
+  const kad =
+    kanvas.closest(
+      '[data-chart-section="PENGUNJUNG"]'
+    );
+
+  if (!kad) return null;
+
+  let layout =
+    kad.querySelector(
+      ".admin-visitor-layout"
+    );
+
+  if (!layout) {
+    const bungkusAsal =
+      kanvas.parentElement;
+
+    layout =
+      document.createElement("div");
+
+    layout.className =
+      "admin-visitor-layout";
+
+    const panelCarta =
+      document.createElement("div");
+
+    panelCarta.className =
+      "admin-visitor-chart-panel";
+
+    bungkusAsal.parentNode.insertBefore(
+      layout,
+      bungkusAsal
+    );
+
+    layout.appendChild(
+      panelCarta
+    );
+
+    panelCarta.appendChild(
+      bungkusAsal
+    );
+
+    const panelButiran =
+      document.createElement("aside");
+
+    panelButiran.className =
+      "admin-visitor-detail-panel";
+
+    panelButiran.innerHTML = `
+      <div class="admin-visitor-detail-heading">
+        <div>
+          <span>BUTIRAN PENGUNJUNG</span>
+          <strong>SEMUA LAPORAN</strong>
+        </div>
+        <div
+          class="admin-visitor-detail-count"
+          id="jumlahButiranPengunjungPentadbir"
+        >0</div>
+      </div>
+
+      <div
+        class="admin-visitor-detail-list"
+        id="senaraiButiranPengunjungPentadbir"
+      >
+        <div class="empty-row">
+          Tiada laporan pengunjung.
+        </div>
+      </div>
+    `;
+
+    layout.appendChild(
+      panelButiran
+    );
+
+    if (!el("gayaCartaPengunjungPentadbir")) {
+      const gaya =
+        document.createElement("style");
+
+      gaya.id =
+        "gayaCartaPengunjungPentadbir";
+
+      gaya.textContent = `
+        .admin-visitor-layout{
+          display:grid;
+          grid-template-columns:minmax(420px,.95fr) minmax(420px,1.05fr);
+          gap:16px;
+          align-items:stretch;
+          margin-top:14px;
+        }
+
+        .admin-visitor-chart-panel,
+        .admin-visitor-detail-panel{
+          min-width:0;
+          border:1px solid #303030;
+          border-radius:12px;
+          background:#121212;
+        }
+
+        .admin-visitor-chart-panel{
+          display:flex;
+          min-height:390px;
+          flex-direction:column;
+          justify-content:center;
+          padding:12px;
+        }
+
+        .admin-visitor-chart-panel .admin-chart-canvas-wrap{
+          height:330px;
+          margin-top:0;
+        }
+
+        .admin-visitor-detail-panel{
+          display:flex;
+          min-height:390px;
+          flex-direction:column;
+          overflow:hidden;
+        }
+
+        .admin-visitor-detail-heading{
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          gap:12px;
+          padding:14px 15px;
+          border-bottom:1px solid #303030;
+          background:#171717;
+        }
+
+        .admin-visitor-detail-heading span{
+          display:block;
+          color:#9f9f9f;
+          font-size:10px;
+          font-weight:800;
+          letter-spacing:.04em;
+        }
+
+        .admin-visitor-detail-heading strong{
+          display:block;
+          margin-top:4px;
+          color:#d4af37;
+          font-size:18px;
+        }
+
+        .admin-visitor-detail-count{
+          display:flex;
+          width:52px;
+          height:52px;
+          flex:0 0 52px;
+          align-items:center;
+          justify-content:center;
+          border-radius:50%;
+          background:#d4af37;
+          color:#111;
+          font-size:17px;
+          font-weight:900;
+        }
+
+        .admin-visitor-detail-list{
+          display:grid;
+          gap:9px;
+          max-height:430px;
+          padding:12px;
+          overflow:auto;
+        }
+
+        .admin-visitor-detail-item{
+          display:grid;
+          grid-template-columns:34px minmax(0,1fr);
+          gap:10px;
+          padding:12px;
+          border:1px solid #303030;
+          border-radius:10px;
+          background:#181818;
+          transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        }
+
+        .admin-visitor-detail-item.aktif{
+          border-color:#d4af37;
+          box-shadow:0 0 0 1px rgba(212,175,55,.28);
+          transform:translateY(-1px);
+        }
+
+        .admin-visitor-detail-number{
+          display:flex;
+          width:30px;
+          height:30px;
+          align-items:center;
+          justify-content:center;
+          border-radius:50%;
+          background:#303030;
+          color:#d4af37;
+          font-size:12px;
+          font-weight:900;
+        }
+
+        .admin-visitor-detail-main{
+          min-width:0;
+        }
+
+        .admin-visitor-detail-top{
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:12px;
+        }
+
+        .admin-visitor-detail-top strong{
+          color:#fff;
+          font-size:14px;
+        }
+
+        .admin-visitor-detail-top time{
+          color:#9f9f9f;
+          font-size:11px;
+          white-space:nowrap;
+        }
+
+        .admin-visitor-detail-body{
+          display:grid;
+          grid-template-columns:repeat(2,minmax(0,1fr));
+          gap:8px 14px;
+          margin-top:10px;
+        }
+
+        .admin-visitor-detail-body div{
+          min-width:0;
+        }
+
+        .admin-visitor-detail-body span,
+        .admin-visitor-note span{
+          display:block;
+          margin-bottom:3px;
+          color:#9f9f9f;
+          font-size:10px;
+          font-weight:800;
+          text-transform:uppercase;
+        }
+
+        .admin-visitor-detail-body b{
+          display:block;
+          color:#fff;
+          font-size:12px;
+          font-weight:700;
+          line-height:1.45;
+          overflow-wrap:anywhere;
+        }
+
+        .admin-visitor-detail-wide{
+          grid-column:1 / -1;
+        }
+
+        .admin-visitor-note{
+          margin-top:10px;
+          padding:9px 10px;
+          border-left:3px solid #d4af37;
+          border-radius:6px;
+          background:#111;
+        }
+
+        .admin-visitor-note p{
+          margin:0;
+          color:#ddd;
+          font-size:12px;
+          line-height:1.5;
+          white-space:pre-wrap;
+        }
+
+        #canvasCartaPengunjung{
+          cursor:pointer !important;
+        }
+
+        @media(max-width:1050px){
+          .admin-visitor-layout{
+            grid-template-columns:1fr;
+          }
+        }
+
+        @media(max-width:620px){
+          .admin-visitor-detail-body{
+            grid-template-columns:1fr;
+          }
+
+          .admin-visitor-detail-wide{
+            grid-column:auto;
+          }
+
+          .admin-visitor-detail-top{
+            flex-direction:column;
+          }
+        }
+      `;
+
+      document.head.appendChild(gaya);
+    }
+  }
+
+  return layout;
+}
+
+
+function rekodPetugasUntukLaporanPengunjungPentadbir(item) {
+  const petugasId =
+    item.petugas_id ||
+    item.profile_id ||
+    "";
+
+  if (!petugasId) return null;
+
+  return (
+    dataDashboard.find(
+      rekod =>
+        rekod.petugasId === petugasId
+    ) || null
+  );
+}
+
+
+function nilaiJumlahPengunjungPentadbir(item) {
+  const data =
+    dataLaporanCarta(item);
+
+  return nomborCarta(
+    data.jumlah_pengunjung ??
+    item.jumlah_pengunjung,
+    0
+  );
+}
+
+
+function jumlahKenderaanPengunjungPentadbir(item) {
+  const data =
+    dataLaporanCarta(item);
+
+  const kenderaan =
+    data.kenderaan &&
+    typeof data.kenderaan === "object"
+      ? data.kenderaan
+      : {};
+
+  const bas =
+    nomborCarta(
+      kenderaan.bas ?? data.bas,
+      0
+    );
+
+  const motosikal =
+    nomborCarta(
+      kenderaan.motosikal ?? data.motosikal,
+      0
+    );
+
+  const motokar =
+    nomborCarta(
+      kenderaan.motokar ?? data.motokar,
+      0
+    );
+
+  return nomborCarta(
+    kenderaan.jumlah ??
+    item.jumlah_kenderaan,
+    bas + motosikal + motokar
+  );
+}
+
+
+function paparButiranPengunjungPentadbir(indexDipilih = -1) {
+  binaPanelPengunjungPentadbir();
+
+  const senarai =
+    laporanKeselamatanCarta();
+
+  const ruang =
+    el("senaraiButiranPengunjungPentadbir");
+
+  const jumlahBox =
+    el("jumlahButiranPengunjungPentadbir");
+
+  if (jumlahBox) {
+    jumlahBox.textContent =
+      senarai.length.toLocaleString("ms-MY");
+  }
+
+  if (!ruang) return;
+
+  if (!senarai.length) {
+    ruang.innerHTML = `
+      <div class="empty-row">
+        Tiada laporan pengunjung untuk tarikh ini.
+      </div>
+    `;
+    return;
+  }
+
+  ruang.innerHTML =
+    senarai.map((item, index) => {
+      const data =
+        dataLaporanCarta(item);
+
+      const petugas =
+        rekodPetugasUntukLaporanPengunjungPentadbir(
+          item
+        );
+
+      const jumlahPengunjung =
+        nilaiJumlahPengunjungPentadbir(
+          item
+        );
+
+      const jumlahKenderaan =
+        jumlahKenderaanPengunjungPentadbir(
+          item
+        );
+
+      const namaPetugas =
+        petugas
+          ? `${teks(petugas.pangkat)} ${teks(petugas.nama)}`.trim()
+          : teks(
+              item.nama_petugas ||
+              item.nama
+            ) || "-";
+
+      const noBadan =
+        teks(petugas?.noBadan) ||
+        teks(item.no_badan) ||
+        "-";
+
+      const telefon =
+        teks(petugas?.telefon) ||
+        teks(item.no_telefon) ||
+        teks(item.telefon) ||
+        "-";
+
+      const callSign =
+        teks(petugas?.callSign) ||
+        teks(item.call_sign) ||
+        "-";
+
+      const lokasi =
+        teks(
+          data.lokasi ??
+          data.tempat_tugas ??
+          item.tempat_tugas ??
+          petugas?.tempatTugas
+        ) || "-";
+
+      const jenisTugas =
+        jenisTugasCarta(item) ||
+        petugas?.jenisTugas ||
+        "KAWALAN KESELAMATAN";
+
+      const vvipVip =
+        teksNilaiCarta(
+          data.vvip_vip ??
+          item.vvip_vip
+        ) || "TIADA";
+
+      const perkaraMenarik =
+        teksNilaiCarta(
+          data.perkara_menarik ??
+          data.catatan ??
+          item.perkara_menarik
+        );
+
+      return `
+        <article
+          class="admin-visitor-detail-item ${index === indexDipilih ? "aktif" : ""}"
+          data-index-pengunjung="${index}"
+        >
+          <div class="admin-visitor-detail-number">
+            ${index + 1}
+          </div>
+
+          <div class="admin-visitor-detail-main">
+            <div class="admin-visitor-detail-top">
+              <strong>
+                ${jumlahPengunjung.toLocaleString("ms-MY")} PENGUNJUNG
+              </strong>
+
+              <time>
+                ${escapeHtml(
+                  formatMasaLaporanAdmin(
+                    item.tarikh_masa
+                  )
+                )}
+              </time>
+            </div>
+
+            <div class="admin-visitor-detail-body">
+              <div>
+                <span>Jumlah Pengunjung</span>
+                <b>${jumlahPengunjung.toLocaleString("ms-MY")}</b>
+              </div>
+
+              <div>
+                <span>Jumlah Kenderaan</span>
+                <b>${jumlahKenderaan.toLocaleString("ms-MY")}</b>
+              </div>
+
+              <div>
+                <span>Lokasi</span>
+                <b>${escapeHtml(lokasi)}</b>
+              </div>
+
+              <div>
+                <span>Call Sign</span>
+                <b>${escapeHtml(callSign)}</b>
+              </div>
+
+              <div>
+                <span>Petugas</span>
+                <b>${escapeHtml(namaPetugas)}</b>
+              </div>
+
+              <div>
+                <span>No Badan</span>
+                <b>${escapeHtml(noBadan)}</b>
+              </div>
+
+              <div>
+                <span>No. Telefon</span>
+                <b>${escapeHtml(telefon)}</b>
+              </div>
+
+              <div>
+                <span>VVIP / VIP</span>
+                <b>${escapeHtml(vvipVip)}</b>
+              </div>
+
+              <div class="admin-visitor-detail-wide">
+                <span>Jenis Tugas</span>
+                <b>${escapeHtml(jenisTugas)}</b>
+              </div>
+            </div>
+
+            ${
+              perkaraMenarik
+                ? `
+                  <div class="admin-visitor-note">
+                    <span>Perkara Menarik / Catatan</span>
+                    <p>${escapeHtml(perkaraMenarik)}</p>
+                  </div>
+                `
+                : ""
+            }
+          </div>
+        </article>
+      `;
+    }).join("");
+
+  if (indexDipilih >= 0) {
+    const aktif =
+      ruang.querySelector(
+        `[data-index-pengunjung="${indexDipilih}"]`
+      );
+
+    aktif?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest"
+    });
+  }
+}
+
+
+function pilihRekodPengunjungPentadbir(index) {
+  const senarai =
+    laporanKeselamatanCarta();
+
+  if (
+    index < 0 ||
+    index >= senarai.length
+  ) {
+    return;
+  }
+
+  paparButiranPengunjungPentadbir(
+    index
+  );
+}
+
+
 function paparCartaPengunjungPentadbir() {
   const kanvas =
     el("canvasCartaPengunjung");
 
   if (!kanvas) return;
+
+  binaPanelPengunjungPentadbir();
 
   try {
     pastikanChartJsPentadbir();
@@ -3648,16 +4235,11 @@ function paparCartaPengunjungPentadbir() {
     );
 
   const nilai =
-    senarai.map(item => {
-      const data =
-        dataLaporanCarta(item);
-
-      return nomborCarta(
-        data.jumlah_pengunjung ??
-        item.jumlah_pengunjung,
-        0
-      );
-    });
+    senarai.map(item =>
+      nilaiJumlahPengunjungPentadbir(
+        item
+      )
+    );
 
   kemusnahkanCartaPentadbir(
     cartaPengunjungPentadbir
@@ -3666,6 +4248,7 @@ function paparCartaPengunjungPentadbir() {
   cartaPengunjungPentadbir =
     new Chart(kanvas, {
       type: "line",
+
       data: {
         labels,
         datasets: [
@@ -3673,14 +4256,84 @@ function paparCartaPengunjungPentadbir() {
             label: "Jumlah Pengunjung",
             data: nilai,
             tension: 0.28,
-            fill: false
+            fill: false,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+            pointHitRadius: 18
           }
         ]
       },
-      options: pilihanCartaPentadbir(
-        "Jumlah Pengunjung"
-      )
+
+      options: {
+        ...pilihanCartaPentadbir(
+          "Jumlah Pengunjung"
+        ),
+
+        onClick(event) {
+          const elemen =
+            cartaPengunjungPentadbir
+              ?.getElementsAtEventForMode(
+                event,
+                "nearest",
+                {
+                  intersect: false,
+                  axis: "x"
+                },
+                true
+              ) || [];
+
+          if (!elemen.length) return;
+
+          pilihRekodPengunjungPentadbir(
+            elemen[0].index
+          );
+        },
+
+        onHover(event) {
+          const sasaran =
+            event?.native?.target;
+
+          if (sasaran) {
+            sasaran.style.cursor =
+              "pointer";
+          }
+        },
+
+        plugins: {
+          ...pilihanCartaPentadbir(
+            "Jumlah Pengunjung"
+          ).plugins,
+
+          legend: {
+            labels: {
+              color: "#ffffff",
+              font: {
+                weight: "700"
+              }
+            }
+          },
+
+          tooltip: {
+            enabled: true,
+            callbacks: {
+              label(context) {
+                return `Jumlah Pengunjung: ${(Number(context.raw) || 0).toLocaleString("ms-MY")}`;
+              },
+
+              afterLabel() {
+                return "Klik untuk sorot butiran di sebelah kanan";
+              }
+            }
+          }
+        }
+      }
     });
+
+  /*
+    Semua butiran terus dipaparkan,
+    walaupun pengguna belum klik carta.
+  */
+  paparButiranPengunjungPentadbir();
 }
 
 
