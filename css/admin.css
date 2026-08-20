@@ -2591,31 +2591,435 @@ body.marker-dragging *{
     min-height:290px !important;
   }
 }
+
+
 /* ================================================================
-   CARTA VVIP / VIP — PAPARAN PENUH 100%
-   Kad VVIP/VIP memenuhi keseluruhan lebar Carta Operasi.
+   FIX VVIP / VIP — PENUH 100% LEBAR
+   HTML sebenar menggunakan: data-chart-section="VVIP_VIP"
 ================================================================ */
-.admin-chart-card[data-chart-section="VVIP"],
-.admin-chart-card[data-chart-section="VIP"],
-.admin-chart-card[data-chart-section="VVIP / VIP"],
-.admin-chart-card[data-chart-section="VVIP/VIP"],
-#cartaVvipPentadbir,
-#cartaVvipVipPentadbir,
-.admin-vvip-chart-card,
-.admin-vvipvip-chart-card{
+
+.admin-chart-card[data-chart-section="VVIP_VIP"]{
   grid-column:1 / -1 !important;
   width:100% !important;
   max-width:none !important;
   min-width:0 !important;
+  justify-self:stretch !important;
+  align-self:stretch !important;
 }
 
-/* Jika kandungan VVIP/VIP mempunyai layout/panel dalaman, penuhkan juga */
-.admin-chart-card[data-chart-section="VVIP"] > *,
-.admin-chart-card[data-chart-section="VIP"] > *,
-.admin-chart-card[data-chart-section="VVIP / VIP"] > *,
-.admin-chart-card[data-chart-section="VVIP/VIP"] > *,
-.admin-vvip-chart-card > *,
-.admin-vvipvip-chart-card > *{
+/* Pastikan isi dalaman juga menggunakan lebar penuh */
+.admin-chart-card[data-chart-section="VVIP_VIP"] > *{
   width:100%;
   max-width:none;
+}
+
+/* Jika senarai VVIP/VIP menggunakan class list sedia ada */
+.admin-chart-card[data-chart-section="VVIP_VIP"] .admin-chart-list{
+  width:100% !important;
+  max-width:none !important;
+}
+
+/* Paparan SEMUA CARTA juga kekal penuh */
+.admin-chart-grid > .admin-chart-card[data-chart-section="VVIP_VIP"]{
+  grid-column:1 / -1 !important;
+}
+
+
+/* ================================================================
+   JAWATANKUASA — JADUAL PENUGASAN
+================================================================ */
+
+.admin-committee-card{
+  grid-column:1 / -1 !important;
+  width:100% !important;
+  min-width:0 !important;
+}
+
+.admin-committee-table-wrap{
+  width:100%;
+  margin-top:14px;
+  overflow:auto;
+  border:1px solid #3a3a3a;
+  border-radius:10px;
+  background:#f5f5f5;
+}
+
+.admin-committee-table{
+  width:100%;
+  min-width:980px;
+  border-collapse:collapse;
+  table-layout:fixed;
+  background:#ffffff;
+  color:#111111;
+  font-size:12px;
+}
+
+.admin-committee-table th,
+.admin-committee-table td{
+  padding:8px 9px;
+  border:1px solid #6f6f6f;
+  vertical-align:middle;
+  line-height:1.35;
+}
+
+.admin-committee-table thead th{
+  background:#ffffff;
+  color:#111111;
+  font-weight:900;
+  text-align:center;
+}
+
+.admin-committee-table .admin-committee-title-row th{
+  padding:9px 12px;
+  background:#050505;
+  color:#ffffff;
+  border-color:#050505;
+  font-size:13px;
+  letter-spacing:.03em;
+}
+
+.admin-committee-group-row td{
+  padding:6px 10px !important;
+  background:#252525 !important;
+  color:#ffffff !important;
+  border-color:#252525 !important;
+  font-weight:900;
+  text-align:left;
+  letter-spacing:.02em;
+}
+
+.admin-committee-table tbody tr:not(.admin-committee-group-row):nth-child(even){
+  background:#fafafa;
+}
+
+.admin-committee-table tbody tr:not(.admin-committee-group-row):hover{
+  background:#fff8d9;
+}
+
+.admin-committee-table .col-bil{
+  width:5%;
+  text-align:center;
+}
+
+.admin-committee-table .col-nama{
+  width:34%;
+}
+
+.admin-committee-table .col-unit{
+  width:24%;
+  text-align:center;
+}
+
+.admin-committee-table .col-tugas{
+  width:22%;
+  text-align:center;
+}
+
+.admin-committee-table .col-telefon{
+  width:15%;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.admin-committee-table .empty-row{
+  height:90px;
+  background:#ffffff !important;
+  color:#666666;
+  text-align:center;
+}
+
+@media(max-width:760px){
+  .admin-committee-table{
+    min-width:900px;
+  }
+}
+
+
+/* ================================================================
+   JAWATANKUASA OPERASI — TAMBAH / EDIT / PADAM
+================================================================ */
+
+.admin-committee-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+}
+
+.admin-committee-heading h3{
+  margin:0 0 7px;
+}
+
+.admin-committee-heading-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  flex-wrap:wrap;
+}
+
+.admin-committee-heading-actions button{
+  min-height:42px;
+  white-space:nowrap;
+}
+
+.admin-committee-row-actions{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-top:7px;
+}
+
+.admin-committee-row-actions button{
+  min-height:28px;
+  padding:5px 9px;
+  border-radius:6px;
+  font-size:10px;
+  font-weight:900;
+}
+
+.admin-committee-edit-button{
+  background:#356da4;
+  color:#fff;
+}
+
+.admin-committee-delete-button{
+  background:#8f2e2e;
+  color:#fff;
+}
+
+.admin-committee-task-text{
+  font-weight:700;
+}
+
+.admin-committee-modal-card{
+  width:min(100%,760px);
+}
+
+.admin-committee-modal-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:18px;
+}
+
+.admin-committee-modal-heading h2{
+  margin:0 0 6px;
+}
+
+.admin-committee-profile-preview{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-top:16px;
+}
+
+.admin-committee-profile-preview > div{
+  min-width:0;
+  padding:12px;
+  border:1px solid #3a3a3a;
+  border-radius:10px;
+  background:#151515;
+}
+
+.admin-committee-profile-preview span{
+  display:block;
+  margin-bottom:5px;
+  color:#aaa;
+  font-size:10px;
+  font-weight:900;
+}
+
+.admin-committee-profile-preview strong{
+  display:block;
+  color:#fff;
+  font-size:13px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+
+@media(max-width:760px){
+  .admin-committee-heading,
+  .admin-committee-modal-heading{
+    flex-direction:column;
+  }
+
+  .admin-committee-heading-actions{
+    width:100%;
+    justify-content:stretch;
+  }
+
+  .admin-committee-heading-actions button{
+    flex:1 1 180px;
+  }
+
+  .admin-committee-profile-preview{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:480px){
+  .admin-committee-profile-preview{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* ================================================================
+   JAWATANKUASA — TEMA GELAP SELARAS DENGAN CARTA LAIN
+================================================================ */
+
+.admin-committee-table-wrap{
+  background:#121212 !important;
+  border-color:#303030 !important;
+}
+
+.admin-committee-table{
+  background:#171717 !important;
+  color:#ffffff !important;
+}
+
+.admin-committee-table th,
+.admin-committee-table td{
+  border-color:#343434 !important;
+  color:#ffffff !important;
+}
+
+.admin-committee-table thead th{
+  background:#1a1a1a !important;
+  color:#ffffff !important;
+}
+
+.admin-committee-table .admin-committee-title-row th{
+  background:#111111 !important;
+  color:var(--gold) !important;
+  border-color:#2f2f2f !important;
+}
+
+.admin-committee-group-row td{
+  background:#2a2411 !important;
+  color:var(--gold) !important;
+  border-color:#4a3d18 !important;
+}
+
+.admin-committee-table tbody tr:not(.admin-committee-group-row){
+  background:#171717 !important;
+}
+
+.admin-committee-table tbody tr:not(.admin-committee-group-row):nth-child(even){
+  background:#1d1d1d !important;
+}
+
+.admin-committee-table tbody tr:not(.admin-committee-group-row):hover{
+  background:#262626 !important;
+}
+
+.admin-committee-table .empty-row{
+  background:#171717 !important;
+  color:#bdbdbd !important;
+}
+
+.admin-committee-table .col-bil,
+.admin-committee-table .col-nama,
+.admin-committee-table .col-unit,
+.admin-committee-table .col-tugas,
+.admin-committee-table .col-telefon{
+  color:#ffffff !important;
+}
+
+.admin-committee-task-text{
+  color:#ffffff !important;
+}
+
+
+/* ================================================================
+   FIX JAWATANKUASA — LEBAR PENUH + SAIZ KOLUM
+   BIL kecil, PANGKAT / NO / NAMA lebih panjang
+================================================================ */
+
+.admin-chart-grid > .admin-committee-card,
+.admin-chart-grid > [data-chart-section="JAWATANKUASA"],
+.admin-chart-card[data-chart-section="JAWATANKUASA"]{
+  grid-column:1 / -1 !important;
+  grid-row:auto !important;
+  width:100% !important;
+  max-width:none !important;
+  min-width:0 !important;
+  justify-self:stretch !important;
+  align-self:stretch !important;
+}
+
+.admin-chart-card[data-chart-section="JAWATANKUASA"] > *,
+.admin-committee-card > *{
+  width:100% !important;
+  max-width:none !important;
+}
+
+.admin-chart-card[data-chart-section="JAWATANKUASA"] .admin-committee-table-wrap,
+.admin-committee-card .admin-committee-table-wrap{
+  width:100% !important;
+  max-width:100% !important;
+  overflow-x:auto !important;
+}
+
+.admin-chart-card[data-chart-section="JAWATANKUASA"] .admin-committee-table,
+.admin-committee-card .admin-committee-table{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  table-layout:fixed !important;
+}
+
+.admin-committee-table th:nth-child(1),
+.admin-committee-table td:nth-child(1),
+.admin-committee-table .col-bil{
+  width:5% !important;
+  min-width:46px !important;
+  max-width:60px !important;
+  padding-left:6px !important;
+  padding-right:6px !important;
+  text-align:center !important;
+  white-space:nowrap !important;
+}
+
+.admin-committee-table th:nth-child(2),
+.admin-committee-table td:nth-child(2),
+.admin-committee-table .col-nama{
+  width:40% !important;
+  text-align:left !important;
+}
+
+.admin-committee-table th:nth-child(3),
+.admin-committee-table td:nth-child(3),
+.admin-committee-table .col-unit{
+  width:20% !important;
+}
+
+.admin-committee-table th:nth-child(4),
+.admin-committee-table td:nth-child(4),
+.admin-committee-table .col-tugas{
+  width:22% !important;
+}
+
+.admin-committee-table th:nth-child(5),
+.admin-committee-table td:nth-child(5),
+.admin-committee-table .col-telefon{
+  width:13% !important;
+  white-space:nowrap !important;
+}
+
+.admin-committee-table .admin-committee-title-row th,
+.admin-committee-table .admin-committee-group-row td{
+  width:auto !important;
+  max-width:none !important;
+}
+
+@media(max-width:760px){
+  .admin-chart-card[data-chart-section="JAWATANKUASA"] .admin-committee-table,
+  .admin-committee-card .admin-committee-table{
+    min-width:900px !important;
+  }
 }
