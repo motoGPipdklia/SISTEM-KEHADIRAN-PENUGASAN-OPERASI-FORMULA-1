@@ -46,6 +46,7 @@ let cartaInsidenPentadbir = null;
 let lokasiPetaDipilihPentadbir = "";
 let tabPetugasLokasiAktif = "BERTUGAS";
 let zumPetaCartaPentadbir = 1;
+let markerPetaDipaparkanPentadbir = true;
 
 let sedangSeretMarkerPetaPentadbir = false;
 let lokasiMarkerSeretPentadbir = "";
@@ -4089,6 +4090,79 @@ function posisiAutomatikMarker(
 }
 
 
+
+function kemasKiniButangMarkerPetaPentadbir() {
+  const butang =
+    el("btnToggleMarkerPetaPentadbir");
+
+  if (!butang) return;
+
+  if (markerPetaDipaparkanPentadbir) {
+    butang.textContent = "TUTUP MARKER";
+    butang.setAttribute("aria-pressed", "true");
+    butang.classList.remove("marker-hidden");
+  } else {
+    butang.textContent = "PAPAR MARKER";
+    butang.setAttribute("aria-pressed", "false");
+    butang.classList.add("marker-hidden");
+  }
+}
+
+
+function setPaparanMarkerPetaPentadbir(papar) {
+  markerPetaDipaparkanPentadbir =
+    Boolean(papar);
+
+  const lapisan =
+    el("lapisanMarkerPetaPentadbir");
+
+  if (lapisan) {
+    lapisan.hidden =
+      !markerPetaDipaparkanPentadbir;
+
+    lapisan.style.display =
+      markerPetaDipaparkanPentadbir
+        ? ""
+        : "none";
+  }
+
+  /*
+    Apabila marker ditutup, panel maklumat lokasi juga disembunyikan
+    supaya paparan benar-benar hanya gambar peta.
+  */
+  const panel =
+    el("panelLokasiPetaPentadbir");
+
+  if (panel) {
+    panel.classList.toggle(
+      "marker-panel-hidden",
+      !markerPetaDipaparkanPentadbir
+    );
+  }
+
+  const layout =
+    document.querySelector(
+      "#kadCartaPeta .admin-operation-map-layout"
+    );
+
+  if (layout) {
+    layout.classList.toggle(
+      "markers-off",
+      !markerPetaDipaparkanPentadbir
+    );
+  }
+
+  kemasKiniButangMarkerPetaPentadbir();
+}
+
+
+function toggleMarkerPetaPentadbir() {
+  setPaparanMarkerPetaPentadbir(
+    !markerPetaDipaparkanPentadbir
+  );
+}
+
+
 function muatPetaCartaPentadbir() {
   const tetapan =
     tetapanPetaCartaPentadbir();
@@ -4115,6 +4189,9 @@ function muatPetaCartaPentadbir() {
   paparMarkerPetaPentadbir();
   paparMarkerUrusPetaPentadbir();
   pasangZoomPetaPentadbir();
+  setPaparanMarkerPetaPentadbir(
+    markerPetaDipaparkanPentadbir
+  );
 }
 
 
