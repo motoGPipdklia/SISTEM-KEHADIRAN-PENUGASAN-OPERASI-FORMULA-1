@@ -1703,3 +1703,94 @@ tbody tr:hover{
     overflow:visible;
   }
 }
+
+
+/* ================================================================
+   URUS MARKER — KLIK + DRAG
+================================================================ */
+
+.admin-marker-help{
+  display:grid;
+  gap:5px;
+  margin-top:14px;
+  padding:13px 15px;
+  border:1px solid #4b3d12;
+  border-radius:10px;
+  background:#211c0d;
+  color:#d8d0b3;
+}
+
+.admin-marker-help strong{
+  color:var(--gold);
+  margin-bottom:2px;
+}
+
+.admin-marker-help span{
+  font-size:12px;
+}
+
+.admin-marker-selected{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:12px;
+  padding:11px 14px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:#121212;
+}
+
+.admin-marker-selected span{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:800;
+}
+
+.admin-marker-selected strong{
+  color:var(--gold);
+  text-align:right;
+}
+
+.admin-map-marker-manage{
+  min-width:64px;
+  min-height:44px;
+  touch-action:none;
+  user-select:none;
+  cursor:grab;
+  pointer-events:auto;
+}
+
+.admin-map-marker-manage:active{
+  cursor:grabbing;
+  transform:translate(-50%,-50%) scale(1.08);
+}
+
+body.marker-dragging,
+body.marker-dragging *{
+  cursor:grabbing !important;
+  user-select:none !important;
+}
+
+#kanvasUrusPetaPentadbir{
+  touch-action:none;
+}
+
+#lapisanMarkerUrusPetaPentadbir{
+  pointer-events:none;
+}
+
+#lapisanMarkerUrusPetaPentadbir .admin-map-marker{
+  pointer-events:auto;
+}
+
+@media(max-width:700px){
+  .admin-marker-selected{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .admin-marker-selected strong{
+    text-align:left;
+  }
+}
