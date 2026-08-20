@@ -864,6 +864,13 @@ async function muatData(kemasKiniPenapis = false) {
         pangkat: pengguna.pangkat || "-",
         nama: pengguna.nama || "-",
         telefon: pengguna.telefon || "-",
+        bahagian:
+          pengguna.bahagian ||
+          pengguna.balai ||
+          pengguna.cawangan ||
+          pengguna.unit ||
+          pengguna.bahagian_unit ||
+          "-",
         deviceId: ikatanDevice?.device_id || "",
         deviceDiikatPada: ikatanDevice?.diikat_pada || null,
         deviceKaliTerakhir: ikatanDevice?.kali_terakhir || null,
@@ -6013,42 +6020,181 @@ function paparCartaVvipVipPentadbir() {
 }
 
 
+function dataJawatankuasaPentadbir() {
+  return [...dataDashboard]
+    .filter(item =>
+      atas(item.statusKehadiran) !== "DIGANTI"
+    )
+    .sort((a, b) => {
+      const tugasA = atas(a.jenisTugas);
+      const tugasB = atas(b.jenisTugas);
+
+      if (tugasA !== tugasB) {
+        return tugasA.localeCompare(
+          tugasB,
+          "ms"
+        );
+      }
+
+      const pangkatA = atas(a.pangkat);
+      const pangkatB = atas(b.pangkat);
+
+      if (pangkatA !== pangkatB) {
+        return pangkatA.localeCompare(
+          pangkatB,
+          "ms"
+        );
+      }
+
+      return atas(a.nama).localeCompare(
+        atas(b.nama),
+        "ms"
+      );
+    });
+}
+
+
+function teksPangkatNoNamaJawatankuasaPentadbir(item) {
+  const bahagian = [];
+
+  if (
+    item.pangkat &&
+    item.pangkat !== "-"
+  ) {
+    bahagian.push(
+      teks(item.pangkat)
+    );
+  }
+
+  if (
+    item.noBadan &&
+    item.noBadan !== "-"
+  ) {
+    bahagian.push(
+      teks(item.noBadan)
+    );
+  }
+
+  if (
+    item.nama &&
+    item.nama !== "-"
+  ) {
+    bahagian.push(
+      teks(item.nama)
+    );
+  }
+
+  return bahagian.join(" ") || "-";
+}
+
+
 function paparCartaJawatankuasaPentadbir() {
-  const kanvas =
-    el("canvasCartaJawatankuasa");
+  const tbody =
+    el("tbodyJawatankuasaPentadbir");
 
-  if (!kanvas) return;
+  if (!tbody) return;
 
-  try {
-    pastikanChartJsPentadbir();
-  } catch (_) {
+  /*
+    Carta lama tidak lagi digunakan untuk Jawatankuasa.
+    Jika instance lama masih wujud, musnahkan.
+  */
+  if (cartaJawatankuasaPentadbir) {
+    kemusnahkanCartaPentadbir(
+      cartaJawatankuasaPentadbir
+    );
+
+    cartaJawatankuasaPentadbir = null;
+  }
+
+  const senarai =
+    dataJawatankuasaPentadbir();
+
+  const tarikh =
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    "";
+
+  if (el("tajukJawatankuasaPentadbir")) {
+    el("tajukJawatankuasaPentadbir").textContent =
+      tarikh
+        ? `JAWATANKUASA OPERASI — ${escapeHtml(formatTarikhMalaysia(tarikh))}`
+        : "JAWATANKUASA OPERASI";
+  }
+
+  if (!senarai.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty-row">
+          Tiada rekod jawatankuasa untuk tarikh ini.
+        </td>
+      </tr>
+    `;
     return;
   }
 
   /*
-    Belum ada table/borang Jawatankuasa dalam fail semasa.
-    Paparkan status kosong tanpa mereka-reka data.
+    Gaya seperti jadual contoh:
+    - baris petugas biasa
+    - apabila jenis tugas berubah, masukkan baris pemisah hitam
+      sebagai tajuk kumpulan/jawatankuasa.
   */
-  kemusnahkanCartaPentadbir(
-    cartaJawatankuasaPentadbir
-  );
+  let tugasSemasa = "";
 
-  cartaJawatankuasaPentadbir =
-    new Chart(kanvas, {
-      type: "bar",
-      data: {
-        labels: ["Belum Ada Data"],
-        datasets: [
-          {
-            label: "Jawatankuasa",
-            data: [0]
-          }
-        ]
-      },
-      options: pilihanCartaPentadbir(
-        "Kekuatan Jawatankuasa"
-      )
-    });
+  const baris = [];
+
+  senarai.forEach((item, index) => {
+    const tugas =
+      atas(item.jenisTugas) || "LAIN-LAIN";
+
+    if (tugas !== tugasSemasa) {
+      tugasSemasa = tugas;
+
+      baris.push(`
+        <tr class="admin-committee-group-row">
+          <td colspan="5">
+            ${escapeHtml(tugas)}
+          </td>
+        </tr>
+      `);
+    }
+
+    baris.push(`
+      <tr>
+        <td class="col-bil">
+          ${index + 1}
+        </td>
+
+        <td class="col-nama">
+          ${escapeHtml(
+            teksPangkatNoNamaJawatankuasaPentadbir(
+              item
+            )
+          )}
+        </td>
+
+        <td class="col-unit">
+          ${escapeHtml(
+            item.bahagian || "-"
+          )}
+        </td>
+
+        <td class="col-tugas">
+          ${escapeHtml(
+            item.jenisTugas || "-"
+          )}
+        </td>
+
+        <td class="col-telefon">
+          ${escapeHtml(
+            item.telefon || "-"
+          )}
+        </td>
+      </tr>
+    `);
+  });
+
+  tbody.innerHTML =
+    baris.join("");
 }
 
 
