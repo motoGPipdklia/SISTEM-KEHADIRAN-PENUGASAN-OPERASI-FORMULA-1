@@ -2277,3 +2277,27 @@ body.marker-dragging *{
     height:290px;
   }
 }
+
+
+/* ================================================================
+   CARTA INSIDEN — KLIK BAR
+================================================================ */
+
+.admin-incident-chart-panel{
+  position:relative;
+}
+
+#canvasCartaInsiden{
+  cursor:pointer !important;
+}
+
+.admin-incident-detail-panel{
+  transition:border-color .18s ease, box-shadow .18s ease;
+}
+
+.admin-incident-detail-panel:has(
+  .admin-incident-detail-item
+){
+  border-color:#4a4122;
+  box-shadow:0 0 0 1px rgba(212,175,55,.08);
+}
