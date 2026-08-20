@@ -3843,6 +3843,11 @@ function paparSenaraiKehadiranPentadbir(kategori) {
               </span>
 
               <span>
+                No. Telefon:
+                <b>${escapeHtml(item.telefon || "-")}</b>
+              </span>
+
+              <span>
                 Call Sign:
                 <b>${escapeHtml(item.callSign || "-")}</b>
               </span>
@@ -4069,7 +4074,11 @@ function paparCartaKehadiranPentadbir() {
             position: "top",
 
             labels: {
-              color: "#eeeeee",
+              color: "#ffffff",
+              font: {
+                size: 12,
+                weight: "700"
+              },
 
               generateLabels(chart) {
                 const data =
@@ -4105,6 +4114,7 @@ function paparCartaKehadiranPentadbir() {
                         style.borderColor,
                       lineWidth:
                         style.borderWidth,
+                      fontColor: "#ffffff",
                       hidden:
                         !chart.getDataVisibility(index),
                       index
