@@ -852,7 +852,7 @@
           </div>
         </section>
 
-        <section class="admin-chart-card admin-chronology-card" data-chart-section="KRONOLOGI">
+        <section class="admin-chart-card admin-chronology-card admin-committee-card" data-chart-section="KRONOLOGI">
           <div class="section-heading">
             <div>
               <h3>Kronologi Operasi</h3>
@@ -860,8 +860,30 @@
             </div>
             <button class="gold compact-button" type="button" onclick="bukaTambahKronologiPentadbir()">TAMBAH KRONOLOGI</button>
           </div>
-          <div id="senaraiKronologiPentadbir" class="admin-chronology-list">
-            <div class="empty-row">Belum ada kronologi operasi.</div>
+
+          <div class="admin-committee-table-wrap">
+            <table class="admin-committee-table admin-chronology-table">
+              <thead>
+                <tr class="admin-committee-title-row">
+                  <th colspan="4" id="tajukJadualKronologiPentadbir">
+                    KRONOLOGI OPERASI
+                  </th>
+                </tr>
+                <tr>
+                  <th style="width:18%;text-align:center;">TARIKH / MASA</th>
+                  <th style="width:24%;text-align:center;">TAJUK</th>
+                  <th style="width:18%;text-align:center;">LOKASI</th>
+                  <th style="width:40%;text-align:center;">CATATAN</th>
+                </tr>
+              </thead>
+              <tbody id="senaraiKronologiPentadbir">
+                <tr>
+                  <td colspan="4" class="empty-row">
+                    Belum ada kronologi operasi.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
       </section>
@@ -1763,7 +1785,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-vvip-crud-001"></script>
+<script src="js/admin.js?v=20260820-kronologi-table-001"></script>
 
 </body>
 </html>
