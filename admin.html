@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-kehadiran-putih-telefon-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-insiden-interaktif-001">
 </head>
 
 <body>
@@ -557,10 +557,57 @@
             </div>
           </section>
 
-          <section class="admin-chart-card" data-chart-section="INSIDEN">
+          <section
+            class="admin-chart-card admin-incident-chart-card"
+            data-chart-section="INSIDEN"
+          >
             <h3>Insiden Operasi</h3>
-            <p class="muted">Tangkapan, rampasan, kemalangan dan ancaman.</p>
-            <div class="admin-chart-canvas-wrap"><canvas id="canvasCartaInsiden"></canvas></div>
+            <p class="muted">
+              Klik Tangkapan, Rampasan, Kemalangan atau Ancaman untuk melihat butiran di sebelah kanan.
+            </p>
+
+            <div class="admin-incident-layout">
+
+              <!-- CARTA DI KIRI -->
+              <div class="admin-incident-chart-panel">
+                <div class="admin-chart-canvas-wrap admin-incident-canvas-wrap">
+                  <canvas id="canvasCartaInsiden"></canvas>
+                </div>
+
+                <div class="admin-incident-hint">
+                  Klik bar atau label kategori insiden.
+                </div>
+              </div>
+
+              <!-- BUTIRAN DI KANAN -->
+              <aside class="admin-incident-detail-panel">
+                <div class="admin-incident-detail-heading">
+                  <div>
+                    <span>KATEGORI DIPILIH</span>
+                    <strong id="tajukButiranInsidenPentadbir">
+                      TANGKAPAN
+                    </strong>
+                  </div>
+
+                  <div
+                    class="admin-incident-detail-count"
+                    id="jumlahButiranInsidenPentadbir"
+                  >
+                    0
+                  </div>
+                </div>
+
+                <div
+                  class="admin-incident-detail-list"
+                  id="senaraiButiranInsidenPentadbir"
+                >
+                  <div class="empty-row">
+                    Klik carta untuk memilih kategori insiden.
+                  </div>
+                </div>
+              </aside>
+
+            </div>
           </section>
         </div>
 
@@ -1310,7 +1357,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260820-kehadiran-putih-telefon-001"></script>
+<script src="js/admin.js?v=20260820-insiden-interaktif-001"></script>
 
 </body>
 </html>
