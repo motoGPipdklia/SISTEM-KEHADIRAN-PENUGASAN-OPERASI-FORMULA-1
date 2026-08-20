@@ -44,6 +44,8 @@ let cartaJawatankuasaPentadbir = null;
 let dataJawatankuasaOperasiPentadbir = [];
 let dataPilihanPetugasJawatankuasaPentadbir = [];
 let rekodJawatankuasaSedangEditPentadbir = null;
+let dataVvipVipOperasiPentadbir = [];
+let rekodVvipVipSedangEditPentadbir = null;
 let cartaKehadiranPentadbir = null;
 let statusKehadiranCartaDipilihPentadbir = "HADIR";
 let cartaInsidenPentadbir = null;
@@ -3451,10 +3453,16 @@ async function muatDataCartaPentadbir() {
           tarikhMalaysiaDaripadaMasa(item.tarikh_masa) === tarikh
         );
 
-    await muatJawatankuasaOperasiPentadbir(
-      tarikh,
-      false
-    );
+    await Promise.all([
+      muatJawatankuasaOperasiPentadbir(
+        tarikh,
+        false
+      ),
+      muatVvipVipOperasiPentadbir(
+        tarikh,
+        false
+      )
+    ]);
 
     paparRingkasanCartaPentadbir();
     paparCartaPengunjungPentadbir();
@@ -3562,6 +3570,9 @@ function pecahanKenderaanSemasaCarta() {
 function kumpulanVvipVipCarta() {
   const hasil = [];
 
+  /*
+    A. Rekod daripada laporan petugas
+  */
   dataCartaLaporanPentadbir.forEach(item => {
     const data = dataLaporanCarta(item);
 
@@ -3580,22 +3591,55 @@ function kumpulanVvipVipCarta() {
       .map(item => teks(item))
       .filter(Boolean)
       .forEach(teksItem => {
-        if (
-          !hasil.some(
-            sediaAda =>
-              atas(sediaAda.nama) === atas(teksItem)
-          )
-        ) {
-          hasil.push({
-            nama: teksItem,
-            masa: item.tarikh_masa || null,
-            sumber: jenisTugasCarta(item) || "LAPORAN PETUGAS"
-          });
-        }
+        hasil.push({
+          id: `LAPORAN-${item.id || Math.random()}`,
+          jenisRekod: "LAPORAN",
+          kategori: "VVIP / VIP",
+          nama: teksItem,
+          jawatan: "",
+          agensi: "",
+          masaTiba: item.tarikh_masa || null,
+          masaBeredar: null,
+          lokasi:
+            data.lokasi ||
+            item.lokasi ||
+            item.tempat_tugas ||
+            "",
+          tujuan: "",
+          catatan: "",
+          sumber:
+            jenisTugasCarta(item) ||
+            "LAPORAN PETUGAS"
+        });
       });
   });
 
-  return hasil;
+  /*
+    B. Rekod manual daripada Urusetia / Pentadbir
+  */
+  dataVvipVipOperasiPentadbir.forEach(item => {
+    hasil.push({
+      id: item.id,
+      jenisRekod: "MANUAL",
+      kategori: atas(item.kategori) || "VIP",
+      nama: item.nama || "-",
+      jawatan: item.jawatan || "",
+      agensi: item.agensi || "",
+      masaTiba: item.masa_tiba || null,
+      masaBeredar: item.masa_beredar || null,
+      lokasi: item.lokasi || "",
+      tujuan: item.tujuan || "",
+      catatan: item.catatan || "",
+      sumber: "URUSETIA / PENTADBIR"
+    });
+  });
+
+  return hasil.sort((a, b) => {
+    const masaA = teks(a.masaTiba);
+    const masaB = teks(b.masaTiba);
+
+    return masaA.localeCompare(masaB, "ms");
+  });
 }
 
 
@@ -6037,6 +6081,452 @@ function paparCartaInsidenPentadbir() {
 }
 
 
+/* ================================================================
+   VVIP / VIP — PAPARAN + CRUD SUPABASE
+================================================================ */
+
+function ralatJadualVvipVipBelumWujud(error) {
+  return (
+    error?.code === "42P01" ||
+    /vvip_vip_operasi|relation.*does not exist|could not find.*table/i.test(
+      error?.message || ""
+    )
+  );
+}
+
+
+async function muatVvipVipOperasiPentadbir(
+  tarikh,
+  paparStatus = true
+) {
+  const tarikhDipilih =
+    tarikh ||
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    hariIniMalaysia();
+
+  try {
+    const { data, error } =
+      await denganHadMasa(
+        db.from("vvip_vip_operasi")
+          .select("*")
+          .eq("tarikh", tarikhDipilih)
+          .order("masa_tiba", { ascending: true })
+          .order("nama", { ascending: true })
+      );
+
+    if (error) throw error;
+
+    dataVvipVipOperasiPentadbir =
+      data || [];
+
+    paparCartaVvipVipPentadbir();
+    paparRingkasanCartaPentadbir();
+
+    if (paparStatus) {
+      paparMesej(
+        "statusVvipVipPentadbir",
+        `${dataVvipVipOperasiPentadbir.length} rekod tambahan VVIP / VIP dimuatkan.`,
+        "success"
+      );
+    }
+
+    return true;
+
+  } catch (error) {
+    console.error(
+      "Gagal memuat VVIP/VIP:",
+      error
+    );
+
+    dataVvipVipOperasiPentadbir = [];
+    paparCartaVvipVipPentadbir();
+
+    const mesej =
+      ralatJadualVvipVipBelumWujud(error)
+        ? "Jadual vvip_vip_operasi belum diwujudkan. Jalankan SQL yang disediakan dalam Supabase SQL Editor."
+        : `Ralat VVIP / VIP: ${error.message || "Ralat tidak diketahui."}`;
+
+    paparMesej(
+      "statusVvipVipPentadbir",
+      escapeHtml(mesej),
+      "error"
+    );
+
+    return false;
+  }
+}
+
+
+async function muatSemulaVvipVipPentadbir() {
+  const tarikh =
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    hariIniMalaysia();
+
+  await muatVvipVipOperasiPentadbir(
+    tarikh,
+    true
+  );
+}
+
+
+function kosongkanBorangVvipVipPentadbir() {
+  rekodVvipVipSedangEditPentadbir = null;
+
+  const nilaiKosong = [
+    "idVvipVipPentadbir",
+    "namaVvipVipPentadbir",
+    "jawatanVvipVipPentadbir",
+    "agensiVvipVipPentadbir",
+    "masaTibaVvipVipPentadbir",
+    "masaBeredarVvipVipPentadbir",
+    "lokasiVvipVipPentadbir",
+    "tujuanVvipVipPentadbir",
+    "catatanVvipVipPentadbir"
+  ];
+
+  nilaiKosong.forEach(id => {
+    if (el(id)) el(id).value = "";
+  });
+
+  if (el("kategoriVvipVipPentadbir")) {
+    el("kategoriVvipVipPentadbir").value = "VIP";
+  }
+
+  const status =
+    el("statusModalVvipVipPentadbir");
+
+  if (status) {
+    status.className = "status-box";
+    status.innerHTML = "";
+  }
+}
+
+
+function bukaTambahVvipVipPentadbir() {
+  kosongkanBorangVvipVipPentadbir();
+
+  const tarikh =
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    hariIniMalaysia();
+
+  if (el("tarikhVvipVipPentadbir")) {
+    el("tarikhVvipVipPentadbir").value =
+      tarikh;
+  }
+
+  if (el("tajukModalVvipVipPentadbir")) {
+    el("tajukModalVvipVipPentadbir").textContent =
+      "Tambah VVIP / VIP";
+  }
+
+  const modal =
+    el("modalVvipVipPentadbir");
+
+  if (modal) {
+    modal.hidden = false;
+    modal.classList.add("open");
+  }
+}
+
+
+function bukaEditVvipVipPentadbir(id) {
+  const rekod =
+    dataVvipVipOperasiPentadbir.find(
+      item =>
+        teks(item.id) === teks(id)
+    );
+
+  if (!rekod) {
+    alert("Rekod VVIP / VIP tidak dijumpai.");
+    return;
+  }
+
+  rekodVvipVipSedangEditPentadbir =
+    rekod;
+
+  if (el("idVvipVipPentadbir")) {
+    el("idVvipVipPentadbir").value =
+      rekod.id || "";
+  }
+
+  if (el("tarikhVvipVipPentadbir")) {
+    el("tarikhVvipVipPentadbir").value =
+      rekod.tarikh || "";
+  }
+
+  if (el("kategoriVvipVipPentadbir")) {
+    el("kategoriVvipVipPentadbir").value =
+      atas(rekod.kategori) === "VVIP"
+        ? "VVIP"
+        : "VIP";
+  }
+
+  const map = {
+    namaVvipVipPentadbir: rekod.nama,
+    jawatanVvipVipPentadbir: rekod.jawatan,
+    agensiVvipVipPentadbir: rekod.agensi,
+    masaTibaVvipVipPentadbir: rekod.masa_tiba,
+    masaBeredarVvipVipPentadbir: rekod.masa_beredar,
+    lokasiVvipVipPentadbir: rekod.lokasi,
+    tujuanVvipVipPentadbir: rekod.tujuan,
+    catatanVvipVipPentadbir: rekod.catatan
+  };
+
+  Object.entries(map).forEach(([idElemen, nilai]) => {
+    if (el(idElemen)) {
+      el(idElemen).value =
+        teks(nilai);
+    }
+  });
+
+  if (el("tajukModalVvipVipPentadbir")) {
+    el("tajukModalVvipVipPentadbir").textContent =
+      "Edit VVIP / VIP";
+  }
+
+  const modal =
+    el("modalVvipVipPentadbir");
+
+  if (modal) {
+    modal.hidden = false;
+    modal.classList.add("open");
+  }
+}
+
+
+function tutupModalVvipVipPentadbir() {
+  const modal =
+    el("modalVvipVipPentadbir");
+
+  if (modal) {
+    modal.classList.remove("open");
+    modal.hidden = true;
+  }
+
+  kosongkanBorangVvipVipPentadbir();
+}
+
+
+async function simpanVvipVipPentadbir() {
+  const btn =
+    el("btnSimpanVvipVipPentadbir");
+
+  const id =
+    teks(
+      el("idVvipVipPentadbir")?.value
+    );
+
+  const tarikh =
+    teks(
+      el("tarikhVvipVipPentadbir")?.value
+    );
+
+  const kategori =
+    atas(
+      el("kategoriVvipVipPentadbir")?.value
+    );
+
+  const nama =
+    atas(
+      el("namaVvipVipPentadbir")?.value
+    );
+
+  if (!tarikh || !kategori || !nama) {
+    paparMesej(
+      "statusModalVvipVipPentadbir",
+      "Tarikh, Kategori dan Nama wajib diisi.",
+      "error"
+    );
+    return;
+  }
+
+  const payload = {
+    tarikh,
+    kategori,
+    nama,
+    jawatan:
+      atas(
+        el("jawatanVvipVipPentadbir")?.value
+      ) || null,
+    agensi:
+      atas(
+        el("agensiVvipVipPentadbir")?.value
+      ) || null,
+    masa_tiba:
+      teks(
+        el("masaTibaVvipVipPentadbir")?.value
+      ) || null,
+    masa_beredar:
+      teks(
+        el("masaBeredarVvipVipPentadbir")?.value
+      ) || null,
+    lokasi:
+      atas(
+        el("lokasiVvipVipPentadbir")?.value
+      ) || null,
+    tujuan:
+      atas(
+        el("tujuanVvipVipPentadbir")?.value
+      ) || null,
+    catatan:
+      atas(
+        el("catatanVvipVipPentadbir")?.value
+      ) || null,
+    dikemaskini_oleh:
+      adminLogin?.id || null
+  };
+
+  btn.disabled = true;
+  btn.textContent =
+    id
+      ? "SEDANG MENGEMAS KINI..."
+      : "SEDANG MENYIMPAN...";
+
+  try {
+    let hasil;
+
+    if (id) {
+      hasil =
+        await denganHadMasa(
+          db.from("vvip_vip_operasi")
+            .update(payload)
+            .eq("id", id)
+            .select()
+            .single()
+        );
+    } else {
+      hasil =
+        await denganHadMasa(
+          db.from("vvip_vip_operasi")
+            .insert({
+              ...payload,
+              dicipta_oleh:
+                adminLogin?.id || null
+            })
+            .select()
+            .single()
+        );
+    }
+
+    if (hasil.error) throw hasil.error;
+
+    if (el("tarikhCartaPentadbir")) {
+      el("tarikhCartaPentadbir").value =
+        tarikh;
+    }
+
+    await muatVvipVipOperasiPentadbir(
+      tarikh,
+      false
+    );
+
+    paparMesej(
+      "statusVvipVipPentadbir",
+      id
+        ? "Rekod VVIP / VIP berjaya dikemas kini."
+        : "Rekod VVIP / VIP berjaya ditambah.",
+      "success"
+    );
+
+    tutupModalVvipVipPentadbir();
+
+  } catch (error) {
+    console.error(
+      "Simpan VVIP/VIP gagal:",
+      error
+    );
+
+    const mesej =
+      ralatJadualVvipVipBelumWujud(error)
+        ? "Jadual vvip_vip_operasi belum diwujudkan. Jalankan SQL yang disediakan dahulu."
+        : error.message;
+
+    paparMesej(
+      "statusModalVvipVipPentadbir",
+      `Gagal menyimpan: ${escapeHtml(mesej || "Ralat tidak diketahui.")}`,
+      "error"
+    );
+
+  } finally {
+    btn.disabled = false;
+    btn.textContent =
+      "SIMPAN VVIP / VIP";
+  }
+}
+
+
+async function padamVvipVipPentadbir(id) {
+  const rekod =
+    dataVvipVipOperasiPentadbir.find(
+      item =>
+        teks(item.id) === teks(id)
+    );
+
+  if (!rekod) return;
+
+  if (
+    !confirm(
+      `Padam ${rekod.kategori || "VIP"} ${rekod.nama || ""}?`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const { error } =
+      await denganHadMasa(
+        db.from("vvip_vip_operasi")
+          .delete()
+          .eq("id", id)
+      );
+
+    if (error) throw error;
+
+    await muatVvipVipOperasiPentadbir(
+      rekod.tarikh,
+      false
+    );
+
+    paparMesej(
+      "statusVvipVipPentadbir",
+      "Rekod VVIP / VIP berjaya dipadam.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Padam VVIP/VIP gagal:",
+      error
+    );
+
+    paparMesej(
+      "statusVvipVipPentadbir",
+      `Gagal memadam rekod: ${escapeHtml(error.message)}`,
+      "error"
+    );
+  }
+}
+
+
+function formatMasaVvipVipPentadbir(nilai) {
+  const masa = teks(nilai);
+  if (!masa) return "-";
+
+  if (/^\d{2}:\d{2}(:\d{2})?$/.test(masa)) {
+    return masa.slice(0, 5);
+  }
+
+  try {
+    return formatMasaLaporanAdmin(masa);
+  } catch (_) {
+    return masa;
+  }
+}
+
+
 function paparCartaVvipVipPentadbir() {
   const ruang =
     el("senaraiCartaVvipVip");
@@ -6053,20 +6543,82 @@ function paparCartaVvipVipPentadbir() {
   }
 
   ruang.innerHTML =
-    senarai.map((item, index) => `
-      <article class="admin-chart-list-item">
-        <span class="admin-chart-list-number">
-          ${index + 1}
-        </span>
-        <div>
-          <strong>${escapeHtml(item.nama)}</strong>
-          <small>
-            ${escapeHtml(item.sumber)}
-            ${item.masa ? ` • ${escapeHtml(formatMasaLaporanAdmin(item.masa))}` : ""}
-          </small>
-        </div>
-      </article>
-    `).join("");
+    senarai.map((item, index) => {
+      const butiran = [
+        item.jawatan
+          ? `<div><span>Jawatan</span><b>${escapeHtml(item.jawatan)}</b></div>`
+          : "",
+        item.agensi
+          ? `<div><span>Agensi / Organisasi</span><b>${escapeHtml(item.agensi)}</b></div>`
+          : "",
+        item.lokasi
+          ? `<div><span>Lokasi</span><b>${escapeHtml(item.lokasi)}</b></div>`
+          : "",
+        item.masaTiba
+          ? `<div><span>Masa Ketibaan</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaTiba))}</b></div>`
+          : "",
+        item.masaBeredar
+          ? `<div><span>Masa Beredar</span><b>${escapeHtml(formatMasaVvipVipPentadbir(item.masaBeredar))}</b></div>`
+          : "",
+        item.tujuan
+          ? `<div><span>Tujuan / Aktiviti</span><b>${escapeHtml(item.tujuan)}</b></div>`
+          : "",
+        item.catatan
+          ? `<div><span>Catatan</span><b>${escapeHtml(item.catatan)}</b></div>`
+          : ""
+      ]
+        .filter(Boolean)
+        .join("");
+
+      const tindakan =
+        item.jenisRekod === "MANUAL"
+          ? `
+            <div class="admin-committee-row-actions">
+              <button
+                class="admin-committee-edit-button"
+                type="button"
+                onclick="bukaEditVvipVipPentadbir('${escapeHtml(item.id)}')"
+              >
+                EDIT
+              </button>
+              <button
+                class="admin-committee-delete-button"
+                type="button"
+                onclick="padamVvipVipPentadbir('${escapeHtml(item.id)}')"
+              >
+                PADAM
+              </button>
+            </div>
+          `
+          : "";
+
+      return `
+        <article class="admin-chart-list-item">
+          <span class="admin-chart-list-number">
+            ${index + 1}
+          </span>
+
+          <div style="width:100%">
+            <strong>
+              ${escapeHtml(item.kategori || "VVIP / VIP")}
+              — ${escapeHtml(item.nama || "-")}
+            </strong>
+
+            <small>
+              SUMBER: ${escapeHtml(item.sumber || "-")}
+            </small>
+
+            ${
+              butiran
+                ? `<div class="admin-chart-detail-grid" style="margin-top:10px">${butiran}</div>`
+                : ""
+            }
+
+            ${tindakan}
+          </div>
+        </article>
+      `;
+    }).join("");
 }
 
 
