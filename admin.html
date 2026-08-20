@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260820-carta-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260820-marker-drag-001">
 </head>
 
 <body>
@@ -527,7 +527,7 @@
               </p>
             </div>
             <div class="section-heading-actions">
-              <button class="gray compact-button" type="button" onclick="bukaUrusPetaPentadbir()">URUS PETA</button>
+              <button class="gray compact-button" type="button" onclick="bukaUrusPetaPentadbir()">URUS MARKER</button>
               <button class="gold compact-button" type="button" onclick="resetZumPetaCartaPentadbir()">RESET ZOOM</button>
             </div>
           </div>
@@ -1110,8 +1110,8 @@
     <div class="modal-card admin-map-manage-modal">
       <div class="section-heading">
         <div>
-          <h2>Urus Peta Lokasi Penugasan</h2>
-          <p class="muted">Tukar gambar peta dan tetapkan kedudukan marker setiap tempat tugas.</p>
+          <h2>Urus Marker Lokasi Penugasan</h2>
+          <p class="muted">Pilih tempat tugas, klik pada peta untuk meletakkan marker, kemudian seret marker jika mahu melaras kedudukan.</p>
         </div>
         <button class="gray" type="button" onclick="tutupUrusPetaPentadbir()">TUTUP</button>
       </div>
@@ -1140,6 +1140,19 @@
         </div>
       </div>
 
+      <div class="admin-marker-help">
+        <strong>CARA LETAK MARKER</strong>
+        <span>1. Pilih Tempat Tugas.</span>
+        <span>2. Klik lokasi sebenar pada gambar peta.</span>
+        <span>3. Seret marker untuk melaras kedudukan.</span>
+        <span>4. Tekan SIMPAN MARKER.</span>
+      </div>
+
+      <div class="admin-marker-selected">
+        <span>LOKASI DIPILIH</span>
+        <strong id="lokasiMarkerDipilihPentadbir">BELUM DIPILIH</strong>
+      </div>
+
       <div class="admin-map-manage-preview">
         <div class="admin-map-manage-canvas" id="kanvasUrusPetaPentadbir">
           <img id="imejUrusPetaPentadbir" src="images/peta.png" alt="Pratonton peta operasi" draggable="false">
@@ -1152,7 +1165,7 @@
       <div class="status-box" id="statusUrusPetaPentadbir" role="status" aria-live="polite"></div>
 
       <div class="modal-actions">
-        <button class="green-button" id="btnSimpanPetaPentadbir" type="button" onclick="simpanTetapanPetaPentadbir()">SIMPAN PETA & MARKER</button>
+        <button class="green-button" id="btnSimpanPetaPentadbir" type="button" onclick="simpanTetapanPetaPentadbir()">SIMPAN MARKER</button>
         <button class="gray" type="button" onclick="tutupUrusPetaPentadbir()">BATAL</button>
       </div>
     </div>
@@ -1227,7 +1240,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260819-1102-peranti-khas-tutup"></script>
+<script src="js/admin.js?v=20260820-marker-drag-001"></script>
 
 </body>
 </html>
