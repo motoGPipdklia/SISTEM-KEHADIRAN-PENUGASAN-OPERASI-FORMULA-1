@@ -8729,15 +8729,23 @@ function simpanKronologiPentadbir() {
 
 
 function paparKronologiPentadbir() {
-  const ruang =
+  const tbody =
     el("senaraiKronologiPentadbir");
 
-  if (!ruang) return;
+  if (!tbody) return;
 
   const tarikh =
     el("tarikhCartaPentadbir")
       ?.value ||
     hariIniMalaysia();
+
+  const tajukJadual =
+    el("tajukJadualKronologiPentadbir");
+
+  if (tajukJadual) {
+    tajukJadual.textContent =
+      `KRONOLOGI OPERASI — ${formatTarikhMalaysia(tarikh)}`;
+  }
 
   const manual =
     dapatkanKronologiTempatanPentadbir()
@@ -8824,40 +8832,39 @@ function paparKronologiPentadbir() {
       );
 
   if (!semua.length) {
-    ruang.innerHTML =
-      '<div class="empty-row">Belum ada kronologi operasi untuk tarikh ini.</div>';
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty-row">
+          Belum ada kronologi operasi untuk tarikh ini.
+        </td>
+      </tr>
+    `;
     return;
   }
 
-  ruang.innerHTML =
+  tbody.innerHTML =
     semua.map(item => `
-      <article class="admin-chronology-item">
-        <time>
+      <tr>
+        <td style="text-align:center;white-space:nowrap;">
           ${escapeHtml(
             formatMasaLaporanAdmin(
               item.masa
             )
           )}
-        </time>
+        </td>
 
-        <div>
-          <strong>
-            ${escapeHtml(item.tajuk || "-")}
-          </strong>
+        <td style="text-align:center;font-weight:800;">
+          ${escapeHtml(item.tajuk || "-")}
+        </td>
 
-          ${
-            item.lokasi
-              ? `<span>${escapeHtml(item.lokasi)}</span>`
-              : ""
-          }
+        <td style="text-align:center;">
+          ${escapeHtml(item.lokasi || "-")}
+        </td>
 
-          ${
-            item.catatan
-              ? `<p>${escapeHtml(item.catatan)}</p>`
-              : ""
-          }
-        </div>
-      </article>
+        <td style="text-align:left;white-space:normal;">
+          ${escapeHtml(item.catatan || "-")}
+        </td>
+      </tr>
     `).join("");
 }
 
