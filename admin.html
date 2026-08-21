@@ -455,11 +455,11 @@
               <option value="SEMUA">SEMUA CARTA</option>
               <option value="JAWATANKUASA">JAWATANKUASA</option>
               <option value="KEHADIRAN">KEHADIRAN PETUGAS</option>
-              <option value="AGENSI_LUAR">BANTUAN LUAR</option>
+              <option value="AGENSI_LUAR">AGENSI LUAR</option>
               <option value="PETA">PETA LOKASI PENUGASAN</option>
               <option value="VVIP_VIP">VVIP / VIP</option>
               <option value="PENGUNJUNG">PENGUNJUNG</option>
-              <option value="KENDERAAN">KENDERAAN PENGUNJUNG</option>
+              <option value="KENDERAAN">KENDERAAN</option>
               <option value="INSIDEN">INSIDEN OPERASI</option>
               <option value="KRONOLOGI">KRONOLOGI</option>
             </select>
@@ -471,7 +471,7 @@
 
         <div class="admin-chart-summary-grid">
           <article class="admin-chart-summary-card"><span>JUMLAH PENGUNJUNG</span><strong id="cartaJumlahPengunjung">0</strong></article>
-          <article class="admin-chart-summary-card"><span>JUMLAH KENDERAAN PENGUNJUNG</span><strong id="cartaJumlahKenderaan">0</strong></article>
+          <article class="admin-chart-summary-card"><span>JUMLAH KENDERAAN</span><strong id="cartaJumlahKenderaan">0</strong></article>
           <article class="admin-chart-summary-card"><span>VVIP / VIP</span><strong id="cartaJumlahVvipVip">0</strong></article>
           <article class="admin-chart-summary-card"><span>SEDANG BERTUGAS</span><strong id="cartaJumlahBertugas">0</strong></article>
           <article class="admin-chart-summary-card"><span>INSIDEN</span><strong id="cartaJumlahInsiden">0</strong></article>
@@ -488,7 +488,7 @@
               <div>
                 <h3>Jawatankuasa</h3>
                 <p class="muted">
-                  Senarai jawatankuasa operasi.
+                  Senarai jawatankuasa operasi bagi tarikh dipilih.
                   Pangkat, No. Badan, Nama dan No. Telefon diambil automatik daripada profil petugas.
                 </p>
               </div>
@@ -507,7 +507,7 @@
                   type="button"
                   onclick="bukaTambahJawatankuasaPentadbir()"
                 >
-                  TAMBAH JAWATANKUASA
+                  + TAMBAH JAWATANKUASA
                 </button>
 
                 <button
@@ -626,7 +626,7 @@
       <h3>Carta Agensi Luar</h3>
       <p class="muted">
         Senarai jabatan / agensi luar, kekuatan anggota, jumlah kenderaan,
-        Pegawai Penyelaras dan nombor telefon.
+        Pegawai Penyelaras dan nombor telefon bagi tarikh dipilih.
       </p>
     </div>
 
@@ -642,9 +642,9 @@
       <button
         class="green-button"
         type="button"
-        onclick="bukaTambahAgensiLuarPentadbir()"
+        onclick="(function(){var m=document.getElementById('modalAgensiLuarPentadbir');if(m){m.hidden=false;m.removeAttribute('hidden');m.classList.add('open');}if(typeof bukaTambahAgensiLuarPentadbir==='function'){try{bukaTambahAgensiLuarPentadbir();}catch(e){console.error('Agensi Luar modal:',e);}}})()"
       >
-        TAMBAH AGENSI LUAR
+        + TAMBAH AGENSI LUAR
       </button>
 
       <button
@@ -672,7 +672,7 @@
       <thead>
         <tr class="admin-committee-title-row">
           <th colspan="6" id="tajukAgensiLuarPentadbir">
-            CARTA BANTUAN LUAR
+            CARTA AGENSI LUAR
           </th>
         </tr>
 
@@ -828,7 +828,7 @@
                   type="button"
                   onclick="bukaTambahVvipVipPentadbir()"
                 >
-                  TAMBAH VVIP / VIP
+                  + TAMBAH VVIP / VIP
                 </button>
 
                 <button
@@ -918,7 +918,7 @@
           >
             <div class="admin-chart-card-heading">
               <div>
-                <h3>Carta Kenderaan Pengunjung</h3>
+                <h3>Carta Kenderaan</h3>
                 <p class="muted">
                   Klik Bas, Motosikal atau Motokar untuk melihat butiran di sebelah kanan.
                 </p>
@@ -1822,7 +1822,7 @@
         <button
           class="gray compact-button"
           type="button"
-          onclick="tutupModalAgensiLuarPentadbir()"
+          onclick="(function(){var m=document.getElementById('modalAgensiLuarPentadbir');if(m){m.classList.remove('open');m.hidden=true;m.setAttribute('hidden','');}if(typeof tutupModalAgensiLuarPentadbir==='function'){try{tutupModalAgensiLuarPentadbir();}catch(e){console.error(e);}}})()"
         >
           TUTUP
         </button>
@@ -1926,7 +1926,7 @@
         <button
           class="gray"
           type="button"
-          onclick="tutupModalAgensiLuarPentadbir()"
+          onclick="(function(){var m=document.getElementById('modalAgensiLuarPentadbir');if(m){m.classList.remove('open');m.hidden=true;m.setAttribute('hidden','');}if(typeof tutupModalAgensiLuarPentadbir==='function'){try{tutupModalAgensiLuarPentadbir();}catch(e){console.error(e);}}})()"
         >
           BATAL
         </button>
@@ -2128,7 +2128,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260821-agensi-modal-fix-001"></script>
+<script src="js/admin.js?v=20260821-agensi-modal-force-002"></script>
 
 </body>
 </html>
