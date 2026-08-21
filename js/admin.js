@@ -7436,8 +7436,14 @@ function resetBorangAgensiLuarPentadbir() {
   });
 
   [
-    "kekuatanAgensiLuarPentadbir",
-    "kenderaanAgensiLuarPentadbir"
+    "pegawaiKekuatanAgensiLuarPentadbir",
+    "anggotaKekuatanAgensiLuarPentadbir",
+    "basAgensiLuarPentadbir",
+    "jenteraAgensiLuarPentadbir",
+    "loriAgensiLuarPentadbir",
+    "vanAgensiLuarPentadbir",
+    "motokarAgensiLuarPentadbir",
+    "motosikalAgensiLuarPentadbir"
   ].forEach(id => {
     if (el(id)) {
       el(id).value = "0";
@@ -7498,7 +7504,7 @@ function bukaTambahAgensiLuarPentadbir() {
       el(
         "tajukModalAgensiLuarPentadbir"
       ).textContent =
-        "Tambah Agensi Luar";
+        "Tambah Bantuan Luar";
     }
 
   } catch (error) {
@@ -7537,23 +7543,34 @@ function bukaEditAgensiLuarPentadbir(id) {
     jabatanAgensiLuarPentadbir:
       item.jabatan_agensi || "",
 
-    kekuatanAgensiLuarPentadbir:
-      item.kekuatan ?? 0,
+    pegawaiKekuatanAgensiLuarPentadbir:
+      item.pegawai ?? 0,
 
-    /*
-      Jika rekod lama belum mempunyai kolum `kenderaan`,
-      jumlah lama akan dijumlahkan untuk paparan sementara.
-    */
-    kenderaanAgensiLuarPentadbir:
-      item.kenderaan ??
-      (
-        nomborAgensiLuarPentadbir(item.bas) +
-        nomborAgensiLuarPentadbir(item.lori) +
-        nomborAgensiLuarPentadbir(item.jentera) +
-        nomborAgensiLuarPentadbir(item.van) +
-        nomborAgensiLuarPentadbir(item.motokar) +
-        nomborAgensiLuarPentadbir(item.motosikal)
+    anggotaKekuatanAgensiLuarPentadbir:
+      item.anggota ??
+      Math.max(
+        0,
+        nomborAgensiLuarPentadbir(item.kekuatan) -
+        nomborAgensiLuarPentadbir(item.pegawai)
       ),
+
+    basAgensiLuarPentadbir:
+      item.bas ?? 0,
+
+    jenteraAgensiLuarPentadbir:
+      item.jentera ?? 0,
+
+    loriAgensiLuarPentadbir:
+      item.lori ?? 0,
+
+    vanAgensiLuarPentadbir:
+      item.van ?? 0,
+
+    motokarAgensiLuarPentadbir:
+      item.motokar ?? 0,
+
+    motosikalAgensiLuarPentadbir:
+      item.motosikal ?? 0,
 
     pegawaiAgensiLuarPentadbir:
       item.pegawai_penyelaras || "",
@@ -7578,7 +7595,7 @@ function bukaEditAgensiLuarPentadbir(id) {
     el(
       "tajukModalAgensiLuarPentadbir"
     ).textContent =
-      "Edit Agensi Luar";
+      "Edit Bantuan Luar";
   }
 
   const status =
@@ -7648,18 +7665,44 @@ async function simpanAgensiLuarPentadbir() {
         )?.value
       ),
 
-    kekuatan:
+    pegawai:
       nomborAgensiLuarPentadbir(
-        el(
-          "kekuatanAgensiLuarPentadbir"
-        )?.value
+        el("pegawaiKekuatanAgensiLuarPentadbir")?.value
       ),
 
-    kenderaan:
+    anggota:
       nomborAgensiLuarPentadbir(
-        el(
-          "kenderaanAgensiLuarPentadbir"
-        )?.value
+        el("anggotaKekuatanAgensiLuarPentadbir")?.value
+      ),
+
+    bas:
+      nomborAgensiLuarPentadbir(
+        el("basAgensiLuarPentadbir")?.value
+      ),
+
+    jentera:
+      nomborAgensiLuarPentadbir(
+        el("jenteraAgensiLuarPentadbir")?.value
+      ),
+
+    lori:
+      nomborAgensiLuarPentadbir(
+        el("loriAgensiLuarPentadbir")?.value
+      ),
+
+    van:
+      nomborAgensiLuarPentadbir(
+        el("vanAgensiLuarPentadbir")?.value
+      ),
+
+    motokar:
+      nomborAgensiLuarPentadbir(
+        el("motokarAgensiLuarPentadbir")?.value
+      ),
+
+    motosikal:
+      nomborAgensiLuarPentadbir(
+        el("motosikalAgensiLuarPentadbir")?.value
       ),
 
     pegawai_penyelaras:
@@ -7676,6 +7719,22 @@ async function simpanAgensiLuarPentadbir() {
         )?.value
       )
   };
+
+  /*
+    Kolum KEKUATAN dan KENDERAAN dalam jadual utama kekal sebagai JUMLAH.
+    Pecahan disimpan dalam kolum masing-masing.
+  */
+  payload.kekuatan =
+    payload.pegawai +
+    payload.anggota;
+
+  payload.kenderaan =
+    payload.bas +
+    payload.jentera +
+    payload.lori +
+    payload.van +
+    payload.motokar +
+    payload.motosikal;
 
   if (!payload.tarikh) {
     paparMesej(
@@ -7794,7 +7853,7 @@ async function simpanAgensiLuarPentadbir() {
     if (btn) {
       btn.disabled = false;
       btn.textContent =
-        "SIMPAN AGENSI LUAR";
+        "SIMPAN BANTUAN LUAR";
     }
   }
 }
@@ -7865,19 +7924,7 @@ function paparCartaAgensiLuarPentadbir() {
     el("tarikhCartaPentadbir")?.value ||
     el("tarikh")?.value ||
     "";
-
-  if (
-    el("tajukAgensiLuarPentadbir")
-  ) {
-    el(
-      "tajukAgensiLuarPentadbir"
-    ).textContent =
-      tarikh
-        ? `CARTA AGENSI LUAR — ${formatTarikhMalaysia(tarikh)}`
-        : "CARTA AGENSI LUAR";
-  }
-
-  if (!senarai.length) {
+if (!senarai.length) {
     tbody.innerHTML = `
       <tr>
         <td
@@ -7894,8 +7941,30 @@ function paparCartaAgensiLuarPentadbir() {
   tbody.innerHTML =
     senarai
       .map((item, index) => {
+        const jumlahKekuatan =
+          (item.pegawai != null || item.anggota != null)
+            ? (
+                nomborAgensiLuarPentadbir(item.pegawai) +
+                nomborAgensiLuarPentadbir(item.anggota)
+              )
+            : nomborAgensiLuarPentadbir(item.kekuatan);
+
         const jumlahKenderaan =
-          item.kenderaan ??
+          (item.bas != null ||
+           item.jentera != null ||
+           item.lori != null ||
+           item.van != null ||
+           item.motokar != null ||
+           item.motosikal != null)
+            ? (
+                nomborAgensiLuarPentadbir(item.bas) +
+                nomborAgensiLuarPentadbir(item.jentera) +
+                nomborAgensiLuarPentadbir(item.lori) +
+                nomborAgensiLuarPentadbir(item.van) +
+                nomborAgensiLuarPentadbir(item.motokar) +
+                nomborAgensiLuarPentadbir(item.motosikal)
+              )
+            : (item.kenderaan ??
           (
             nomborAgensiLuarPentadbir(item.bas) +
             nomborAgensiLuarPentadbir(item.lori) +
@@ -7903,7 +7972,7 @@ function paparCartaAgensiLuarPentadbir() {
             nomborAgensiLuarPentadbir(item.van) +
             nomborAgensiLuarPentadbir(item.motokar) +
             nomborAgensiLuarPentadbir(item.motosikal)
-          );
+              ));
 
         return `
           <tr>
@@ -7938,9 +8007,7 @@ function paparCartaAgensiLuarPentadbir() {
             </td>
 
             <td style="text-align:center;">
-              ${nomborAgensiLuarPentadbir(
-                item.kekuatan
-              )}
+              ${jumlahKekuatan}
             </td>
 
             <td style="text-align:center;">
@@ -8645,15 +8712,7 @@ function paparCartaJawatankuasaPentadbir() {
     el("tarikhCartaPentadbir")?.value ||
     el("tarikh")?.value ||
     "";
-
-  if (el("tajukJawatankuasaPentadbir")) {
-    el("tajukJawatankuasaPentadbir").textContent =
-      tarikh
-        ? `JAWATANKUASA OPERASI — ${formatTarikhMalaysia(tarikh)}`
-        : "JAWATANKUASA OPERASI";
-  }
-
-  if (!senarai.length) {
+if (!senarai.length) {
     tbody.innerHTML = `
       <tr>
         <td colspan="5" class="empty-row">
@@ -10030,16 +10089,7 @@ function paparKronologiPentadbir() {
     el("tarikhCartaPentadbir")
       ?.value ||
     hariIniMalaysia();
-
-  const tajukJadual =
-    el("tajukJadualKronologiPentadbir");
-
-  if (tajukJadual) {
-    tajukJadual.textContent =
-      `KRONOLOGI OPERASI — ${formatTarikhMalaysia(tarikh)}`;
-  }
-
-  const manual =
+const manual =
     dapatkanKronologiTempatanPentadbir()
       .filter(item =>
         teks(item.masa).slice(0, 10) ===
@@ -10211,4 +10261,3 @@ window.simpanAgensiLuarPentadbir =
 
 window.padamAgensiLuarPentadbir =
   padamAgensiLuarPentadbir;
-
