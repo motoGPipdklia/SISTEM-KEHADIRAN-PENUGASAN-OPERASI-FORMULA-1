@@ -462,6 +462,7 @@ let kanvasMarkerSeretPentadbir = null;
 
 
 const KUNCI_TETAPAN_PETA_CARTA_F1 = "skpoF1TetapanPetaCarta";
+const URL_PETA_ADMIN_F1 = "images/petaadmin.png?v=20260821-1334";
 const KUNCI_KRONOLOGI_CARTA_F1 = "skpoF1KronologiCarta";
 
 
@@ -8365,9 +8366,7 @@ function tetapanPetaCartaPentadbir() {
       );
 
     return {
-      imej:
-        data.imej ||
-        "images/petaadmin.png",
+      imej: URL_PETA_ADMIN_F1,
       marker:
         data.marker &&
         typeof data.marker === "object"
@@ -8376,12 +8375,11 @@ function tetapanPetaCartaPentadbir() {
     };
   } catch (_) {
     return {
-      imej: "images/petaadmin.png",
+      imej: URL_PETA_ADMIN_F1,
       marker: {}
     };
   }
 }
-
 
 function simpanTetapanPetaCartaTempatan(
   data
@@ -8528,36 +8526,30 @@ function toggleMarkerPetaPentadbir() {
 
 
 function muatPetaCartaPentadbir() {
-  const tetapan =
-    tetapanPetaCartaPentadbir();
-
   const imej =
     el("imejPetaCartaPentadbir");
 
   if (imej) {
-    imej.src =
-      tetapan.imej ||
-      "images/petaadmin.png";
+    imej.src = URL_PETA_ADMIN_F1;
   }
 
   const imejUrus =
     el("imejUrusPetaPentadbir");
 
   if (imejUrus) {
-    imejUrus.src =
-      tetapan.imej ||
-      "images/petaadmin.png";
+    imejUrus.src = URL_PETA_ADMIN_F1;
+    delete imejUrus.dataset.imejBaharu;
   }
 
   binaPilihanLokasiMarkerPentadbir();
   paparMarkerPetaPentadbir();
   paparMarkerUrusPetaPentadbir();
   pasangZoomPetaPentadbir();
+
   setPaparanMarkerPetaPentadbir(
     markerPetaDipaparkanPentadbir
   );
 }
-
 
 function dataPetugasLokasiPentadbir(
   lokasi
@@ -8963,59 +8955,25 @@ function tutupUrusPetaPentadbir() {
 }
 
 
-function pratontonPetaPentadbir(
-  event
-) {
-  const fail =
-    event?.target?.files?.[0];
-
-  if (!fail) return;
-
-  if (
-    !/^image\/(jpeg|png|webp)$/i.test(
-      fail.type || ""
-    )
-  ) {
-    paparMesej(
-      "statusUrusPetaPentadbir",
-      "Gunakan gambar JPG, PNG atau WEBP.",
-      "error"
-    );
-    return;
+function pratontonPetaPentadbir(event) {
+  if (event?.target) {
+    event.target.value = "";
   }
 
-  /*
-    localStorage mempunyai had saiz.
-    Hadkan fail untuk fungsi tempatan ini.
-  */
-  if (fail.size > 2.5 * 1024 * 1024) {
-    paparMesej(
-      "statusUrusPetaPentadbir",
-      "Gambar terlalu besar. Untuk versi ini gunakan gambar tidak melebihi 2.5 MB.",
-      "error"
-    );
-    return;
+  const imej =
+    el("imejUrusPetaPentadbir");
+
+  if (imej) {
+    imej.src = URL_PETA_ADMIN_F1;
+    delete imej.dataset.imejBaharu;
   }
 
-  const pembaca =
-    new FileReader();
-
-  pembaca.onload = () => {
-    const hasil =
-      String(pembaca.result || "");
-
-    const imej =
-      el("imejUrusPetaPentadbir");
-
-    if (imej) {
-      imej.src = hasil;
-      imej.dataset.imejBaharu = hasil;
-    }
-  };
-
-  pembaca.readAsDataURL(fail);
+  paparMesej(
+    "statusUrusPetaPentadbir",
+    "Peta Admin kini menggunakan images/petaadmin.png dari GitHub. Tukar fail petaadmin.png di GitHub jika mahu menukar gambar.",
+    "warning"
+  );
 }
-
 
 function paparMarkerUrusPetaPentadbir() {
   const lapisan =
@@ -9324,16 +9282,6 @@ function simpanTetapanPetaPentadbir() {
   const tetapan =
     tetapanPetaCartaPentadbir();
 
-  const imej =
-    el("imejUrusPetaPentadbir");
-
-  if (imej?.dataset?.imejBaharu) {
-    tetapan.imej =
-      imej.dataset.imejBaharu;
-
-    delete imej.dataset.imejBaharu;
-  }
-
   const lokasi =
     el(
       "pilihanLokasiMarkerPentadbir"
@@ -9353,13 +9301,14 @@ function simpanTetapanPetaPentadbir() {
   }
 
   try {
-    simpanTetapanPetaCartaTempatan(
-      tetapan
-    );
+    simpanTetapanPetaCartaTempatan({
+      imej: URL_PETA_ADMIN_F1,
+      marker: tetapan.marker || {}
+    });
   } catch (error) {
     paparMesej(
       "statusUrusPetaPentadbir",
-      "Tetapan peta gagal disimpan. Gambar mungkin terlalu besar untuk storan browser.",
+      "Tetapan marker gagal disimpan.",
       "error"
     );
     return;
@@ -9369,11 +9318,10 @@ function simpanTetapanPetaPentadbir() {
 
   paparMesej(
     "statusUrusPetaPentadbir",
-    "Marker dan tetapan peta berjaya disimpan pada peranti Pentadbir ini.",
+    "Marker berjaya disimpan. Peta menggunakan petaadmin.png dari GitHub.",
     "success"
   );
 }
-
 
 function pasangZoomPetaPentadbir() {
   const viewport =
