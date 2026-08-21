@@ -7488,6 +7488,7 @@ function bukaTambahAgensiLuarPentadbir() {
   if (modal) {
     modal.hidden = false;
     modal.removeAttribute("hidden");
+    modal.classList.add("open");
   }
 }
 
@@ -7578,6 +7579,7 @@ function bukaEditAgensiLuarPentadbir(id) {
   if (modal) {
     modal.hidden = false;
     modal.removeAttribute("hidden");
+    modal.classList.add("open");
   }
 }
 
@@ -7587,6 +7589,7 @@ function tutupModalAgensiLuarPentadbir() {
     el("modalAgensiLuarPentadbir");
 
   if (modal) {
+    modal.classList.remove("open");
     modal.hidden = true;
     modal.setAttribute(
       "hidden",
@@ -10169,3 +10172,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   pulihkanSesiPentadbir();
 });
+
+
+/* ================================================================
+   AGENSI LUAR — GLOBAL MODAL HANDLERS
+================================================================ */
+window.bukaTambahAgensiLuarPentadbir = bukaTambahAgensiLuarPentadbir;
+window.bukaEditAgensiLuarPentadbir = bukaEditAgensiLuarPentadbir;
+window.tutupModalAgensiLuarPentadbir = tutupModalAgensiLuarPentadbir;
+window.simpanAgensiLuarPentadbir = simpanAgensiLuarPentadbir;
+window.padamAgensiLuarPentadbir = padamAgensiLuarPentadbir;
