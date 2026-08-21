@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260821-marker-tugas-002">
+  <link rel="stylesheet" href="css/admin.css?v=20260821-marker-all-tasks-003">
 </head>
 
 <body>
@@ -732,20 +732,12 @@
 
           <div class="admin-map-task-filter">
             <div>
-              <label for="penapisJenisTugasPetaPentadbir">JENIS TUGAS</label>
+              <label for="penapisJenisTugasPetaPentadbir">JENIS TUGAS MARKER</label>
               <select id="penapisJenisTugasPetaPentadbir" onchange="tukarJenisTugasPetaPentadbir(this.value)">
                 <option value="SEMUA">SEMUA JENIS TUGAS</option>
-                <option value="KAWALAN KESELAMATAN" selected>KAWALAN KESELAMATAN</option>
-                <option value="RONDAAN PARKIR">RONDAAN PARKIR</option>
-                <option value="KAWALAN LALULINTAS">KAWALAN LALULINTAS</option>
-                <option value="RONDAAN PENCEGAHAN JENAYAH">RONDAAN PENCEGAHAN JENAYAH</option>
-                <option value="RONDAAN PENCEGAHAN JENAYAH NARKOTIK">RONDAAN PENCEGAHAN JENAYAH NARKOTIK</option>
-                <option value="RONDAAN PENCEGAHAN JENAYAH KOMERSIL">RONDAAN PENCEGAHAN JENAYAH KOMERSIL</option>
-                <option value="LITUPAN KESELAMATAN">LITUPAN KESELAMATAN</option>
-                <option value="UNIT PEMUSNAH BOM">UNIT PEMUSNAH BOM</option>
               </select>
             </div>
-            <p class="muted">Jenis tugas yang dipilih akan dipaparkan pada peta.</p>
+            <p class="muted">Hanya marker bagi jenis tugas yang dipilih akan dipaparkan pada peta.</p>
           </div>
 
           <div class="admin-operation-map-layout">
@@ -1614,14 +1606,7 @@
         <div class="form-group form-group-wide">
           <label for="pilihanJenisTugasMarkerPentadbir">Jenis Tugas</label>
           <select id="pilihanJenisTugasMarkerPentadbir" onchange="tukarJenisTugasUrusMarkerPentadbir(this.value)">
-            <option value="KAWALAN KESELAMATAN" selected>KAWALAN KESELAMATAN</option>
-            <option value="RONDAAN PARKIR">RONDAAN PARKIR</option>
-            <option value="KAWALAN LALULINTAS">KAWALAN LALULINTAS</option>
-            <option value="RONDAAN PENCEGAHAN JENAYAH">RONDAAN PENCEGAHAN JENAYAH</option>
-            <option value="RONDAAN PENCEGAHAN JENAYAH NARKOTIK">RONDAAN PENCEGAHAN JENAYAH NARKOTIK</option>
-            <option value="RONDAAN PENCEGAHAN JENAYAH KOMERSIL">RONDAAN PENCEGAHAN JENAYAH KOMERSIL</option>
-            <option value="LITUPAN KESELAMATAN">LITUPAN KESELAMATAN</option>
-            <option value="UNIT PEMUSNAH BOM">UNIT PEMUSNAH BOM</option>
+            <option value="">PILIH JENIS TUGAS</option>
           </select>
         </div>
 
@@ -2189,7 +2174,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260821-marker-tugas-002"></script>
+<script src="js/admin.js?v=20260821-marker-all-tasks-003"></script>
 
 </body>
 </html>
