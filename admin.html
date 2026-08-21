@@ -359,7 +359,7 @@
       ================================================ -->
       <section class="progress-card" aria-labelledby="tajukProgress">
         <div class="progress-header">
-          <div class="progress-title" id="tajukProgress">Kehadiran Hari Ini</div>
+          <div class="progress-title" id="tajukProgress">Kehadiran Hari Petugas Ini</div>
           <div class="progress-percent" id="progressPercent">0%</div>
         </div>
 
@@ -435,7 +435,7 @@
       <section class="card admin-chart-module" id="modulCartaPentadbir" hidden>
         <div class="section-heading">
           <div>
-            <h2>Carta Operasi</h2>
+            <h2>CARTA OPERASI</h2>
             <p class="muted">
               Analitik operasi daripada laporan petugas, kehadiran, penugasan
               dan maklumat tambahan Urusetia.
@@ -455,11 +455,11 @@
               <option value="SEMUA">SEMUA CARTA</option>
               <option value="JAWATANKUASA">JAWATANKUASA</option>
               <option value="KEHADIRAN">KEHADIRAN PETUGAS</option>
-              <option value="AGENSI_LUAR">AGENSI LUAR</option>
+              <option value="AGENSI_LUAR">BANTUAN LUAR</option>
               <option value="PETA">PETA LOKASI PENUGASAN</option>
               <option value="VVIP_VIP">VVIP / VIP</option>
               <option value="PENGUNJUNG">PENGUNJUNG</option>
-              <option value="KENDERAAN">KENDERAAN</option>
+              <option value="KENDERAAN">KENDERAAN PENGUNJUNG</option>
               <option value="INSIDEN">INSIDEN OPERASI</option>
               <option value="KRONOLOGI">KRONOLOGI</option>
             </select>
@@ -471,7 +471,7 @@
 
         <div class="admin-chart-summary-grid">
           <article class="admin-chart-summary-card"><span>JUMLAH PENGUNJUNG</span><strong id="cartaJumlahPengunjung">0</strong></article>
-          <article class="admin-chart-summary-card"><span>JUMLAH KENDERAAN</span><strong id="cartaJumlahKenderaan">0</strong></article>
+          <article class="admin-chart-summary-card"><span>JUMLAH KENDERAAN PENGUNJUNG</span><strong id="cartaJumlahKenderaan">0</strong></article>
           <article class="admin-chart-summary-card"><span>VVIP / VIP</span><strong id="cartaJumlahVvipVip">0</strong></article>
           <article class="admin-chart-summary-card"><span>SEDANG BERTUGAS</span><strong id="cartaJumlahBertugas">0</strong></article>
           <article class="admin-chart-summary-card"><span>INSIDEN</span><strong id="cartaJumlahInsiden">0</strong></article>
@@ -486,10 +486,9 @@
           >
             <div class="admin-committee-heading">
               <div>
-                <h3>Jawatankuasa</h3>
+                <h3>CARTA AHLI JAWATANKUASA</h3>
                 <p class="muted">
-                  Senarai jawatankuasa operasi bagi tarikh dipilih.
-                  Pangkat, No. Badan, Nama dan No. Telefon diambil automatik daripada profil petugas.
+                  Senarai ahli jawatankuasa operasi.
                 </p>
               </div>
 
@@ -507,7 +506,7 @@
                   type="button"
                   onclick="bukaTambahJawatankuasaPentadbir()"
                 >
-                  + TAMBAH JAWATANKUASA
+                  TAMBAH JAWATANKUASA
                 </button>
 
                 <button
@@ -532,7 +531,7 @@
                 <thead>
                   <tr class="admin-committee-title-row">
                     <th colspan="5" id="tajukJawatankuasaPentadbir">
-                      JAWATANKUASA OPERASI
+                      AHLI JAWATANKUASA OPERASI
                     </th>
                   </tr>
 
@@ -562,7 +561,7 @@
           >
             <div class="admin-chart-card-heading">
               <div>
-                <h3>Kehadiran Petugas</h3>
+                <h3>CARTA KEHADIRAN PETUGAS</h3>
                 <p class="muted">
                   Klik bahagian carta atau label status untuk memaparkan senarai nama petugas.
                 </p>
@@ -623,10 +622,10 @@
 <section class="admin-chart-card admin-committee-card admin-agency-card" data-chart-section="AGENSI_LUAR">
   <div class="admin-committee-heading">
     <div>
-      <h3>Carta Agensi Luar</h3>
+      <h3>CARTA BANTUAN LUAR</h3>
       <p class="muted">
         Senarai jabatan / agensi luar, kekuatan anggota, jumlah kenderaan,
-        Pegawai Penyelaras dan nombor telefon bagi tarikh dipilih.
+        Pegawai Penyelaras dan nombor telefon.
       </p>
     </div>
 
@@ -644,7 +643,7 @@
         type="button"
         onclick="(function(){var m=document.getElementById('modalAgensiLuarPentadbir');if(m){m.hidden=false;m.removeAttribute('hidden');m.classList.add('open');}if(typeof bukaTambahAgensiLuarPentadbir==='function'){try{bukaTambahAgensiLuarPentadbir();}catch(e){console.error('Agensi Luar modal:',e);}}})()"
       >
-        + TAMBAH AGENSI LUAR
+        TAMBAH BANTUAN LUAR
       </button>
 
       <button
@@ -672,7 +671,7 @@
       <thead>
         <tr class="admin-committee-title-row">
           <th colspan="6" id="tajukAgensiLuarPentadbir">
-            CARTA AGENSI LUAR
+            CARTA BANTUAN LUAR
           </th>
         </tr>
 
@@ -689,7 +688,7 @@
       <tbody id="tbodyAgensiLuarPentadbir">
         <tr>
           <td colspan="6" class="empty-row">
-            Tiada rekod agensi luar untuk tarikh ini.
+            Tiada rekod bantuan luar untuk tarikh ini.
           </td>
         </tr>
       </tbody>
@@ -700,7 +699,7 @@
 <section class="admin-chart-card admin-operation-map-card" id="kadCartaPeta" data-chart-section="PETA">
           <div class="section-heading">
             <div>
-              <h3>Peta Lokasi Penugasan</h3>
+              <h3>PETA LOKASI PENUGASAN</h3>
               <p class="muted">
                 Klik marker untuk melihat petugas yang sedang bertugas,
                 belum hadir atau selesai di lokasi tersebut.
@@ -808,7 +807,7 @@
 <section class="admin-chart-card" data-chart-section="VVIP_VIP">
             <div class="section-heading">
               <div>
-                <h3>VVIP / VIP</h3>
+                <h3>CARTA VVIP / VIP</h3>
                 <p class="muted">
                   Maklumat VVIP/VIP daripada laporan petugas dan rekod tambahan Urusetia/Pentadbir.
                 </p>
@@ -828,7 +827,7 @@
                   type="button"
                   onclick="bukaTambahVvipVipPentadbir()"
                 >
-                  + TAMBAH VVIP / VIP
+                  VVIP / VIP
                 </button>
 
                 <button
@@ -898,7 +897,7 @@
 <section class="admin-chart-card" data-chart-section="PENGUNJUNG">
             <div class="admin-chart-card-heading">
               <div>
-                <h3>Carta Pengunjung</h3>
+                <h3>CARTA PENGUNJUNG</h3>
                 <p class="muted">Trend jumlah pengunjung daripada laporan Kawalan Keselamatan.</p>
               </div>
               <button
@@ -918,7 +917,7 @@
           >
             <div class="admin-chart-card-heading">
               <div>
-                <h3>Carta Kenderaan</h3>
+                <h3>CARTA KENDERAAN PENGUNJUNG</h3>
                 <p class="muted">
                   Klik Bas, Motosikal atau Motokar untuk melihat butiran di sebelah kanan.
                 </p>
@@ -982,7 +981,7 @@
           >
             <div class="admin-chart-card-heading">
               <div>
-                <h3>Insiden Operasi</h3>
+                <h3>CARTA INSIDEN OPERASI</h3>
                 <p class="muted">
                   Klik Tangkapan, Rampasan, Kemalangan atau Ancaman untuk melihat butiran di sebelah kanan.
                 </p>
@@ -1043,7 +1042,7 @@
 <section class="admin-chart-card admin-chronology-card admin-committee-card" data-chart-section="KRONOLOGI">
           <div class="section-heading">
             <div>
-              <h3>Kronologi Operasi</h3>
+              <h3>CARTA KRONOLOGI OPERASI</h3>
               <p class="muted">Gabungan kejadian daripada laporan petugas dan catatan Urusetia.</p>
             </div>
             <div class="section-heading-actions">
