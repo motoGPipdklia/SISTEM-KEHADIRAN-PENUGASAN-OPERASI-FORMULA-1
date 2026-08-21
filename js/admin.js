@@ -441,6 +441,8 @@ let cartaJawatankuasaPentadbir = null;
 let dataJawatankuasaOperasiPentadbir = [];
 let dataPilihanPetugasJawatankuasaPentadbir = [];
 let rekodJawatankuasaSedangEditPentadbir = null;
+let dataAgensiLuarOperasiPentadbir = [];
+let rekodAgensiLuarSedangEditPentadbir = null;
 let dataVvipVipOperasiPentadbir = [];
 let rekodVvipVipSedangEditPentadbir = null;
 let idVvipVipDipilihPentadbir = "";
@@ -3852,14 +3854,9 @@ async function muatDataCartaPentadbir() {
         );
 
     await Promise.all([
-      muatJawatankuasaOperasiPentadbir(
-        tarikh,
-        false
-      ),
-      muatVvipVipOperasiPentadbir(
-        tarikh,
-        false
-      )
+      muatJawatankuasaOperasiPentadbir(tarikh, false),
+      muatAgensiLuarOperasiPentadbir(tarikh, false),
+      muatVvipVipOperasiPentadbir(tarikh, false)
     ]);
 
     paparRingkasanCartaPentadbir();
@@ -3869,6 +3866,7 @@ async function muatDataCartaPentadbir() {
     paparCartaInsidenPentadbir();
     paparCartaVvipVipPentadbir();
     paparCartaJawatankuasaPentadbir();
+    paparCartaAgensiLuarPentadbir();
 
     muatPetaCartaPentadbir();
     paparKronologiPentadbir();
@@ -7273,6 +7271,226 @@ function paparCartaVvipVipPentadbir() {
   }
 }
 
+
+
+/* ================================================================
+   AGENSI LUAR OPERASI — SUPABASE CRUD
+================================================================ */
+
+function nomborAgensiLuarPentadbir(nilai) {
+  const n = Number(nilai);
+  return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
+}
+
+function dataAgensiLuarPentadbir() {
+  return [...dataAgensiLuarOperasiPentadbir].sort((a,b) =>
+    atas(a.jabatan_agensi).localeCompare(atas(b.jabatan_agensi),"ms")
+  );
+}
+
+function ralatJadualAgensiLuarBelumWujud(error) {
+  return error?.code === "42P01" ||
+    /agensi_luar_operasi|relation.*does not exist|could not find.*table/i.test(error?.message || "");
+}
+
+async function muatAgensiLuarOperasiPentadbir(tarikh, paparStatus = true) {
+  const tarikhDipilih = tarikh || el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || hariIniMalaysia();
+
+  try {
+    const {data,error} = await denganHadMasa(
+      db.from("agensi_luar_operasi")
+        .select("*")
+        .eq("tarikh",tarikhDipilih)
+        .order("jabatan_agensi",{ascending:true})
+    );
+    if (error) throw error;
+
+    dataAgensiLuarOperasiPentadbir = data || [];
+    paparCartaAgensiLuarPentadbir();
+
+    if (paparStatus) {
+      paparMesej("statusAgensiLuarPentadbir",
+        `${dataAgensiLuarOperasiPentadbir.length} rekod agensi luar berjaya dimuatkan.`,
+        "success");
+    }
+    return true;
+  } catch (error) {
+    console.error("Gagal memuatkan agensi luar:",error);
+    dataAgensiLuarOperasiPentadbir = [];
+    paparCartaAgensiLuarPentadbir();
+
+    const mesej = ralatJadualAgensiLuarBelumWujud(error)
+      ? "Jadual agensi_luar_operasi belum diwujudkan. Jalankan SQL yang disediakan."
+      : `Ralat agensi luar: ${error.message || "Ralat tidak diketahui."}`;
+
+    paparMesej("statusAgensiLuarPentadbir",escapeHtml(mesej),"error");
+    return false;
+  }
+}
+
+async function muatSemulaAgensiLuarPentadbir() {
+  const tarikh = el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || hariIniMalaysia();
+  await muatAgensiLuarOperasiPentadbir(tarikh,true);
+}
+
+function resetBorangAgensiLuarPentadbir() {
+  ["idAgensiLuarPentadbir","jabatanAgensiLuarPentadbir","pegawaiAgensiLuarPentadbir","telefonAgensiLuarPentadbir"]
+    .forEach(id => { if (el(id)) el(id).value=""; });
+
+  ["basAgensiLuarPentadbir","loriAgensiLuarPentadbir","jenteraAgensiLuarPentadbir","vanAgensiLuarPentadbir","motokarAgensiLuarPentadbir","motosikalAgensiLuarPentadbir"]
+    .forEach(id => { if (el(id)) el(id).value="0"; });
+
+  const s=el("statusModalAgensiLuarPentadbir");
+  if (s) { s.innerHTML=""; s.style.display="none"; }
+}
+
+function bukaTambahAgensiLuarPentadbir() {
+  rekodAgensiLuarSedangEditPentadbir=null;
+  resetBorangAgensiLuarPentadbir();
+
+  const tarikh=el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || hariIniMalaysia();
+  if (el("tarikhAgensiLuarPentadbir")) el("tarikhAgensiLuarPentadbir").value=tarikh;
+  if (el("tajukModalAgensiLuarPentadbir")) el("tajukModalAgensiLuarPentadbir").textContent="Tambah Agensi Luar";
+
+  const modal=el("modalAgensiLuarPentadbir");
+  if (modal) { modal.hidden=false; modal.removeAttribute("hidden"); }
+}
+
+function bukaEditAgensiLuarPentadbir(id) {
+  const item=dataAgensiLuarOperasiPentadbir.find(x=>teks(x.id)===teks(id));
+  if (!item) return alert("Rekod agensi luar tidak ditemui.");
+
+  rekodAgensiLuarSedangEditPentadbir=item;
+  const nilai={
+    idAgensiLuarPentadbir:item.id || "",
+    tarikhAgensiLuarPentadbir:item.tarikh || "",
+    jabatanAgensiLuarPentadbir:item.jabatan_agensi || "",
+    basAgensiLuarPentadbir:item.bas ?? 0,
+    loriAgensiLuarPentadbir:item.lori ?? 0,
+    jenteraAgensiLuarPentadbir:item.jentera ?? 0,
+    vanAgensiLuarPentadbir:item.van ?? 0,
+    motokarAgensiLuarPentadbir:item.motokar ?? 0,
+    motosikalAgensiLuarPentadbir:item.motosikal ?? 0,
+    pegawaiAgensiLuarPentadbir:item.pegawai_penyelaras || "",
+    telefonAgensiLuarPentadbir:item.telefon || ""
+  };
+  Object.entries(nilai).forEach(([id,v])=>{ if(el(id)) el(id).value=v; });
+
+  if (el("tajukModalAgensiLuarPentadbir")) el("tajukModalAgensiLuarPentadbir").textContent="Edit Agensi Luar";
+  const modal=el("modalAgensiLuarPentadbir");
+  if (modal) { modal.hidden=false; modal.removeAttribute("hidden"); }
+}
+
+function tutupModalAgensiLuarPentadbir() {
+  const modal=el("modalAgensiLuarPentadbir");
+  if (modal) { modal.hidden=true; modal.setAttribute("hidden",""); }
+  rekodAgensiLuarSedangEditPentadbir=null;
+}
+
+async function simpanAgensiLuarPentadbir() {
+  const btn=el("btnSimpanAgensiLuarPentadbir");
+  const id=teks(el("idAgensiLuarPentadbir")?.value);
+
+  const payload={
+    tarikh:teks(el("tarikhAgensiLuarPentadbir")?.value),
+    jabatan_agensi:atas(el("jabatanAgensiLuarPentadbir")?.value),
+    bas:nomborAgensiLuarPentadbir(el("basAgensiLuarPentadbir")?.value),
+    lori:nomborAgensiLuarPentadbir(el("loriAgensiLuarPentadbir")?.value),
+    jentera:nomborAgensiLuarPentadbir(el("jenteraAgensiLuarPentadbir")?.value),
+    van:nomborAgensiLuarPentadbir(el("vanAgensiLuarPentadbir")?.value),
+    motokar:nomborAgensiLuarPentadbir(el("motokarAgensiLuarPentadbir")?.value),
+    motosikal:nomborAgensiLuarPentadbir(el("motosikalAgensiLuarPentadbir")?.value),
+    pegawai_penyelaras:atas(el("pegawaiAgensiLuarPentadbir")?.value),
+    telefon:teks(el("telefonAgensiLuarPentadbir")?.value)
+  };
+
+  if (!payload.tarikh) return paparMesej("statusModalAgensiLuarPentadbir","Tarikh wajib diisi.","error");
+  if (!payload.jabatan_agensi) return paparMesej("statusModalAgensiLuarPentadbir","Jabatan / Agensi wajib diisi.","error");
+  if (!payload.pegawai_penyelaras) return paparMesej("statusModalAgensiLuarPentadbir","Pegawai Penyelaras wajib diisi.","error");
+
+  if (btn) { btn.disabled=true; btn.textContent=id ? "SEDANG MENGEMAS KINI..." : "SEDANG MENYIMPAN..."; }
+
+  try {
+    let hasil;
+    if (id) {
+      hasil=await denganHadMasa(
+        db.from("agensi_luar_operasi").update({...payload,updated_at:new Date().toISOString()}).eq("id",id).select("*").single()
+      );
+    } else {
+      hasil=await denganHadMasa(
+        db.from("agensi_luar_operasi").insert({
+          ...payload,
+          created_by:adminLogin?.id || adminLogin?.authUserId || null
+        }).select("*").single()
+      );
+    }
+    if (hasil.error) throw hasil.error;
+
+    await muatAgensiLuarOperasiPentadbir(el("tarikhCartaPentadbir")?.value || payload.tarikh,false);
+    tutupModalAgensiLuarPentadbir();
+  } catch (error) {
+    const mesej=ralatJadualAgensiLuarBelumWujud(error)
+      ? "Jadual agensi_luar_operasi belum diwujudkan. Jalankan SQL yang disediakan dahulu."
+      : `Gagal menyimpan rekod: ${error.message || "Ralat tidak diketahui."}`;
+    paparMesej("statusModalAgensiLuarPentadbir",escapeHtml(mesej),"error");
+  } finally {
+    if (btn) { btn.disabled=false; btn.textContent="SIMPAN AGENSI LUAR"; }
+  }
+}
+
+async function padamAgensiLuarPentadbir(id) {
+  const item=dataAgensiLuarOperasiPentadbir.find(x=>teks(x.id)===teks(id));
+  if (!item) return alert("Rekod agensi luar tidak ditemui.");
+  if (!confirm(`Padam rekod agensi luar "${item.jabatan_agensi || "-"}"?`)) return;
+
+  try {
+    const {error}=await denganHadMasa(db.from("agensi_luar_operasi").delete().eq("id",id));
+    if (error) throw error;
+    await muatSemulaAgensiLuarPentadbir();
+  } catch (error) {
+    alert(`Gagal memadam rekod: ${error.message || "Ralat tidak diketahui."}`);
+  }
+}
+
+function paparCartaAgensiLuarPentadbir() {
+  const tbody=el("tbodyAgensiLuarPentadbir");
+  if (!tbody) return;
+
+  const senarai=dataAgensiLuarPentadbir();
+  const tarikh=el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || "";
+
+  if (el("tajukAgensiLuarPentadbir")) {
+    el("tajukAgensiLuarPentadbir").textContent=tarikh
+      ? `CARTA AGENSI LUAR — ${formatTarikhMalaysia(tarikh)}`
+      : "CARTA AGENSI LUAR";
+  }
+
+  if (!senarai.length) {
+    tbody.innerHTML='<tr><td colspan="10" class="empty-row">Tiada rekod agensi luar untuk tarikh ini.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML=senarai.map((item,index)=>`
+    <tr>
+      <td style="text-align:center;">${index+1}</td>
+      <td>
+        <div class="admin-committee-task-text">${escapeHtml(item.jabatan_agensi || "-")}</div>
+        <div class="admin-committee-row-actions">
+          <button class="admin-committee-edit-button" type="button" onclick="bukaEditAgensiLuarPentadbir('${escapeHtml(item.id)}')">EDIT</button>
+          <button class="admin-committee-delete-button" type="button" onclick="padamAgensiLuarPentadbir('${escapeHtml(item.id)}')">PADAM</button>
+        </div>
+      </td>
+      <td style="text-align:center;">${nomborAgensiLuarPentadbir(item.bas)}</td>
+      <td style="text-align:center;">${nomborAgensiLuarPentadbir(item.lori)}</td>
+      <td style="text-align:center;">${nomborAgensiLuarPentadbir(item.jentera)}</td>
+      <td style="text-align:center;">${nomborAgensiLuarPentadbir(item.van)}</td>
+      <td style="text-align:center;">${nomborAgensiLuarPentadbir(item.motokar)}</td>
+      <td style="text-align:center;">${nomborAgensiLuarPentadbir(item.motosikal)}</td>
+      <td style="text-align:center;">${escapeHtml(item.pegawai_penyelaras || "-")}</td>
+      <td style="text-align:center;">${escapeHtml(item.telefon || "-")}</td>
+    </tr>
+  `).join("");
+}
 
 /* ================================================================
    JAWATANKUASA OPERASI — SUPABASE CRUD
