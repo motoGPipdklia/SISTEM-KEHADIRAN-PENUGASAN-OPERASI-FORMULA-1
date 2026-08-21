@@ -7455,43 +7455,59 @@ function resetBorangAgensiLuarPentadbir() {
 
 
 function bukaTambahAgensiLuarPentadbir() {
-  rekodAgensiLuarSedangEditPentadbir =
-    null;
-
-  resetBorangAgensiLuarPentadbir();
-
-  const tarikh =
-    el("tarikhCartaPentadbir")?.value ||
-    el("tarikh")?.value ||
-    hariIniMalaysia();
-
-  if (
-    el("tarikhAgensiLuarPentadbir")
-  ) {
-    el(
-      "tarikhAgensiLuarPentadbir"
-    ).value = tarikh;
-  }
-
-  if (
-    el("tajukModalAgensiLuarPentadbir")
-  ) {
-    el(
-      "tajukModalAgensiLuarPentadbir"
-    ).textContent =
-      "Tambah Agensi Luar";
-  }
-
   const modal =
-    el("modalAgensiLuarPentadbir");
+    document.getElementById(
+      "modalAgensiLuarPentadbir"
+    );
 
+  /*
+    Buka modal TERLEBIH DAHULU.
+    Jadi walaupun ada masalah pada reset borang,
+    modal masih akan kelihatan.
+  */
   if (modal) {
     modal.hidden = false;
     modal.removeAttribute("hidden");
     modal.classList.add("open");
+    modal.style.display = "block";
+    modal.style.zIndex = "99999";
+  }
+
+  try {
+    rekodAgensiLuarSedangEditPentadbir =
+      null;
+
+    resetBorangAgensiLuarPentadbir();
+
+    const tarikh =
+      el("tarikhCartaPentadbir")?.value ||
+      el("tarikh")?.value ||
+      hariIniMalaysia();
+
+    if (
+      el("tarikhAgensiLuarPentadbir")
+    ) {
+      el(
+        "tarikhAgensiLuarPentadbir"
+      ).value = tarikh;
+    }
+
+    if (
+      el("tajukModalAgensiLuarPentadbir")
+    ) {
+      el(
+        "tajukModalAgensiLuarPentadbir"
+      ).textContent =
+        "Tambah Agensi Luar";
+    }
+
+  } catch (error) {
+    console.error(
+      "Ralat menyediakan borang Agensi Luar:",
+      error
+    );
   }
 }
-
 
 function bukaEditAgensiLuarPentadbir(id) {
   const item =
@@ -7580,16 +7596,21 @@ function bukaEditAgensiLuarPentadbir(id) {
     modal.hidden = false;
     modal.removeAttribute("hidden");
     modal.classList.add("open");
+    modal.style.display = "block";
+    modal.style.zIndex = "99999";
   }
 }
 
 
 function tutupModalAgensiLuarPentadbir() {
   const modal =
-    el("modalAgensiLuarPentadbir");
+    document.getElementById(
+      "modalAgensiLuarPentadbir"
+    );
 
   if (modal) {
     modal.classList.remove("open");
+    modal.style.display = "none";
     modal.hidden = true;
     modal.setAttribute(
       "hidden",
@@ -7600,7 +7621,6 @@ function tutupModalAgensiLuarPentadbir() {
   rekodAgensiLuarSedangEditPentadbir =
     null;
 }
-
 
 async function simpanAgensiLuarPentadbir() {
   const btn =
@@ -10175,10 +10195,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* ================================================================
-   AGENSI LUAR — GLOBAL MODAL HANDLERS
+   AGENSI LUAR — PASTIKAN INLINE ONCLICK BOLEH AKSES
 ================================================================ */
-window.bukaTambahAgensiLuarPentadbir = bukaTambahAgensiLuarPentadbir;
-window.bukaEditAgensiLuarPentadbir = bukaEditAgensiLuarPentadbir;
-window.tutupModalAgensiLuarPentadbir = tutupModalAgensiLuarPentadbir;
-window.simpanAgensiLuarPentadbir = simpanAgensiLuarPentadbir;
-window.padamAgensiLuarPentadbir = padamAgensiLuarPentadbir;
+window.bukaTambahAgensiLuarPentadbir =
+  bukaTambahAgensiLuarPentadbir;
+
+window.bukaEditAgensiLuarPentadbir =
+  bukaEditAgensiLuarPentadbir;
+
+window.tutupModalAgensiLuarPentadbir =
+  tutupModalAgensiLuarPentadbir;
+
+window.simpanAgensiLuarPentadbir =
+  simpanAgensiLuarPentadbir;
+
+window.padamAgensiLuarPentadbir =
+  padamAgensiLuarPentadbir;
+
