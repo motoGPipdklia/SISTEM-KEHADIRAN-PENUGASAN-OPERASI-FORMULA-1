@@ -621,48 +621,81 @@
           </section>
 
 <section class="admin-chart-card admin-committee-card admin-agency-card" data-chart-section="AGENSI_LUAR">
-            <div class="admin-committee-heading">
-              <div>
-                <h3>Carta Agensi Luar</h3>
-                <p class="muted">Senarai jabatan / agensi luar, pecahan kenderaan, Pegawai Penyelaras dan nombor telefon bagi tarikh dipilih.</p>
-              </div>
-              <div class="admin-committee-heading-actions">
-                <button class="gray admin-chart-print-button" type="button" onclick="cetakCartaPentadbir('AGENSI_LUAR','CARTA AGENSI LUAR')">CETAK</button>
-                <button class="green-button" type="button" onclick="bukaTambahAgensiLuarPentadbir()">+ TAMBAH AGENSI LUAR</button>
-                <button class="gray" type="button" onclick="muatSemulaAgensiLuarPentadbir()">SEMAK SEMULA</button>
-              </div>
-            </div>
+  <div class="admin-committee-heading">
+    <div>
+      <h3>Carta Agensi Luar</h3>
+      <p class="muted">
+        Senarai jabatan / agensi luar, kekuatan anggota, jumlah kenderaan,
+        Pegawai Penyelaras dan nombor telefon bagi tarikh dipilih.
+      </p>
+    </div>
 
-            <div class="status-box" id="statusAgensiLuarPentadbir" role="status" aria-live="polite"></div>
+    <div class="admin-committee-heading-actions">
+      <button
+        class="gray admin-chart-print-button"
+        type="button"
+        onclick="cetakCartaPentadbir('AGENSI_LUAR','CARTA AGENSI LUAR')"
+      >
+        CETAK
+      </button>
 
-            <div class="admin-committee-table-wrap">
-              <table class="admin-committee-table admin-agency-table" style="min-width:1180px">
-                <thead>
-                  <tr class="admin-committee-title-row">
-                    <th colspan="10" id="tajukAgensiLuarPentadbir">CARTA AGENSI LUAR</th>
-                  </tr>
-                  <tr>
-                    <th rowspan="2" style="width:5%;text-align:center;">BIL</th>
-                    <th rowspan="2" style="width:21%;text-align:center;">JABATAN / AGENSI</th>
-                    <th colspan="6" style="width:42%;text-align:center;">JUMLAH KENDERAAN</th>
-                    <th rowspan="2" style="width:20%;text-align:center;">PEGAWAI PENYELARAS</th>
-                    <th rowspan="2" style="width:12%;text-align:center;">NO. TELEFON</th>
-                  </tr>
-                  <tr>
-                    <th style="text-align:center;">BAS</th>
-                    <th style="text-align:center;">LORI</th>
-                    <th style="text-align:center;">JENTERA</th>
-                    <th style="text-align:center;">VAN</th>
-                    <th style="text-align:center;">MOTOKAR</th>
-                    <th style="text-align:center;">MOTOSIKAL</th>
-                  </tr>
-                </thead>
-                <tbody id="tbodyAgensiLuarPentadbir">
-                  <tr><td colspan="10" class="empty-row">Tiada rekod agensi luar untuk tarikh ini.</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
+      <button
+        class="green-button"
+        type="button"
+        onclick="bukaTambahAgensiLuarPentadbir()"
+      >
+        + TAMBAH AGENSI LUAR
+      </button>
+
+      <button
+        class="gray"
+        type="button"
+        onclick="muatSemulaAgensiLuarPentadbir()"
+      >
+        SEMAK SEMULA
+      </button>
+    </div>
+  </div>
+
+  <div
+    class="status-box"
+    id="statusAgensiLuarPentadbir"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+  <div class="admin-committee-table-wrap">
+    <table
+      class="admin-committee-table admin-agency-table"
+      style="min-width:920px"
+    >
+      <thead>
+        <tr class="admin-committee-title-row">
+          <th colspan="6" id="tajukAgensiLuarPentadbir">
+            CARTA AGENSI LUAR
+          </th>
+        </tr>
+
+        <tr>
+          <th style="width:5%;text-align:center;">BIL</th>
+          <th style="width:28%;text-align:center;">JABATAN / AGENSI</th>
+          <th style="width:10%;text-align:center;">KEKUATAN</th>
+          <th style="width:10%;text-align:center;">KENDERAAN</th>
+          <th style="width:30%;text-align:center;">PEGAWAI PENYELARAS</th>
+          <th style="width:17%;text-align:center;">NO. TELEFON</th>
+        </tr>
+      </thead>
+
+      <tbody id="tbodyAgensiLuarPentadbir">
+        <tr>
+          <td colspan="6" class="empty-row">
+            Tiada rekod agensi luar untuk tarikh ini.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
 
 <section class="admin-chart-card admin-operation-map-card" id="kadCartaPeta" data-chart-section="PETA">
           <div class="section-heading">
@@ -1766,57 +1799,142 @@
 <!-- =====================================================
        MODAL TAMBAH / EDIT AGENSI LUAR
   ====================================================== -->
-  <div class="modal" id="modalAgensiLuarPentadbir" role="dialog" aria-modal="true" aria-labelledby="tajukModalAgensiLuarPentadbir" hidden>
+  <div
+    class="modal"
+    id="modalAgensiLuarPentadbir"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tajukModalAgensiLuarPentadbir"
+    hidden
+  >
     <div class="modal-card admin-committee-modal-card">
       <div class="admin-committee-modal-heading">
         <div>
-          <h2 id="tajukModalAgensiLuarPentadbir">Tambah Agensi Luar</h2>
-          <p class="muted">Masukkan jabatan / agensi, pecahan kenderaan, Pegawai Penyelaras dan nombor telefon.</p>
+          <h2 id="tajukModalAgensiLuarPentadbir">
+            Tambah Agensi Luar
+          </h2>
+          <p class="muted">
+            Masukkan Jabatan / Agensi, Kekuatan, jumlah Kenderaan,
+            Pegawai Penyelaras dan No. Telefon.
+          </p>
         </div>
-        <button class="gray compact-button" type="button" onclick="tutupModalAgensiLuarPentadbir()">TUTUP</button>
+
+        <button
+          class="gray compact-button"
+          type="button"
+          onclick="tutupModalAgensiLuarPentadbir()"
+        >
+          TUTUP
+        </button>
       </div>
 
       <input id="idAgensiLuarPentadbir" type="hidden">
 
       <div class="form-grid">
         <div class="form-group">
-          <label for="tarikhAgensiLuarPentadbir">Tarikh *</label>
-          <input id="tarikhAgensiLuarPentadbir" type="date">
+          <label for="tarikhAgensiLuarPentadbir">
+            Tarikh *
+          </label>
+          <input
+            id="tarikhAgensiLuarPentadbir"
+            type="date"
+          >
         </div>
 
         <div class="form-group form-group-wide">
-          <label for="jabatanAgensiLuarPentadbir">Jabatan / Agensi *</label>
-          <input id="jabatanAgensiLuarPentadbir" type="text" placeholder="Contoh: BOMBA / KKM / JPJ / APM">
+          <label for="jabatanAgensiLuarPentadbir">
+            Jabatan / Agensi *
+          </label>
+          <input
+            id="jabatanAgensiLuarPentadbir"
+            type="text"
+            placeholder="Contoh: BOMBA / KKM / JPJ / APM"
+            autocapitalize="characters"
+          >
         </div>
 
-        <div class="form-group"><label for="basAgensiLuarPentadbir">Bas</label><input id="basAgensiLuarPentadbir" type="number" min="0" step="1" value="0"></div>
-        <div class="form-group"><label for="loriAgensiLuarPentadbir">Lori</label><input id="loriAgensiLuarPentadbir" type="number" min="0" step="1" value="0"></div>
-        <div class="form-group"><label for="jenteraAgensiLuarPentadbir">Jentera</label><input id="jenteraAgensiLuarPentadbir" type="number" min="0" step="1" value="0"></div>
-        <div class="form-group"><label for="vanAgensiLuarPentadbir">Van</label><input id="vanAgensiLuarPentadbir" type="number" min="0" step="1" value="0"></div>
-        <div class="form-group"><label for="motokarAgensiLuarPentadbir">Motokar</label><input id="motokarAgensiLuarPentadbir" type="number" min="0" step="1" value="0"></div>
-        <div class="form-group"><label for="motosikalAgensiLuarPentadbir">Motosikal</label><input id="motosikalAgensiLuarPentadbir" type="number" min="0" step="1" value="0"></div>
+        <div class="form-group">
+          <label for="kekuatanAgensiLuarPentadbir">
+            Kekuatan
+          </label>
+          <input
+            id="kekuatanAgensiLuarPentadbir"
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+            inputmode="numeric"
+          >
+        </div>
 
-        <div class="form-group form-group-wide">
-          <label for="pegawaiAgensiLuarPentadbir">Pegawai Penyelaras *</label>
-          <input id="pegawaiAgensiLuarPentadbir" type="text" placeholder="Nama Pegawai Penyelaras">
+        <div class="form-group">
+          <label for="kenderaanAgensiLuarPentadbir">
+            Kenderaan
+          </label>
+          <input
+            id="kenderaanAgensiLuarPentadbir"
+            type="number"
+            min="0"
+            step="1"
+            value="0"
+            inputmode="numeric"
+          >
         </div>
 
         <div class="form-group form-group-wide">
-          <label for="telefonAgensiLuarPentadbir">No. Telefon</label>
-          <input id="telefonAgensiLuarPentadbir" type="tel" placeholder="Contoh: 0123456789">
+          <label for="pegawaiAgensiLuarPentadbir">
+            Pegawai Penyelaras *
+          </label>
+          <input
+            id="pegawaiAgensiLuarPentadbir"
+            type="text"
+            placeholder="Nama Pegawai Penyelaras"
+            autocapitalize="characters"
+          >
+        </div>
+
+        <div class="form-group form-group-wide">
+          <label for="telefonAgensiLuarPentadbir">
+            No. Telefon
+          </label>
+          <input
+            id="telefonAgensiLuarPentadbir"
+            type="tel"
+            placeholder="Contoh: 0123456789"
+            autocomplete="tel"
+          >
         </div>
       </div>
 
-      <div class="status-box" id="statusModalAgensiLuarPentadbir" role="status" aria-live="polite"></div>
+      <div
+        class="status-box"
+        id="statusModalAgensiLuarPentadbir"
+        role="status"
+        aria-live="polite"
+      ></div>
 
       <div class="modal-actions">
-        <button class="green-button" id="btnSimpanAgensiLuarPentadbir" type="button" onclick="simpanAgensiLuarPentadbir()">SIMPAN AGENSI LUAR</button>
-        <button class="gray" type="button" onclick="tutupModalAgensiLuarPentadbir()">BATAL</button>
+        <button
+          class="green-button"
+          id="btnSimpanAgensiLuarPentadbir"
+          type="button"
+          onclick="simpanAgensiLuarPentadbir()"
+        >
+          SIMPAN AGENSI LUAR
+        </button>
+
+        <button
+          class="gray"
+          type="button"
+          onclick="tutupModalAgensiLuarPentadbir()"
+        >
+          BATAL
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- =====================================================
+<!-- =====================================================
        MODAL TAMBAH / EDIT JAWATANKUASA
   ====================================================== -->
   <div
@@ -2010,7 +2128,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260821-petaadmin-force-003"></script>
+<script src="js/admin.js?v=20260821-agensi-simple-001"></script>
 
 </body>
 </html>
