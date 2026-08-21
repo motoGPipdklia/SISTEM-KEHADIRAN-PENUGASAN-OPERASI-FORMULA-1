@@ -8367,7 +8367,7 @@ function tetapanPetaCartaPentadbir() {
     return {
       imej:
         data.imej ||
-        "images/peta.png",
+        "images/petaadmin.png",
       marker:
         data.marker &&
         typeof data.marker === "object"
@@ -8376,7 +8376,7 @@ function tetapanPetaCartaPentadbir() {
     };
   } catch (_) {
     return {
-      imej: "images/peta.png",
+      imej: "images/petaadmin.png",
       marker: {}
     };
   }
@@ -8537,7 +8537,7 @@ function muatPetaCartaPentadbir() {
   if (imej) {
     imej.src =
       tetapan.imej ||
-      "images/peta.png";
+      "images/petaadmin.png";
   }
 
   const imejUrus =
@@ -8546,7 +8546,7 @@ function muatPetaCartaPentadbir() {
   if (imejUrus) {
     imejUrus.src =
       tetapan.imej ||
-      "images/peta.png";
+      "images/petaadmin.png";
   }
 
   binaPilihanLokasiMarkerPentadbir();
