@@ -359,7 +359,7 @@
       ================================================ -->
       <section class="progress-card" aria-labelledby="tajukProgress">
         <div class="progress-header">
-          <div class="progress-title" id="tajukProgress">Kehadiran Petugas Hari Ini</div>
+          <div class="progress-title" id="tajukProgress">Kehadiran Hari Petugas Ini</div>
           <div class="progress-percent" id="progressPercent">0%</div>
         </div>
 
@@ -529,13 +529,7 @@
             <div class="admin-committee-table-wrap">
               <table class="admin-committee-table">
                 <thead>
-                  <tr class="admin-committee-title-row">
-                    <th colspan="5" id="tajukJawatankuasaPentadbir">
-                      AHLI JAWATANKUASA OPERASI
-                    </th>
-                  </tr>
-
-                  <tr>
+<tr>
                     <th class="col-bil">BIL</th>
                     <th class="col-nama">PANGKAT / NO / NAMA</th>
                     <th class="col-unit">BHGN / BALAI / CAW / UNIT</th>
@@ -669,13 +663,7 @@
       style="min-width:920px"
     >
       <thead>
-        <tr class="admin-committee-title-row">
-          <th colspan="6" id="tajukAgensiLuarPentadbir">
-            CARTA BANTUAN LUAR
-          </th>
-        </tr>
-
-        <tr>
+<tr>
           <th style="width:5%;text-align:center;">BIL</th>
           <th style="width:28%;text-align:center;">JABATAN / AGENSI</th>
           <th style="width:10%;text-align:center;">KEKUATAN</th>
@@ -1066,12 +1054,7 @@
           <div class="admin-committee-table-wrap">
             <table class="admin-committee-table admin-chronology-table">
               <thead>
-                <tr class="admin-committee-title-row">
-                  <th colspan="4" id="tajukJadualKronologiPentadbir">
-                    KRONOLOGI OPERASI
-                  </th>
-                </tr>
-                <tr>
+<tr>
                   <th style="width:18%;text-align:center;">TARIKH / MASA</th>
                   <th style="width:24%;text-align:center;">TAJUK</th>
                   <th style="width:18%;text-align:center;">LOKASI</th>
@@ -1810,10 +1793,10 @@
       <div class="admin-committee-modal-heading">
         <div>
           <h2 id="tajukModalAgensiLuarPentadbir">
-            Tambah Agensi Luar
+            Tambah Bantuan Luar
           </h2>
           <p class="muted">
-            Masukkan Jabatan / Agensi, Kekuatan, jumlah Kenderaan,
+            Masukkan Jabatan / Agensi, pecahan Kekuatan, pecahan Kenderaan,
             Pegawai Penyelaras dan No. Telefon.
           </p>
         </div>
@@ -1852,32 +1835,74 @@
           >
         </div>
 
-        <div class="form-group">
-          <label for="kekuatanAgensiLuarPentadbir">
-            Kekuatan
-          </label>
-          <input
-            id="kekuatanAgensiLuarPentadbir"
-            type="number"
-            min="0"
-            step="1"
-            value="0"
-            inputmode="numeric"
-          >
+        <div class="form-group form-group-wide">
+          <label>KEKUATAN</label>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="pegawaiKekuatanAgensiLuarPentadbir">
+                Pegawai
+              </label>
+              <input
+                id="pegawaiKekuatanAgensiLuarPentadbir"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+                inputmode="numeric"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="anggotaKekuatanAgensiLuarPentadbir">
+                Anggota
+              </label>
+              <input
+                id="anggotaKekuatanAgensiLuarPentadbir"
+                type="number"
+                min="0"
+                step="1"
+                value="0"
+                inputmode="numeric"
+              >
+            </div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="kenderaanAgensiLuarPentadbir">
-            Kenderaan
-          </label>
-          <input
-            id="kenderaanAgensiLuarPentadbir"
-            type="number"
-            min="0"
-            step="1"
-            value="0"
-            inputmode="numeric"
-          >
+        <div class="form-group form-group-wide">
+          <label>KENDERAAN</label>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="basAgensiLuarPentadbir">Bas</label>
+              <input id="basAgensiLuarPentadbir" type="number" min="0" step="1" value="0" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+              <label for="jenteraAgensiLuarPentadbir">Jentera</label>
+              <input id="jenteraAgensiLuarPentadbir" type="number" min="0" step="1" value="0" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+              <label for="loriAgensiLuarPentadbir">Lori</label>
+              <input id="loriAgensiLuarPentadbir" type="number" min="0" step="1" value="0" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+              <label for="vanAgensiLuarPentadbir">Van</label>
+              <input id="vanAgensiLuarPentadbir" type="number" min="0" step="1" value="0" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+              <label for="motokarAgensiLuarPentadbir">Motokar</label>
+              <input id="motokarAgensiLuarPentadbir" type="number" min="0" step="1" value="0" inputmode="numeric">
+            </div>
+
+            <div class="form-group">
+              <label for="motosikalAgensiLuarPentadbir">Motosikal</label>
+              <input id="motosikalAgensiLuarPentadbir" type="number" min="0" step="1" value="0" inputmode="numeric">
+            </div>
+          </div>
         </div>
 
         <div class="form-group form-group-wide">
@@ -2127,7 +2152,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260821-agensi-modal-force-002"></script>
+<script src="js/admin.js?v=20260821-bantuan-breakdown-001"></script>
 
 </body>
 </html>
