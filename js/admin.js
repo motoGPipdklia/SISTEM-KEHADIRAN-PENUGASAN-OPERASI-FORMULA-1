@@ -1316,12 +1316,17 @@ async function muatData(kemasKiniPenapis = false) {
         statusTugas === "DIGANTI"
           ? "DIGANTI"
           : (
+              statusTugas === "DITOLAK" ||
               statusTugas === "CUTI SAKIT" ||
               statusTugas === "KECEMASAN"
             )
             ? "TIDAK HADIR"
             : checkin
-              ? atas(checkin.status) || "MENUNGGU"
+              ? (
+                  atas(checkin.status) === "DITOLAK"
+                    ? "TIDAK HADIR"
+                    : atas(checkin.status) || "MENUNGGU"
+                )
               : "BELUM HADIR";
 
       return {
@@ -1350,6 +1355,7 @@ async function muatData(kemasKiniPenapis = false) {
         statusPenugasanAsal: statusTugas,
         jenisKetidakhadiran:
           (
+            statusTugas === "DITOLAK" ||
             statusTugas === "CUTI SAKIT" ||
             statusTugas === "KECEMASAN"
           )
@@ -1534,7 +1540,7 @@ function paparStatistik() {
   const jumlah = dataPaparan.length;
   const hadir = dataPaparan.filter(item => item.statusKehadiran === "HADIR").length;
   const menunggu = dataPaparan.filter(item => item.statusKehadiran === "MENUNGGU").length;
-  const ditolak = dataPaparan.filter(item => item.statusKehadiran === "DITOLAK").length;
+  const ditolak = dataPaparan.filter(item => item.statusKehadiran === "TIDAK HADIR").length;
   const checkout = dataPaparan.filter(item => Boolean(item.checkout)).length;
   const bertugas = dataPaparan.filter(item => item.statusKehadiran === "HADIR" && !item.checkout).length;
   const belumHadir = dataPaparan.filter(item => item.statusKehadiran === "BELUM HADIR").length;
