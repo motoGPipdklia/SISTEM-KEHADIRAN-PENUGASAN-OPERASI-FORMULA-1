@@ -1578,7 +1578,7 @@ function exportExcel() {
   const tajuk = [
     "BIL", "NO BADAN", "PANGKAT", "NAMA", "NO TELEFON", "CALL SIGN",
     "JENIS TUGAS", "TEMPAT TUGAS", "PEMEGANG SET",
-    "CHECK-IN", "STATUS", "CHECK-OUT", "TEMPOH"
+    "CHECK-IN", "STATUS", "SELESAI TUGAS", "TEMPOH"
   ];
 
   const baris = dataPaparan.map((item, index) => [
@@ -6367,7 +6367,7 @@ function paparCartaKenderaanPentadbir() {
 function kategoriKehadiranCartaPentadbir(item) {
   /*
     Susunan keutamaan:
-    1. Jika sudah Check-Out = SELESAI
+    1. Jika sudah selesai tugas = SELESAI
     2. Jika status HADIR = HADIR
     3. Jika MENUNGGU = MENUNGGU
     4. Selain itu = TIDAK HADIR
@@ -6393,7 +6393,7 @@ function labelKategoriKehadiranPentadbir(kategori) {
   const peta = {
     HADIR: "HADIR",
     TIDAK_HADIR: "TIDAK HADIR",
-    SELESAI: "SELESAI",
+    SELESAI: "SELESAI TUGAS",
     MENUNGGU: "MENUNGGU"
   };
 
@@ -6559,7 +6559,7 @@ function paparSenaraiKehadiranPentadbir(kategori) {
               <small>
                 ${
                   kategori === "SELESAI"
-                    ? "Check-Out"
+                    ? "Selesai Tugas"
                     : kategori === "HADIR"
                       ? "Check-In"
                       : "Masa"
