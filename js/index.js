@@ -508,6 +508,7 @@ function normalisasiJenisTugasPelaporan(nilai) {
   if (jenis.includes("BALAI POLIS BERGERAK")) return "BALAI POLIS BERGERAK";
   if (jenis.includes("PONDOK POLIS")) return "PONDOK POLIS";
   if (jenis.includes("UNIT PEMUSNAH BOM")) return "UNIT PEMUSNAH BOM";
+  if (jenis.includes("SUBTEK")) return "SUBTEK";
 
   return jenis;
 }
@@ -549,6 +550,9 @@ function bukaLaporan() {
   const ialahLitupan =
     jenisLaporan === "LITUPAN KESELAMATAN";
 
+  const ialahSubtek =
+    jenisLaporan === "SUBTEK";
+
   const tajukLaporan =
     el("tajukLaporanPetugas");
 
@@ -556,7 +560,9 @@ function bukaLaporan() {
     tajukLaporan.textContent =
       ialahLitupan
         ? "Pelaporan Litupan Keselamatan"
-        : "Pelaporan Petugas";
+        : ialahSubtek
+          ? "Pelaporan SUBTEK"
+          : "Pelaporan Petugas";
   }
 
   /*
@@ -592,7 +598,9 @@ function bukaLaporan() {
     btn.textContent =
       jenisLaporan === "LITUPAN KESELAMATAN"
         ? "HANTAR LAPORAN LITUPAN KESELAMATAN"
-        : "HANTAR LAPORAN KEPADA URUSETIA";
+        : jenisLaporan === "SUBTEK"
+          ? "HANTAR LAPORAN SUBTEK KEPADA URUSETIA"
+          : "HANTAR LAPORAN KEPADA URUSETIA";
   }
 
   window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
@@ -722,6 +730,99 @@ function janaBorangPelaporan() {
             <textarea
               id="lapLitupanCatatan"
               placeholder="Catatan tambahan jika ada..."
+            ></textarea>
+          </div>
+        </div>
+      `;
+      break;
+
+    case "SUBTEK":
+      ruang.innerHTML = `
+        <div class="subtek-report-header">
+          <h2>Borang Pelaporan SUBTEK</h2>
+          <p>
+            Masukkan maklumat situasi semasa SUBTEK untuk dihantar kepada Urusetia.
+          </p>
+        </div>
+
+        <div class="subtek-grid">
+          <div class="subtek-field subtek-field-wide">
+            <label for="lapSubtekKeadaanKeselamatan">
+              <strong>Keadaan Keselamatan *</strong>
+            </label>
+            <select id="lapSubtekKeadaanKeselamatan">
+              <option value="">-- PILIH --</option>
+              <option value="TERKAWAL">TERKAWAL</option>
+              <option value="TIDAK TERKAWAL">TIDAK TERKAWAL</option>
+            </select>
+          </div>
+
+          <div class="subtek-field subtek-field-wide">
+            <label for="lapSubtekLokasi">
+              <strong>Lokasi *</strong>
+            </label>
+            <input
+              id="lapSubtekLokasi"
+              type="text"
+              placeholder="Contoh: PADDOCK / MAIN GRANDSTAND / SUBTEK"
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="subtek-field subtek-field-wide">
+            ${binaPilihanAdaTiada(
+              "lapSubtekVvipVip",
+              "VVIP / VIP",
+              "Butiran VVIP / VIP",
+              "Masukkan nama / jawatan VVIP atau VIP."
+            )}
+          </div>
+
+          <div class="subtek-field">
+            <label for="lapSubtekJumlahPengunjung">
+              <strong>Jumlah Pengunjung *</strong>
+            </label>
+            <input
+              id="lapSubtekJumlahPengunjung"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+              inputmode="numeric"
+            >
+          </div>
+
+          <div class="subtek-field">
+            <label for="lapSubtekJumlahKenderaanPengunjung">
+              <strong>Jumlah Kenderaan Pengunjung *</strong>
+            </label>
+            <input
+              id="lapSubtekJumlahKenderaanPengunjung"
+              type="number"
+              min="0"
+              step="1"
+              value="0"
+              inputmode="numeric"
+            >
+          </div>
+
+          <div class="subtek-field subtek-field-wide">
+            <label for="lapSubtekKeperluanBantuan">
+              <strong>Keperluan Bantuan / Sokongan *</strong>
+            </label>
+            <textarea
+              id="lapSubtekKeperluanBantuan"
+              placeholder="Masukkan keperluan bantuan atau sokongan. Jika tiada, masukkan TIADA."
+            ></textarea>
+          </div>
+
+          <div class="subtek-field subtek-field-wide">
+            <label for="lapSubtekCatatan">
+              <strong>Catatan *</strong>
+            </label>
+            <textarea
+              id="lapSubtekCatatan"
+              placeholder="Masukkan catatan. Jika tiada, masukkan TIADA."
             ></textarea>
           </div>
         </div>
@@ -1011,6 +1112,131 @@ function binaDataLaporan() {
     };
   }
 
+  if (jenis === "SUBTEK") {
+    const keadaanKeselamatan =
+      atas(
+        el(
+          "lapSubtekKeadaanKeselamatan"
+        )?.value
+      );
+
+    const lokasi =
+      teks(
+        el(
+          "lapSubtekLokasi"
+        )?.value
+      );
+
+    const vvipVip =
+      dapatkanAdaTiadaLaporan(
+        "lapSubtekVvipVip"
+      );
+
+    const jumlahPengunjung =
+      Number(
+        el(
+          "lapSubtekJumlahPengunjung"
+        )?.value
+      );
+
+    const jumlahKenderaanPengunjung =
+      Number(
+        el(
+          "lapSubtekJumlahKenderaanPengunjung"
+        )?.value
+      );
+
+    const keperluanBantuanSokongan =
+      teks(
+        el(
+          "lapSubtekKeperluanBantuan"
+        )?.value
+      );
+
+    const catatan =
+      teks(
+        el(
+          "lapSubtekCatatan"
+        )?.value
+      );
+
+    if (!keadaanKeselamatan) {
+      throw new Error(
+        "Sila pilih Keadaan Keselamatan."
+      );
+    }
+
+    if (!lokasi) {
+      throw new Error(
+        "Sila masukkan Lokasi."
+      );
+    }
+
+    if (
+      vvipVip.status === "ADA" &&
+      !vvipVip.butiran
+    ) {
+      throw new Error(
+        "Sila masukkan butiran VVIP / VIP."
+      );
+    }
+
+    if (
+      !Number.isInteger(
+        jumlahPengunjung
+      ) ||
+      jumlahPengunjung < 0
+    ) {
+      throw new Error(
+        "Sila masukkan Jumlah Pengunjung yang sah."
+      );
+    }
+
+    if (
+      !Number.isInteger(
+        jumlahKenderaanPengunjung
+      ) ||
+      jumlahKenderaanPengunjung < 0
+    ) {
+      throw new Error(
+        "Sila masukkan Jumlah Kenderaan Pengunjung yang sah."
+      );
+    }
+
+    if (!keperluanBantuanSokongan) {
+      throw new Error(
+        "Sila masukkan Keperluan Bantuan / Sokongan. Jika tiada, masukkan TIADA."
+      );
+    }
+
+    if (!catatan) {
+      throw new Error(
+        "Sila masukkan Catatan. Jika tiada, masukkan TIADA."
+      );
+    }
+
+    return {
+      keadaan_keselamatan:
+        keadaanKeselamatan,
+
+      lokasi,
+
+      vvip_vip:
+        vvipVip,
+
+      jumlah_pengunjung:
+        jumlahPengunjung,
+
+      jumlah_kenderaan_pengunjung:
+        jumlahKenderaanPengunjung,
+
+      keperluan_bantuan_sokongan:
+        keperluanBantuanSokongan,
+
+      catatan
+    };
+  }
+
   if (jenis === "KAWALAN KESELAMATAN") {
     const keadaan = atas(el("lapKeadaanKeselamatan")?.value);
     const jumlahPengunjung = Number(el("lapJumlahPengunjung")?.value);
@@ -1195,6 +1421,21 @@ async function hantarLaporan() {
         dataLaporan.tujuan_aktiviti ||
         "";
 
+    } else if (jenis === "SUBTEK") {
+      payload.jumlah_pengunjung =
+        dataLaporan.jumlah_pengunjung;
+
+      payload.jumlah_kenderaan =
+        dataLaporan.jumlah_kenderaan_pengunjung;
+
+      payload.vvip_vip =
+        dataLaporan.vvip_vip.status === "ADA"
+          ? dataLaporan.vvip_vip.butiran
+          : "TIADA";
+
+      payload.perkara_menarik =
+        dataLaporan.catatan;
+
     } else if (jenis === "KAWALAN KESELAMATAN") {
       payload.jumlah_pengunjung = dataLaporan.jumlah_pengunjung;
       payload.jumlah_kenderaan = dataLaporan.kenderaan.jumlah;
@@ -1226,7 +1467,9 @@ async function hantarLaporan() {
     btn.textContent =
       jenisSemasa === "LITUPAN KESELAMATAN"
         ? "HANTAR LAPORAN LITUPAN KESELAMATAN"
-        : "HANTAR LAPORAN KEPADA URUSETIA";
+        : jenisSemasa === "SUBTEK"
+          ? "HANTAR LAPORAN SUBTEK KEPADA URUSETIA"
+          : "HANTAR LAPORAN KEPADA URUSETIA";
 
     paparStatus("statusLaporan", `Ralat menghantar laporan: ${escapeHtml(err.message)}`, "error");
   }
