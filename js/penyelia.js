@@ -1472,14 +1472,29 @@ function ialahLaporanBalaiPondokPenyelia(item) {
       item?.tugas?.jenis_tugas
     );
 
+  const callSign =
+    atasPenyelia(
+      item?.callSign ||
+      item?.tugas?.call_sign ||
+      item?.tugas?.callsign ||
+      ""
+    );
+
+  const gabung =
+    `${jenis} ${callSign}`;
+
   return (
-    jenis === "BALAI POLIS BERGERAK" ||
-    jenis === "PONDOK POLIS" ||
-    jenis.includes("BALAI POLIS BERGERAK") ||
-    jenis.includes("PONDOK POLIS")
+    gabung.includes(
+      "BALAI POLIS BERGERAK"
+    ) ||
+    gabung.includes(
+      "BALAI BERGERAK"
+    ) ||
+    gabung.includes(
+      "PONDOK POLIS"
+    )
   );
 }
-
 
 function ringkasanBalaiPondokPenyelia(item) {
   const data =
@@ -1741,10 +1756,9 @@ function kategoriLaporanPenyelia(item) {
     VVIP hanya sumber daripada LITUPAN KESELAMATAN.
   */
   if (
-    jenis === "BALAI POLIS BERGERAK" ||
-    jenis === "PONDOK POLIS" ||
-    jenis.includes("BALAI POLIS BERGERAK") ||
-    jenis.includes("PONDOK POLIS")
+    ialahLaporanBalaiPondokPenyelia(
+      item
+    )
   ) {
     return `
       ${barisModalLaporan(
