@@ -3625,3 +3625,11 @@ body.marker-dragging *{
     justify-content:flex-start;
   }
 }
+
+/* ================================================================
+   STATUS TIDAK HADIR — CUTI SAKIT / KECEMASAN
+================================================================ */
+.badge-tidak-hadir{
+  background:#4a1d1d;
+  color:#ffaaaa;
+}
