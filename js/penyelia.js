@@ -1464,6 +1464,49 @@ function pastikanPilihanPenapisLaporanPenyelia() {
 
 
 
+
+function ialahLaporanBalaiPondokPenyelia(item) {
+  const jenis =
+    normalisasiJenisTugasLaporanPenyelia(
+      item?.jenisTugas ||
+      item?.tugas?.jenis_tugas
+    );
+
+  return (
+    jenis === "BALAI POLIS BERGERAK" ||
+    jenis === "PONDOK POLIS" ||
+    jenis.includes("BALAI POLIS BERGERAK") ||
+    jenis.includes("PONDOK POLIS")
+  );
+}
+
+
+function ringkasanBalaiPondokPenyelia(item) {
+  const data =
+    item?.dataLaporan &&
+    typeof item.dataLaporan === "object"
+      ? item.dataLaporan
+      : {};
+
+  return {
+    noRepot:
+      data.no_repot ||
+      data.no_repot_polis ||
+      data.no_report ||
+      data.no_report_polis ||
+      item.jumlahPengunjung ||
+      "-",
+
+    catatan:
+      data.catatan ||
+      data.catatan_tindakan ||
+      data.perkara_menarik ||
+      item.perkaraMenarik ||
+      "TIADA"
+  };
+}
+
+
 function ialahLaporanKawalanLalulintasPenyelia(item) {
   const jenis =
     normalisasiJenisTugasLaporanPenyelia(
@@ -1697,6 +1740,25 @@ function kategoriLaporanPenyelia(item) {
     PENTING:
     VVIP hanya sumber daripada LITUPAN KESELAMATAN.
   */
+  if (
+    jenis === "BALAI POLIS BERGERAK" ||
+    jenis === "PONDOK POLIS" ||
+    jenis.includes("BALAI POLIS BERGERAK") ||
+    jenis.includes("PONDOK POLIS")
+  ) {
+    return `
+      ${barisModalLaporan(
+        "No. Repot",
+        data.no_repot ||
+        data.no_repot_polis ||
+        data.no_report ||
+        data.no_report_polis ||
+        item.jumlahPengunjung ||
+        "-"
+      )}
+    `;
+  }
+
   if (jenis === "LITUPAN KESELAMATAN") {
     return "LAPORAN VVIP";
   }
@@ -1871,6 +1933,18 @@ function paparSenaraiLaporan() {
           ? "TELAH DIBACA"
           : "BELUM DIBACA";
 
+      const laporanBalaiPondok =
+        ialahLaporanBalaiPondokPenyelia(
+          item
+        );
+
+      const ringkasanBalaiPondok =
+        laporanBalaiPondok
+          ? ringkasanBalaiPondokPenyelia(
+              item
+            )
+          : null;
+
       const laporanTrafik =
         ialahLaporanKawalanLalulintasPenyelia(
           item
@@ -1982,7 +2056,29 @@ function paparSenaraiLaporan() {
             </div>
 
             ${
-              laporanTrafik
+              laporanBalaiPondok
+                ? `
+                  <div class="label">
+                    No. Repot
+                  </div>
+
+                  <div>
+                    ${htmlPenyelia(
+                      ringkasanBalaiPondok.noRepot
+                    )}
+                  </div>
+
+                  <div class="label">
+                    Catatan
+                  </div>
+
+                  <div class="teks-ringkas">
+                    ${htmlPenyelia(
+                      ringkasanBalaiPondok.catatan
+                    )}
+                  </div>
+                `
+                : laporanTrafik
                 ? `
                   <div class="label">
                     Keadaan Trafik
@@ -2512,6 +2608,20 @@ function binaButiranDinamikLaporanPenyelia(item) {
     gunakan paparan legacy.
   */
   if (!Object.keys(data).length) {
+    if (
+      jenis === "BALAI POLIS BERGERAK" ||
+      jenis === "PONDOK POLIS" ||
+      jenis.includes("BALAI POLIS BERGERAK") ||
+      jenis.includes("PONDOK POLIS")
+    ) {
+      return `
+        ${barisModalLaporan(
+          "No. Repot",
+          item.jumlahPengunjung || "-"
+        )}
+      `;
+    }
+
     if (
       jenis === "KAWALAN LALULINTAS"
     ) {
