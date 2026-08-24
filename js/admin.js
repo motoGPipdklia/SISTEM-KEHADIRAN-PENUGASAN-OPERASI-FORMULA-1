@@ -1474,11 +1474,24 @@ function paparJadual() {
 
   tbody.innerHTML = dataPaparan.map((item, index) => {
     const kelas = kelasBadge(item.statusKehadiran);
-    const keadaan = item.checkout
-      ? "SELESAI TUGAS"
-      : item.statusKehadiran === "HADIR"
-        ? "MASIH BERTUGAS"
-        : "-";
+
+    /*
+      Kolum KEADAAN:
+      - CUTI SAKIT  -> CUTI SAKIT
+      - KECEMASAN   -> KECEMASAN
+      - Check-Out   -> SELESAI TUGAS
+      - Hadir       -> MASIH BERTUGAS
+    */
+    const keadaan =
+      item.statusPenugasanAsal === "CUTI SAKIT"
+        ? "CUTI SAKIT"
+        : item.statusPenugasanAsal === "KECEMASAN"
+          ? "KECEMASAN"
+          : item.checkout
+            ? "SELESAI TUGAS"
+            : item.statusKehadiran === "HADIR"
+              ? "MASIH BERTUGAS"
+              : "-";
 
     return `
       <tr>
