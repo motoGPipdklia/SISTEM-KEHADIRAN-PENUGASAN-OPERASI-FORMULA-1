@@ -3587,3 +3587,41 @@ body.marker-dragging *{
 #pilihanJenisTugasMarkerPentadbir option{
   white-space:normal;
 }
+
+/* ================================================================
+   CARTA PENGUNJUNG / KENDERAAN — INPUT MANUAL PENTADBIR
+================================================================ */
+.admin-chart-manual-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.admin-chart-manual-actions .compact-button{
+  min-height:36px;
+  padding:8px 12px;
+  font-size:10px;
+}
+
+.admin-manual-chart-modal{
+  width:min(100%,680px);
+}
+
+.admin-manual-record-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid #303030;
+}
+
+@media(max-width:760px){
+  .admin-chart-manual-actions{
+    width:100%;
+    justify-content:flex-start;
+  }
+}
