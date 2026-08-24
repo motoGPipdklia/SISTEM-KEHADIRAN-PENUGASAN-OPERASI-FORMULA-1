@@ -1306,11 +1306,23 @@ async function muatData(kemasKiniPenapis = false) {
       const checkout = checkoutMap.get(item.id) || null;
       const ikatanDevice = deviceMap.get(petugasId) || null;
       const statusTugas = atas(item.status);
-      const statusKehadiran = statusTugas === "DIGANTI"
-        ? "DIGANTI"
-        : checkin
-          ? atas(checkin.status) || "MENUNGGU"
-          : "BELUM HADIR";
+
+      /*
+        Paparan Pentadbir:
+        - CUTI SAKIT dan KECEMASAN dipaparkan sebagai TIDAK HADIR.
+        - Nilai sebenar dalam penugasan.status kekal dan tidak diubah.
+      */
+      const statusKehadiran =
+        statusTugas === "DIGANTI"
+          ? "DIGANTI"
+          : (
+              statusTugas === "CUTI SAKIT" ||
+              statusTugas === "KECEMASAN"
+            )
+            ? "TIDAK HADIR"
+            : checkin
+              ? atas(checkin.status) || "MENUNGGU"
+              : "BELUM HADIR";
 
       return {
         idPenugasan: item.id,
@@ -1335,6 +1347,14 @@ async function muatData(kemasKiniPenapis = false) {
         pemegangSet: nilaiBoolean(item.pemegang_set),
         penyelia: nilaiBoolean(item.penyelia),
         statusKehadiran,
+        statusPenugasanAsal: statusTugas,
+        jenisKetidakhadiran:
+          (
+            statusTugas === "CUTI SAKIT" ||
+            statusTugas === "KECEMASAN"
+          )
+            ? statusTugas
+            : "",
         masaCheckin: checkin?.masa_checkin || null,
         masaCheckout: checkout?.masa_checkout || null,
         tempohMinit: checkout?.tempoh_minit,
@@ -1498,7 +1518,15 @@ function paparJadual() {
 function kelasBadge(status) {
   if (status === "HADIR") return "badge-green";
   if (status === "MENUNGGU") return "badge-yellow";
-  if (status === "DITOLAK" || status === "DIGANTI") return "badge-red";
+
+  if (
+    status === "DITOLAK" ||
+    status === "DIGANTI" ||
+    status === "TIDAK HADIR"
+  ) {
+    return "badge-red";
+  }
+
   return "badge-gray";
 }
 
