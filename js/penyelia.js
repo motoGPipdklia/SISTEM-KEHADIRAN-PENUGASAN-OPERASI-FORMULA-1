@@ -3946,6 +3946,30 @@ document.addEventListener(
    SISTEM DIMULAKAN
 ================================================================ */
 
+function denganHadMasaCutiKecemasan(
+  janji,
+  milisaat = 20000,
+  mesej = "Operasi mengambil masa terlalu lama."
+) {
+  return Promise.race([
+    Promise.resolve(janji),
+
+    new Promise(
+      (_, reject) => {
+        setTimeout(
+          () => {
+            reject(
+              new Error(mesej)
+            );
+          },
+          milisaat
+        );
+      }
+    )
+  ]);
+}
+
+
 /* ================================================================
    CUTI SAKIT / KECEMASAN
 ================================================================ */
@@ -4279,20 +4303,35 @@ async function simpanCutiKecemasan() {
           fail.name
         )}`;
 
-      const muatNaik =
-        await dbPenyelia.storage
-          .from(
-            BUCKET_CUTI_KECEMASAN
+      statusPenyelia(
+        "statusCutiKecemasan",
+        `Memuat naik lampiran (${Math.max(
+          1,
+          Math.round(
+            fail.size / 1024 / 1024
           )
-          .upload(
-            laluanLampiran,
-            fail,
-            {
-              cacheControl: "3600",
-              upsert: false,
-              contentType: fail.type
-            }
-          );
+        )} MB)...`,
+        "warning"
+      );
+
+      const muatNaik =
+        await denganHadMasaCutiKecemasan(
+          dbPenyelia.storage
+            .from(
+              BUCKET_CUTI_KECEMASAN
+            )
+            .upload(
+              laluanLampiran,
+              fail,
+              {
+                cacheControl: "3600",
+                upsert: false,
+                contentType: fail.type
+              }
+            ),
+          30000,
+          "Muat naik lampiran mengambil masa terlalu lama. Semak sambungan internet dan cuba lagi."
+        );
 
       if (muatNaik.error) {
         throw muatNaik.error;
@@ -4356,17 +4395,27 @@ async function simpanCutiKecemasan() {
         null
     };
 
+    statusPenyelia(
+      "statusCutiKecemasan",
+      "Menyemak rekod sedia ada...",
+      "warning"
+    );
+
     const semakanRekodSediaAda =
-      await dbPenyelia
-        .from(
-          JADUAL_CUTI_KECEMASAN
-        )
-        .select("id, lampiran_path")
-        .eq(
-          "penugasan_id",
-          penugasanCutiDipilih.idPenugasan
-        )
-        .maybeSingle();
+      await denganHadMasaCutiKecemasan(
+        dbPenyelia
+          .from(
+            JADUAL_CUTI_KECEMASAN
+          )
+          .select("id, lampiran_path")
+          .eq(
+            "penugasan_id",
+            penugasanCutiDipilih.idPenugasan
+          )
+          .maybeSingle(),
+        15000,
+        "Semakan rekod mengambil masa terlalu lama."
+      );
 
     if (
       semakanRekodSediaAda.error &&
@@ -4378,22 +4427,87 @@ async function simpanCutiKecemasan() {
     rekodSediaAda =
       semakanRekodSediaAda.data || null;
 
-    const {
-      data: rekodBaru,
-      error: insertError
-    } =
-      await dbPenyelia
-        .from(
-          JADUAL_CUTI_KECEMASAN
+    statusPenyelia(
+      "statusCutiKecemasan",
+      "Menyimpan rekod Cuti Sakit / Kecemasan...",
+      "warning"
+    );
+
+    let rekodBaru = null;
+    let insertError = null;
+
+    if (rekodSediaAda?.id) {
+      const hasilUpdateRekod =
+        await denganHadMasaCutiKecemasan(
+          dbPenyelia
+            .from(
+              JADUAL_CUTI_KECEMASAN
+            )
+            .update(payload)
+            .eq(
+              "id",
+              rekodSediaAda.id
+            )
+            .select("id")
+            .single(),
+          15000,
+          "Kemas kini rekod mengambil masa terlalu lama."
+        );
+
+      rekodBaru = hasilUpdateRekod.data;
+      insertError = hasilUpdateRekod.error;
+    } else {
+      const hasilInsertRekod =
+        await denganHadMasaCutiKecemasan(
+          dbPenyelia
+            .from(
+              JADUAL_CUTI_KECEMASAN
+            )
+            .insert(payload)
+            .select("id")
+            .single(),
+          15000,
+          "Simpan rekod mengambil masa terlalu lama."
+        );
+
+      rekodBaru = hasilInsertRekod.data;
+      insertError = hasilInsertRekod.error;
+
+      /*
+       * Jika ada rekod lama yang tidak dapat dilihat semasa SELECT
+       * tetapi unique constraint mengesannya, cuba UPDATE terus
+       * berdasarkan penugasan_id.
+       */
+      if (
+        insertError?.code === "23505" ||
+        /duplicate key value|cuti_kecemasan_penugasan_unique/i.test(
+          insertError?.message || ""
         )
-        .upsert(
-          payload,
-          {
-            onConflict: "penugasan_id"
-          }
-        )
-        .select("id")
-        .single();
+      ) {
+        const hasilPulihDuplicate =
+          await denganHadMasaCutiKecemasan(
+            dbPenyelia
+              .from(
+                JADUAL_CUTI_KECEMASAN
+              )
+              .update(payload)
+              .eq(
+                "penugasan_id",
+                penugasanCutiDipilih.idPenugasan
+              )
+              .select("id")
+              .maybeSingle(),
+            15000,
+            "Rekod lama ditemui tetapi kemas kini mengambil masa terlalu lama."
+          );
+
+        if (!hasilPulihDuplicate.error && hasilPulihDuplicate.data?.id) {
+          rekodBaru = hasilPulihDuplicate.data;
+          insertError = null;
+          rekodSediaAda = hasilPulihDuplicate.data;
+        }
+      }
+    }
 
     if (insertError) {
       throw insertError;
@@ -4402,26 +4516,36 @@ async function simpanCutiKecemasan() {
     rekodBaruId =
       rekodBaru?.id || null;
 
+    statusPenyelia(
+      "statusCutiKecemasan",
+      "Mengemas kini status petugas...",
+      "warning"
+    );
+
     const {
       data: tugasanDikemasKini,
       error: updateError
     } =
-      await dbPenyelia
-        .from("penugasan")
-        .update({
-          status: jenis
-        })
-        .eq(
-          "id",
-          penugasanCutiDipilih.idPenugasan
-        )
-        .eq(
-          "status",
-          penugasanCutiDipilih.tugas?.status ||
-          "BELUM HADIR"
-        )
-        .select("id")
-        .maybeSingle();
+      await denganHadMasaCutiKecemasan(
+        dbPenyelia
+          .from("penugasan")
+          .update({
+            status: jenis
+          })
+          .eq(
+            "id",
+            penugasanCutiDipilih.idPenugasan
+          )
+          .eq(
+            "status",
+            penugasanCutiDipilih.tugas?.status ||
+            "BELUM HADIR"
+          )
+          .select("id")
+          .maybeSingle(),
+        15000,
+        "Kemas kini status petugas mengambil masa terlalu lama."
+      );
 
     if (
       updateError ||
@@ -4432,17 +4556,21 @@ async function simpanCutiKecemasan() {
         Cuba sekali lagi dengan syarat hanya id.
       */
       const cubaanKedua =
-        await dbPenyelia
-          .from("penugasan")
-          .update({
-            status: jenis
-          })
-          .eq(
-            "id",
-            penugasanCutiDipilih.idPenugasan
-          )
-          .select("id")
-          .maybeSingle();
+        await denganHadMasaCutiKecemasan(
+          dbPenyelia
+            .from("penugasan")
+            .update({
+              status: jenis
+            })
+            .eq(
+              "id",
+              penugasanCutiDipilih.idPenugasan
+            )
+            .select("id")
+            .maybeSingle(),
+          15000,
+          "Cubaan kedua kemas kini status mengambil masa terlalu lama."
+        );
 
       if (
         cubaanKedua.error ||
@@ -4463,7 +4591,7 @@ async function simpanCutiKecemasan() {
       laluanLampiran &&
       rekodSediaAda.lampiran_path !== laluanLampiran
     ) {
-      await dbPenyelia.storage
+      dbPenyelia.storage
         .from(
           BUCKET_CUTI_KECEMASAN
         )
@@ -4489,7 +4617,22 @@ async function simpanCutiKecemasan() {
 
     tutupModalCutiKecemasan();
 
-    await muatSemuaDataPenyelia();
+    statusPenyelia(
+      "statusData",
+      "Rekod berjaya disimpan. Memuat semula paparan...",
+      "success"
+    );
+
+    denganHadMasaCutiKecemasan(
+      muatSemuaDataPenyelia(),
+      15000,
+      "Rekod telah disimpan, tetapi paparan mengambil masa untuk dimuat semula."
+    ).catch(error => {
+      console.warn(
+        "Refresh selepas simpan lambat:",
+        error
+      );
+    });
 
   } catch (error) {
     console.error(
