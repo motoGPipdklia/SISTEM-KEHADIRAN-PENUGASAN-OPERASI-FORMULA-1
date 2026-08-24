@@ -1750,28 +1750,10 @@ function kategoriLaporanPenyelia(item) {
       item?.jenisTugas ||
       item?.tugas?.jenis_tugas
     );
-
   /*
     PENTING:
     VVIP hanya sumber daripada LITUPAN KESELAMATAN.
   */
-  if (
-    ialahLaporanBalaiPondokPenyelia(
-      item
-    )
-  ) {
-    return `
-      ${barisModalLaporan(
-        "No. Repot",
-        data.no_repot ||
-        data.no_repot_polis ||
-        data.no_report ||
-        data.no_report_polis ||
-        item.jumlahPengunjung ||
-        "-"
-      )}
-    `;
-  }
 
   if (jenis === "LITUPAN KESELAMATAN") {
     return "LAPORAN VVIP";
@@ -1800,8 +1782,9 @@ function kategoriLaporanPenyelia(item) {
   }
 
   if (
-    jenis === "BALAI POLIS BERGERAK" ||
-    jenis === "PONDOK POLIS"
+    ialahLaporanBalaiPondokPenyelia(
+      item
+    )
   ) {
     return "LAPORAN BALAI / PONDOK POLIS";
   }
@@ -2623,10 +2606,9 @@ function binaButiranDinamikLaporanPenyelia(item) {
   */
   if (!Object.keys(data).length) {
     if (
-      jenis === "BALAI POLIS BERGERAK" ||
-      jenis === "PONDOK POLIS" ||
-      jenis.includes("BALAI POLIS BERGERAK") ||
-      jenis.includes("PONDOK POLIS")
+      ialahLaporanBalaiPondokPenyelia(
+        item
+      )
     ) {
       return `
         ${barisModalLaporan(
@@ -2890,13 +2872,19 @@ function binaButiranDinamikLaporanPenyelia(item) {
 
 
   if (
-    jenis === "BALAI POLIS BERGERAK" ||
-    jenis === "PONDOK POLIS"
+    ialahLaporanBalaiPondokPenyelia(
+      item
+    )
   ) {
     return `
       ${barisModalLaporan(
         "No. Repot",
-        data.no_repot
+        data.no_repot ||
+        data.no_repot_polis ||
+        data.no_report ||
+        data.no_report_polis ||
+        item.jumlahPengunjung ||
+        "-"
       )}
     `;
   }
