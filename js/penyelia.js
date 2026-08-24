@@ -1462,6 +1462,54 @@ function pastikanPilihanPenapisLaporanPenyelia() {
 
 
 
+
+function ialahLaporanUpbPenyelia(item) {
+  const jenis =
+    normalisasiJenisTugasLaporanPenyelia(
+      item?.jenisTugas ||
+      item?.tugas?.jenis_tugas
+    );
+
+  return (
+    jenis === "UNIT PEMUSNAH BOM" ||
+    jenis === "UPB"
+  );
+}
+
+
+function ringkasanUpbPenyelia(item) {
+  const data =
+    item?.dataLaporan &&
+    typeof item.dataLaporan === "object"
+      ? item.dataLaporan
+      : {};
+
+  return {
+    lokasi:
+      data.lokasi ||
+      item.jumlahPengunjung ||
+      "-",
+
+    vvipVip:
+      data.vvip_vip ||
+      data.vvipVip ||
+      item.jumlahKenderaan ||
+      "TIADA",
+
+    ancaman:
+      data.ancaman ||
+      item.vvipVip ||
+      "TIADA",
+
+    catatan:
+      data.catatan ||
+      data.catatan_no_repot ||
+      item.perkaraMenarik ||
+      "TIADA"
+  };
+}
+
+
 function ialahLaporanRondaanJenayahPenyelia(item) {
   const jenis =
     normalisasiJenisTugasLaporanPenyelia(
@@ -1710,6 +1758,18 @@ function paparSenaraiLaporan() {
           ? "TELAH DIBACA"
           : "BELUM DIBACA";
 
+      const laporanUpb =
+        ialahLaporanUpbPenyelia(
+          item
+        );
+
+      const ringkasanUpb =
+        laporanUpb
+          ? ringkasanUpbPenyelia(
+              item
+            )
+          : null;
+
       const laporanRondaanJenayah =
         ialahLaporanRondaanJenayahPenyelia(
           item
@@ -1797,7 +1857,49 @@ function paparSenaraiLaporan() {
             </div>
 
             ${
-              laporanRondaanJenayah
+              laporanUpb
+                ? `
+                  <div class="label">
+                    Lokasi
+                  </div>
+
+                  <div>
+                    ${htmlPenyelia(
+                      ringkasanUpb.lokasi
+                    )}
+                  </div>
+
+                  <div class="label">
+                    VVIP / VIP
+                  </div>
+
+                  <div>
+                    ${htmlPenyelia(
+                      ringkasanUpb.vvipVip
+                    )}
+                  </div>
+
+                  <div class="label">
+                    Ancaman
+                  </div>
+
+                  <div>
+                    ${htmlPenyelia(
+                      ringkasanUpb.ancaman
+                    )}
+                  </div>
+
+                  <div class="label">
+                    Catatan
+                  </div>
+
+                  <div class="teks-ringkas">
+                    ${htmlPenyelia(
+                      ringkasanUpb.catatan
+                    )}
+                  </div>
+                `
+                : laporanRondaanJenayah
                 ? `
                   <div class="label">
                     Jumlah Pemeriksaan
@@ -2243,6 +2345,28 @@ function binaButiranDinamikLaporanPenyelia(item) {
     gunakan paparan legacy.
   */
   if (!Object.keys(data).length) {
+    if (
+      jenis === "UNIT PEMUSNAH BOM" ||
+      jenis === "UPB"
+    ) {
+      return `
+        ${barisModalLaporan(
+          "Lokasi",
+          item.jumlahPengunjung || "-"
+        )}
+
+        ${barisModalLaporan(
+          "VVIP / VIP",
+          item.jumlahKenderaan || "TIADA"
+        )}
+
+        ${barisModalLaporan(
+          "Ancaman",
+          item.vvipVip || "TIADA"
+        )}
+      `;
+    }
+
     if (
       jenis === "RONDAAN PENCEGAHAN JENAYAH" ||
       jenis === "RONDAAN PENCEGAHAN JENAYAH NARKOTIK" ||
