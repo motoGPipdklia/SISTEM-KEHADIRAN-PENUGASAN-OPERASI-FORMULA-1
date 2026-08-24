@@ -1463,6 +1463,72 @@ function pastikanPilihanPenapisLaporanPenyelia() {
 
 
 
+
+function ialahLaporanKawalanLalulintasPenyelia(item) {
+  const jenis =
+    normalisasiJenisTugasLaporanPenyelia(
+      item?.jenisTugas ||
+      item?.tugas?.jenis_tugas
+    );
+
+  return (
+    jenis === "KAWALAN LALULINTAS"
+  );
+}
+
+
+function ringkasanKawalanLalulintasPenyelia(item) {
+  const data =
+    item?.dataLaporan &&
+    typeof item.dataLaporan === "object"
+      ? item.dataLaporan
+      : {};
+
+  const sumberKemalangan =
+    data.kemalangan !== undefined
+      ? data.kemalangan
+      : item.vvipVip;
+
+  let kemalangan = "TIADA";
+
+  if (
+    sumberKemalangan !== undefined &&
+    sumberKemalangan !== null &&
+    sumberKemalangan !== ""
+  ) {
+    kemalangan =
+      typeof sumberKemalangan === "object"
+        ? butiranAdaTiadaLaporan(
+            sumberKemalangan
+          )
+        : nilaiPaparanLaporan(
+            sumberKemalangan,
+            "TIADA"
+          );
+  }
+
+  return {
+    keadaanTrafik:
+      data.keadaan_trafik ||
+      item.jumlahPengunjung ||
+      "-",
+
+    kenderaan:
+      data.jumlah_kenderaan ??
+      item.jumlahKenderaan ??
+      0,
+
+    kemalangan,
+
+    catatanTindakan:
+      data.catatan_tindakan ||
+      data.catatan ||
+      item.perkaraMenarik ||
+      "TIADA"
+  };
+}
+
+
 function ialahLaporanUpbPenyelia(item) {
   const jenis =
     normalisasiJenisTugasLaporanPenyelia(
@@ -1805,6 +1871,18 @@ function paparSenaraiLaporan() {
           ? "TELAH DIBACA"
           : "BELUM DIBACA";
 
+      const laporanTrafik =
+        ialahLaporanKawalanLalulintasPenyelia(
+          item
+        );
+
+      const ringkasanTrafik =
+        laporanTrafik
+          ? ringkasanKawalanLalulintasPenyelia(
+              item
+            )
+          : null;
+
       const laporanUpb =
         ialahLaporanUpbPenyelia(
           item
@@ -1904,7 +1982,49 @@ function paparSenaraiLaporan() {
             </div>
 
             ${
-              laporanUpb
+              laporanTrafik
+                ? `
+                  <div class="label">
+                    Keadaan Trafik
+                  </div>
+
+                  <div>
+                    ${htmlPenyelia(
+                      ringkasanTrafik.keadaanTrafik
+                    )}
+                  </div>
+
+                  <div class="label">
+                    Kenderaan
+                  </div>
+
+                  <div>
+                    ${htmlPenyelia(
+                      ringkasanTrafik.kenderaan
+                    )}
+                  </div>
+
+                  <div class="label">
+                    Kemalangan
+                  </div>
+
+                  <div>
+                    ${htmlPenyelia(
+                      ringkasanTrafik.kemalangan
+                    )}
+                  </div>
+
+                  <div class="label">
+                    Catatan / Tindakan
+                  </div>
+
+                  <div class="teks-ringkas">
+                    ${htmlPenyelia(
+                      ringkasanTrafik.catatanTindakan
+                    )}
+                  </div>
+                `
+                : laporanUpb
                 ? `
                   <div class="label">
                     Lokasi
@@ -2392,6 +2512,27 @@ function binaButiranDinamikLaporanPenyelia(item) {
     gunakan paparan legacy.
   */
   if (!Object.keys(data).length) {
+    if (
+      jenis === "KAWALAN LALULINTAS"
+    ) {
+      return `
+        ${barisModalLaporan(
+          "Keadaan Trafik",
+          item.jumlahPengunjung || "-"
+        )}
+
+        ${barisModalLaporan(
+          "Jumlah Kenderaan",
+          item.jumlahKenderaan
+        )}
+
+        ${barisModalLaporan(
+          "Kemalangan",
+          item.vvipVip || "TIADA"
+        )}
+      `;
+    }
+
     if (
       jenis === "UNIT PEMUSNAH BOM" ||
       jenis === "UPB"
