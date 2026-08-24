@@ -1484,23 +1484,71 @@ function ringkasanUpbPenyelia(item) {
       ? item.dataLaporan
       : {};
 
+  const lokasi =
+    data.lokasi ||
+    item.jumlahPengunjung ||
+    "-";
+
+  const sumberVvip =
+    data.vvip_vip ??
+    data.vvipVip ??
+    data.vvip ??
+    item.jumlahKenderaan;
+
+  let vvipVip = "TIADA";
+
+  if (
+    sumberVvip !== undefined &&
+    sumberVvip !== null &&
+    sumberVvip !== ""
+  ) {
+    if (
+      typeof sumberVvip === "object"
+    ) {
+      vvipVip =
+        butiranAdaTiadaLaporan(
+          sumberVvip
+        );
+    } else {
+      vvipVip =
+        nilaiPaparanLaporan(
+          sumberVvip,
+          "TIADA"
+        );
+    }
+  }
+
+  const sumberAncaman =
+    data.ancaman ??
+    item.vvipVip;
+
+  let ancaman = "TIADA";
+
+  if (
+    sumberAncaman !== undefined &&
+    sumberAncaman !== null &&
+    sumberAncaman !== ""
+  ) {
+    if (
+      typeof sumberAncaman === "object"
+    ) {
+      ancaman =
+        butiranAdaTiadaLaporan(
+          sumberAncaman
+        );
+    } else {
+      ancaman =
+        nilaiPaparanLaporan(
+          sumberAncaman,
+          "TIADA"
+        );
+    }
+  }
+
   return {
-    lokasi:
-      data.lokasi ||
-      item.jumlahPengunjung ||
-      "-",
-
-    vvipVip:
-      data.vvip_vip ||
-      data.vvipVip ||
-      item.jumlahKenderaan ||
-      "TIADA",
-
-    ancaman:
-      data.ancaman ||
-      item.vvipVip ||
-      "TIADA",
-
+    lokasi,
+    vvipVip,
+    ancaman,
     catatan:
       data.catatan ||
       data.catatan_no_repot ||
@@ -1508,7 +1556,6 @@ function ringkasanUpbPenyelia(item) {
       "TIADA"
   };
 }
-
 
 function ialahLaporanRondaanJenayahPenyelia(item) {
   const jenis =
