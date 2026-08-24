@@ -4266,6 +4266,7 @@ async function simpanCutiKecemasan() {
 
   let laluanLampiran = "";
   let rekodBaruId = null;
+  let rekodSediaAda = null;
 
   try {
     const authId =
@@ -4355,6 +4356,28 @@ async function simpanCutiKecemasan() {
         null
     };
 
+    const semakanRekodSediaAda =
+      await dbPenyelia
+        .from(
+          JADUAL_CUTI_KECEMASAN
+        )
+        .select("id, lampiran_path")
+        .eq(
+          "penugasan_id",
+          penugasanCutiDipilih.idPenugasan
+        )
+        .maybeSingle();
+
+    if (
+      semakanRekodSediaAda.error &&
+      semakanRekodSediaAda.error.code !== "PGRST116"
+    ) {
+      throw semakanRekodSediaAda.error;
+    }
+
+    rekodSediaAda =
+      semakanRekodSediaAda.data || null;
+
     const {
       data: rekodBaru,
       error: insertError
@@ -4363,7 +4386,12 @@ async function simpanCutiKecemasan() {
         .from(
           JADUAL_CUTI_KECEMASAN
         )
-        .insert(payload)
+        .upsert(
+          payload,
+          {
+            onConflict: "penugasan_id"
+          }
+        )
         .select("id")
         .single();
 
@@ -4430,6 +4458,21 @@ async function simpanCutiKecemasan() {
       }
     }
 
+    if (
+      rekodSediaAda?.lampiran_path &&
+      laluanLampiran &&
+      rekodSediaAda.lampiran_path !== laluanLampiran
+    ) {
+      await dbPenyelia.storage
+        .from(
+          BUCKET_CUTI_KECEMASAN
+        )
+        .remove([
+          rekodSediaAda.lampiran_path
+        ])
+        .catch(() => {});
+    }
+
     statusPenyelia(
       "statusData",
       `${htmlPenyelia(
@@ -4457,7 +4500,10 @@ async function simpanCutiKecemasan() {
     /*
       Rollback rekod dan fail jika status penugasan gagal.
     */
-    if (rekodBaruId) {
+    if (
+      rekodBaruId &&
+      !rekodSediaAda?.id
+    ) {
       await dbPenyelia
         .from(
           JADUAL_CUTI_KECEMASAN
