@@ -22,7 +22,7 @@
 
   <link
     rel="stylesheet"
-    href="css/penyelia.css?v=20260730-f1-sitrep-010"
+    href="css/penyelia.css?v=20260824-f1-cuti-kecemasan-001"
   >
 
   <link
@@ -202,6 +202,14 @@
 
             <option value="DIGANTI">
               DIGANTI
+            </option>
+
+            <option value="CUTI SAKIT">
+              CUTI SAKIT
+            </option>
+
+            <option value="KECEMASAN">
+              KECEMASAN
             </option>
           </select>
 
@@ -730,6 +738,133 @@
 </div>
 
   <!-- ===========================================================
+       MODAL CUTI SAKIT / KECEMASAN
+  ============================================================ -->
+
+  <div
+    id="modalCutiKecemasan"
+    class="modal hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="tajukModalCutiKecemasan"
+    onclick="if(event.target===this)tutupModalCutiKecemasan()"
+  >
+    <div class="modal-box cuti-kecemasan-modal">
+
+      <div class="modal-header">
+        <h2 id="tajukModalCutiKecemasan">
+          CUTI SAKIT / KECEMASAN
+        </h2>
+
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="Tutup"
+          onclick="tutupModalCutiKecemasan()"
+        >
+          &times;
+        </button>
+      </div>
+
+      <div
+        id="petugasCutiKecemasan"
+        class="petugas-preview"
+      ></div>
+
+      <div class="form-grid cuti-kecemasan-form">
+
+        <label class="full">
+          <span>Jenis *</span>
+          <select id="jenisCutiKecemasan">
+            <option value="CUTI SAKIT">
+              CUTI SAKIT
+            </option>
+            <option value="KECEMASAN">
+              KECEMASAN
+            </option>
+          </select>
+        </label>
+
+        <label>
+          <span>Tarikh Mula *</span>
+          <input
+            id="tarikhMulaCutiKecemasan"
+            type="date"
+          >
+        </label>
+
+        <label>
+          <span>Tarikh Tamat *</span>
+          <input
+            id="tarikhTamatCutiKecemasan"
+            type="date"
+          >
+        </label>
+
+        <label class="full">
+          <span>Sebab / Keterangan *</span>
+          <textarea
+            id="sebabCutiKecemasan"
+            placeholder="Contoh: Cuti sakit / kecemasan keluarga / dimasukkan ke hospital..."
+          ></textarea>
+        </label>
+
+        <label class="full">
+          <span>Catatan Penyelia</span>
+          <textarea
+            id="catatanCutiKecemasan"
+            placeholder="Catatan tambahan jika ada..."
+          ></textarea>
+        </label>
+
+        <label class="full">
+          <span>Lampiran</span>
+
+          <input
+            id="lampiranCutiKecemasan"
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.pdf"
+          >
+
+          <small>
+            Boleh muat naik gambar sijil cuti sakit atau fail PDF.
+            JPG, PNG, WEBP atau PDF. Maksimum 10 MB.
+          </small>
+        </label>
+
+      </div>
+
+      <div
+        id="statusCutiKecemasan"
+        class="status hidden"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <div class="modal-actions">
+        <button
+          class="btn-secondary"
+          type="button"
+          onclick="tutupModalCutiKecemasan()"
+        >
+          BATAL
+        </button>
+
+        <button
+          class="btn-cuti-kecemasan"
+          id="btnSimpanCutiKecemasan"
+          type="button"
+          onclick="simpanCutiKecemasan()"
+        >
+          SIMPAN REKOD
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ===========================================================
        JAVASCRIPT
   ============================================================ -->
 
@@ -746,7 +881,7 @@
   ></script>
 
   <script
-    src="js/penyelia.js?v=20260824-f1-upb-object-fix-002"
+    src="js/penyelia.js?v=20260824-f1-cuti-kecemasan-001"
   ></script>
 
   <script
