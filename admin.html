@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260824-f1-ditolak-tidak-hadir-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260826-f1-pengunjung-lokasi-001">
 </head>
 
 <body>
@@ -896,12 +896,19 @@
             </div>
           </section>
 
-<section class="admin-chart-card" data-chart-section="PENGUNJUNG">
+<section
+            class="admin-chart-card admin-visitor-chart-card"
+            data-chart-section="PENGUNJUNG"
+          >
             <div class="admin-chart-card-heading">
               <div>
                 <h3>CARTA PENGUNJUNG</h3>
-                <p class="muted">Trend jumlah pengunjung daripada laporan Kawalan Keselamatan.</p>
+                <p class="muted">
+                  Jumlah keseluruhan pengunjung, trend terkumpul mengikut masa
+                  dan pecahan pengunjung mengikut lokasi.
+                </p>
               </div>
+
               <div class="admin-chart-manual-actions">
                 <button
                   class="gray compact-button admin-chart-print-button"
@@ -910,6 +917,7 @@
                 >
                   CETAK
                 </button>
+
                 <button
                   class="green-button compact-button"
                   type="button"
@@ -917,6 +925,7 @@
                 >
                   + PENGUNJUNG
                 </button>
+
                 <button
                   class="gray compact-button"
                   type="button"
@@ -926,7 +935,94 @@
                 </button>
               </div>
             </div>
-            <div class="admin-chart-canvas-wrap"><canvas id="canvasCartaPengunjung"></canvas></div>
+
+            <div class="admin-visitor-layout">
+
+              <!-- GRAF DI KIRI -->
+              <div class="admin-visitor-chart-panel">
+
+                <section class="admin-visitor-chart-block">
+                  <div class="admin-visitor-subheading">
+                    <div>
+                      <span>TREND OPERASI</span>
+                      <strong>JUMLAH TERKUMPUL MENGIKUT MASA</strong>
+                    </div>
+                  </div>
+
+                  <div class="admin-chart-canvas-wrap admin-visitor-time-canvas">
+                    <canvas id="canvasCartaPengunjung"></canvas>
+                  </div>
+                </section>
+
+                <section class="admin-visitor-chart-block admin-visitor-location-block">
+                  <div class="admin-visitor-subheading">
+                    <div>
+                      <span>PECAHAN LOKASI</span>
+                      <strong>PENGUNJUNG MENGIKUT LOKASI</strong>
+                    </div>
+
+                    <button
+                      class="gray compact-button"
+                      type="button"
+                      onclick="paparSemuaLokasiPengunjungPentadbir()"
+                    >
+                      SEMUA LOKASI
+                    </button>
+                  </div>
+
+                  <div class="admin-visitor-location-total">
+                    <span>Jumlah Keseluruhan</span>
+                    <strong id="jumlahKeseluruhanPengunjungLokasiPentadbir">0</strong>
+                  </div>
+
+                  <div class="admin-chart-canvas-wrap admin-visitor-location-canvas">
+                    <canvas id="canvasCartaPengunjungLokasi"></canvas>
+                  </div>
+
+                  <div class="admin-visitor-location-hint">
+                    Klik bar lokasi untuk melihat laporan lokasi tersebut.
+                  </div>
+                </section>
+
+              </div>
+
+              <!-- BUTIRAN DI KANAN -->
+              <aside class="admin-visitor-detail-panel">
+                <div class="admin-visitor-detail-heading">
+                  <div>
+                    <span>BUTIRAN PENGUNJUNG</span>
+                    <strong id="tajukButiranPengunjungPentadbir">
+                      SEMUA LOKASI
+                    </strong>
+                  </div>
+
+                  <div
+                    class="admin-visitor-detail-count"
+                    id="jumlahButiranPengunjungPentadbir"
+                  >
+                    0
+                  </div>
+                </div>
+
+                <div
+                  class="admin-visitor-selected-summary"
+                  id="ringkasanLokasiPengunjungPentadbir"
+                >
+                  <span>JUMLAH DIPAPARKAN</span>
+                  <strong>0 PENGUNJUNG</strong>
+                </div>
+
+                <div
+                  class="admin-visitor-detail-list"
+                  id="senaraiButiranPengunjungPentadbir"
+                >
+                  <div class="empty-row">
+                    Tiada laporan pengunjung.
+                  </div>
+                </div>
+              </aside>
+
+            </div>
           </section>
 
 <section
@@ -2206,7 +2302,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260824-f1-keadaan-cuti-kecemasan-001"></script>
+<script src="js/admin.js?v=20260826-f1-pengunjung-lokasi-001"></script>
 
 
 
