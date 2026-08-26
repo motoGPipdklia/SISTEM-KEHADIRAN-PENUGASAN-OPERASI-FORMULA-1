@@ -3965,3 +3965,97 @@ body.marker-dragging *{
     height:360px !important;
   }
 }
+
+
+/* ================================================================
+   FIX CARTA PENGUNJUNG
+   PANEL BUTIRAN KANAN SAMA TINGGI HINGGA KE BAWAH
+   26/08/2026
+================================================================ */
+
+/*
+  Pastikan kedua-dua kolum stretch mengikut panel yang paling tinggi.
+  Kolum kiri mengandungi:
+  1. Trend jumlah terkumpul
+  2. Pengunjung mengikut lokasi
+*/
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-layout{
+  align-items:stretch !important;
+}
+
+/*
+  Panel kanan mengisi keseluruhan tinggi grid.
+*/
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-panel{
+  display:flex !important;
+  min-width:0 !important;
+  width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+  align-self:stretch !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+}
+
+/*
+  Header dan ringkasan kekal pada saiz asal.
+*/
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-heading,
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-selected-summary{
+  flex:0 0 auto !important;
+}
+
+/*
+  Senarai laporan mengambil baki keseluruhan ruang panel kanan.
+  Scroll berlaku di dalam senarai sahaja.
+*/
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-list{
+  display:grid !important;
+  align-content:start !important;
+  gap:9px !important;
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  height:auto !important;
+  max-height:none !important;
+  padding:12px !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+}
+
+/*
+  Pastikan panel carta kiri menentukan tinggi keseluruhan baris
+  berdasarkan semua blok graf di dalamnya.
+*/
+.admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-chart-panel{
+  height:auto !important;
+  align-self:stretch !important;
+}
+
+/*
+  Desktop: kedua-dua panel kekal sama tinggi.
+*/
+@media(min-width:1121px){
+  .admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-layout{
+    grid-auto-rows:1fr !important;
+  }
+
+  .admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-chart-panel,
+  .admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-panel{
+    height:100% !important;
+  }
+}
+
+/*
+  Bila layout bertukar satu kolum, jangan paksa panel kanan
+  setinggi panel kiri.
+*/
+@media(max-width:1120px){
+  .admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-panel{
+    height:auto !important;
+    min-height:420px !important;
+  }
+
+  .admin-chart-card[data-chart-section="PENGUNJUNG"] .admin-visitor-detail-list{
+    max-height:620px !important;
+  }
+}
