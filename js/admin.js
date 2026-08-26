@@ -591,6 +591,35 @@ function formatTarikhMasa(nilai) {
   }).format(tarikh);
 }
 
+
+/*
+  Format masa ringkas untuk label paksi carta operasi.
+  Contoh: 13:25
+*/
+function formatMasaPendekCartaPentadbir(nilai) {
+  if (!nilai) return "-";
+
+  const masa = new Date(nilai);
+
+  if (
+    Number.isNaN(
+      masa.getTime()
+    )
+  ) {
+    return teks(nilai) || "-";
+  }
+
+  return new Intl.DateTimeFormat(
+    "ms-MY",
+    {
+      timeZone: ZON_MASA,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    }
+  ).format(masa);
+}
+
 function formatTempoh(minit) {
   const jumlah = Number(minit);
   if (!Number.isFinite(jumlah)) return "-";
