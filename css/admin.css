@@ -3633,3 +3633,335 @@ body.marker-dragging *{
   background:#4a1d1d;
   color:#ffaaaa;
 }
+
+/* ================================================================
+   CARTA PENGUNJUNG — TREND + PECAHAN MENGIKUT LOKASI
+   26/08/2026
+================================================================ */
+
+.admin-visitor-chart-card{
+  overflow:hidden;
+}
+
+.admin-visitor-layout{
+  display:grid;
+  grid-template-columns:minmax(560px,1.08fr) minmax(420px,.92fr);
+  gap:16px;
+  align-items:stretch;
+  margin-top:14px;
+}
+
+.admin-visitor-chart-panel,
+.admin-visitor-detail-panel{
+  min-width:0;
+  border:1px solid #303030;
+  border-radius:12px;
+  background:#121212;
+}
+
+.admin-visitor-chart-panel{
+  display:grid;
+  gap:14px;
+  padding:12px;
+}
+
+.admin-visitor-chart-block{
+  min-width:0;
+  padding:12px;
+  border:1px solid #2f2f2f;
+  border-radius:10px;
+  background:#151515;
+}
+
+.admin-visitor-subheading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.admin-visitor-subheading span{
+  display:block;
+  color:#999;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.05em;
+}
+
+.admin-visitor-subheading strong{
+  display:block;
+  margin-top:4px;
+  color:var(--gold);
+  font-size:14px;
+}
+
+.admin-visitor-time-canvas{
+  height:300px !important;
+  margin-top:0 !important;
+}
+
+.admin-visitor-location-block{
+  position:relative;
+}
+
+.admin-visitor-location-total{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+  padding:9px 12px;
+  border:1px solid #333;
+  border-radius:8px;
+  background:#101010;
+}
+
+.admin-visitor-location-total span{
+  color:#aaa;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+}
+
+.admin-visitor-location-total strong{
+  color:var(--gold);
+  font-size:22px;
+}
+
+.admin-visitor-location-canvas{
+  min-height:320px;
+  height:clamp(320px,42vh,520px) !important;
+  margin-top:0 !important;
+}
+
+.admin-visitor-location-hint{
+  margin-top:9px;
+  color:#aaa;
+  font-size:11px;
+  text-align:center;
+}
+
+.admin-visitor-detail-panel{
+  display:flex;
+  min-height:620px;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.admin-visitor-detail-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 15px;
+  border-bottom:1px solid #303030;
+  background:#171717;
+}
+
+.admin-visitor-detail-heading span{
+  display:block;
+  color:#9f9f9f;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.04em;
+}
+
+.admin-visitor-detail-heading strong{
+  display:block;
+  margin-top:4px;
+  color:#d4af37;
+  font-size:18px;
+}
+
+.admin-visitor-detail-count{
+  display:flex;
+  width:52px;
+  height:52px;
+  flex:0 0 52px;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#d4af37;
+  color:#111;
+  font-size:17px;
+  font-weight:900;
+}
+
+.admin-visitor-selected-summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 15px;
+  border-bottom:1px solid #303030;
+  background:#101010;
+}
+
+.admin-visitor-selected-summary span{
+  color:#999;
+  font-size:10px;
+  font-weight:800;
+}
+
+.admin-visitor-selected-summary strong{
+  color:#fff;
+  font-size:14px;
+}
+
+.admin-visitor-detail-list{
+  display:grid;
+  gap:9px;
+  max-height:720px;
+  padding:12px;
+  overflow:auto;
+}
+
+.admin-visitor-detail-item{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  gap:10px;
+  padding:12px;
+  border:1px solid #303030;
+  border-radius:10px;
+  background:#181818;
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease,
+    transform .18s ease;
+}
+
+.admin-visitor-detail-item.aktif{
+  border-color:#d4af37;
+  box-shadow:0 0 0 1px rgba(212,175,55,.28);
+  transform:translateY(-1px);
+}
+
+.admin-visitor-detail-number{
+  display:flex;
+  width:30px;
+  height:30px;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#303030;
+  color:#d4af37;
+  font-size:12px;
+  font-weight:900;
+}
+
+.admin-visitor-detail-main{
+  min-width:0;
+}
+
+.admin-visitor-detail-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.admin-visitor-detail-top strong{
+  color:#fff;
+  font-size:14px;
+}
+
+.admin-visitor-detail-top time{
+  color:#9f9f9f;
+  font-size:11px;
+  white-space:nowrap;
+}
+
+.admin-visitor-detail-body{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px 14px;
+  margin-top:10px;
+}
+
+.admin-visitor-detail-body div{
+  min-width:0;
+}
+
+.admin-visitor-detail-body span,
+.admin-visitor-note span{
+  display:block;
+  margin-bottom:3px;
+  color:#9f9f9f;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.admin-visitor-detail-body b{
+  display:block;
+  color:#fff;
+  font-size:12px;
+  font-weight:700;
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+
+.admin-visitor-detail-wide{
+  grid-column:1 / -1;
+}
+
+.admin-visitor-note{
+  margin-top:10px;
+  padding:9px 10px;
+  border-left:3px solid #d4af37;
+  border-radius:6px;
+  background:#111;
+}
+
+.admin-visitor-note p{
+  margin:0;
+  color:#ddd;
+  font-size:12px;
+  line-height:1.5;
+  white-space:pre-wrap;
+}
+
+#canvasCartaPengunjung,
+#canvasCartaPengunjungLokasi{
+  cursor:pointer;
+}
+
+@media(max-width:1120px){
+  .admin-visitor-layout{
+    grid-template-columns:1fr;
+  }
+
+  .admin-visitor-detail-panel{
+    min-height:420px;
+  }
+}
+
+@media(max-width:620px){
+  .admin-visitor-subheading,
+  .admin-visitor-selected-summary{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .admin-visitor-detail-body{
+    grid-template-columns:1fr;
+  }
+
+  .admin-visitor-detail-wide{
+    grid-column:auto;
+  }
+
+  .admin-visitor-detail-top{
+    flex-direction:column;
+  }
+
+  .admin-visitor-time-canvas{
+    height:260px !important;
+  }
+
+  .admin-visitor-location-canvas{
+    min-height:360px;
+    height:360px !important;
+  }
+}
