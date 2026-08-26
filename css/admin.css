@@ -4331,3 +4331,144 @@ body.marker-dragging *{
     height:360px !important;
   }
 }
+
+
+/* ================================================================
+   CARTA KENDERAAN PENGUNJUNG
+   PENUHKAN RUANG PANEL KIRI
+   26/08/2026
+================================================================ */
+
+/*
+  Beri lebih ruang kepada bahagian graf kiri.
+*/
+.admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-layout{
+  grid-template-columns:
+    minmax(0, 1.28fr)
+    minmax(420px, .72fr) !important;
+}
+
+/*
+  Panel kiri menggunakan keseluruhan lebar yang tersedia.
+*/
+.admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-chart-panel{
+  width:100% !important;
+  min-width:0 !important;
+  padding:14px !important;
+  gap:16px !important;
+  box-sizing:border-box !important;
+}
+
+/*
+  Setiap blok graf mengambil keseluruhan lebar panel.
+*/
+.admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-chart-block{
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  padding:14px !important;
+}
+
+/*
+  Buang rasa "graf kecil di tengah".
+  Wrapper canvas memenuhi kotak.
+*/
+.admin-chart-card[data-chart-section="KENDERAAN"] .admin-chart-canvas-wrap{
+  width:100% !important;
+  max-width:none !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+
+/*
+  Graf trend diperbesarkan.
+*/
+.admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-time-canvas{
+  width:100% !important;
+  height:390px !important;
+  min-height:390px !important;
+}
+
+/*
+  Graf lokasi diperbesarkan.
+*/
+.admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-location-canvas{
+  width:100% !important;
+  height:460px !important;
+  min-height:460px !important;
+  max-height:none !important;
+}
+
+/*
+  Canvas Chart.js memenuhi wrapper sepenuhnya.
+*/
+.admin-chart-card[data-chart-section="KENDERAAN"] #canvasCartaKenderaan,
+.admin-chart-card[data-chart-section="KENDERAAN"] #canvasCartaKenderaanLokasi{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  height:100% !important;
+}
+
+/*
+  Tajuk graf juga memenuhi lebar.
+*/
+.admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-subheading{
+  width:100% !important;
+}
+
+/*
+  Desktop besar: beri lebih banyak ruang lagi kepada graf.
+*/
+@media(min-width:1400px){
+  .admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-layout{
+    grid-template-columns:
+      minmax(0, 1.38fr)
+      minmax(460px, .62fr) !important;
+  }
+
+  .admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-time-canvas{
+    height:420px !important;
+    min-height:420px !important;
+  }
+
+  .admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-location-canvas{
+    height:500px !important;
+    min-height:500px !important;
+  }
+}
+
+/*
+  Tablet / skrin sederhana:
+  kembali kepada satu kolum supaya tidak terlalu sempit.
+*/
+@media(max-width:1120px){
+  .admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-layout{
+    grid-template-columns:1fr !important;
+  }
+
+  .admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-time-canvas{
+    height:340px !important;
+    min-height:340px !important;
+  }
+
+  .admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-location-canvas{
+    height:420px !important;
+    min-height:420px !important;
+  }
+}
+
+/*
+  Telefon.
+*/
+@media(max-width:620px){
+  .admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-time-canvas{
+    height:300px !important;
+    min-height:300px !important;
+  }
+
+  .admin-chart-card[data-chart-section="KENDERAAN"] .admin-vehicle-location-canvas{
+    height:380px !important;
+    min-height:380px !important;
+  }
+}
