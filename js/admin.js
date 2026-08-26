@@ -435,6 +435,8 @@ function cetakCartaPentadbir(
 
 let dataCartaLaporanPentadbir = [];
 let cartaPengunjungPentadbir = null;
+let cartaPengunjungLokasiPentadbir = null;
+let lokasiPengunjungDipilihPentadbir = "SEMUA";
 let cartaKenderaanPentadbir = null;
 let kategoriKenderaanDipilihPentadbir = "BAS";
 let dataPengunjungManualPentadbir = [];
@@ -5050,303 +5052,305 @@ function binaPanelPengunjungPentadbir() {
 
   if (!kanvas) return null;
 
-  const kad =
-    kanvas.closest(
-      '[data-chart-section="PENGUNJUNG"]'
+  return kanvas.closest(
+    '[data-chart-section="PENGUNJUNG"]'
+  );
+}
+
+
+function lokasiLaporanPengunjungPentadbir(item) {
+  const data =
+    dataLaporanCarta(item);
+
+  const petugas =
+    rekodPetugasUntukLaporanPengunjungPentadbir(
+      item
     );
 
-  if (!kad) return null;
+  return (
+    atas(
+      data.lokasi ??
+      data.tempat_tugas ??
+      item.lokasi ??
+      item.tempat_tugas ??
+      petugas?.tempatTugas
+    ) ||
+    "TIDAK DINYATAKAN"
+  );
+}
 
-  let layout =
-    kad.querySelector(
-      ".admin-visitor-layout"
+
+function ringkasanPengunjungMengikutLokasiPentadbir() {
+  const kumpulan =
+    new Map();
+
+  senaraiPengunjungCartaPentadbir()
+    .forEach(item => {
+      const lokasi =
+        lokasiLaporanPengunjungPentadbir(
+          item
+        );
+
+      const jumlah =
+        nilaiJumlahPengunjungPentadbir(
+          item
+        );
+
+      const sediaAda =
+        kumpulan.get(lokasi) || {
+          lokasi,
+          jumlah: 0,
+          bilLaporan: 0
+        };
+
+      sediaAda.jumlah += jumlah;
+      sediaAda.bilLaporan += 1;
+
+      kumpulan.set(
+        lokasi,
+        sediaAda
+      );
+    });
+
+  return Array
+    .from(
+      kumpulan.values()
+    )
+    .sort(
+      (a, b) =>
+        b.jumlah - a.jumlah ||
+        a.lokasi.localeCompare(
+          b.lokasi,
+          "ms"
+        )
     );
+}
 
-  if (!layout) {
-    const bungkusAsal =
-      kanvas.parentElement;
 
-    layout =
-      document.createElement("div");
+function paparSemuaLokasiPengunjungPentadbir() {
+  lokasiPengunjungDipilihPentadbir =
+    "SEMUA";
 
-    layout.className =
-      "admin-visitor-layout";
+  paparButiranPengunjungPentadbir();
 
-    const panelCarta =
-      document.createElement("div");
+  paparCartaPengunjungLokasiPentadbir();
+}
 
-    panelCarta.className =
-      "admin-visitor-chart-panel";
 
-    bungkusAsal.parentNode.insertBefore(
-      layout,
-      bungkusAsal
-    );
+function pilihLokasiPengunjungPentadbir(lokasi) {
+  lokasiPengunjungDipilihPentadbir =
+    atas(lokasi) ||
+    "SEMUA";
 
-    layout.appendChild(
-      panelCarta
-    );
+  paparButiranPengunjungPentadbir();
 
-    panelCarta.appendChild(
-      bungkusAsal
-    );
+  paparCartaPengunjungLokasiPentadbir();
+}
 
-    const panelButiran =
-      document.createElement("aside");
 
-    panelButiran.className =
-      "admin-visitor-detail-panel";
+function paparCartaPengunjungLokasiPentadbir() {
+  const kanvas =
+    el("canvasCartaPengunjungLokasi");
 
-    panelButiran.innerHTML = `
-      <div class="admin-visitor-detail-heading">
-        <div>
-          <span>BUTIRAN PENGUNJUNG</span>
-          <strong>SEMUA LAPORAN</strong>
-        </div>
-        <div
-          class="admin-visitor-detail-count"
-          id="jumlahButiranPengunjungPentadbir"
-        >0</div>
-      </div>
+  if (!kanvas) return;
 
-      <div
-        class="admin-visitor-detail-list"
-        id="senaraiButiranPengunjungPentadbir"
-      >
-        <div class="empty-row">
-          Tiada laporan pengunjung.
-        </div>
-      </div>
-    `;
-
-    layout.appendChild(
-      panelButiran
-    );
-
-    if (!el("gayaCartaPengunjungPentadbir")) {
-      const gaya =
-        document.createElement("style");
-
-      gaya.id =
-        "gayaCartaPengunjungPentadbir";
-
-      gaya.textContent = `
-        .admin-visitor-layout{
-          display:grid;
-          grid-template-columns:minmax(420px,.95fr) minmax(420px,1.05fr);
-          gap:16px;
-          align-items:stretch;
-          margin-top:14px;
-        }
-
-        .admin-visitor-chart-panel,
-        .admin-visitor-detail-panel{
-          min-width:0;
-          border:1px solid #303030;
-          border-radius:12px;
-          background:#121212;
-        }
-
-        .admin-visitor-chart-panel{
-          display:flex;
-          min-height:390px;
-          flex-direction:column;
-          justify-content:center;
-          padding:12px;
-        }
-
-        .admin-visitor-chart-panel .admin-chart-canvas-wrap{
-          height:330px;
-          margin-top:0;
-        }
-
-        .admin-visitor-detail-panel{
-          display:flex;
-          min-height:390px;
-          flex-direction:column;
-          overflow:hidden;
-        }
-
-        .admin-visitor-detail-heading{
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          gap:12px;
-          padding:14px 15px;
-          border-bottom:1px solid #303030;
-          background:#171717;
-        }
-
-        .admin-visitor-detail-heading span{
-          display:block;
-          color:#9f9f9f;
-          font-size:10px;
-          font-weight:800;
-          letter-spacing:.04em;
-        }
-
-        .admin-visitor-detail-heading strong{
-          display:block;
-          margin-top:4px;
-          color:#d4af37;
-          font-size:18px;
-        }
-
-        .admin-visitor-detail-count{
-          display:flex;
-          width:52px;
-          height:52px;
-          flex:0 0 52px;
-          align-items:center;
-          justify-content:center;
-          border-radius:50%;
-          background:#d4af37;
-          color:#111;
-          font-size:17px;
-          font-weight:900;
-        }
-
-        .admin-visitor-detail-list{
-          display:grid;
-          gap:9px;
-          max-height:430px;
-          padding:12px;
-          overflow:auto;
-        }
-
-        .admin-visitor-detail-item{
-          display:grid;
-          grid-template-columns:34px minmax(0,1fr);
-          gap:10px;
-          padding:12px;
-          border:1px solid #303030;
-          border-radius:10px;
-          background:#181818;
-          transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease;
-        }
-
-        .admin-visitor-detail-item.aktif{
-          border-color:#d4af37;
-          box-shadow:0 0 0 1px rgba(212,175,55,.28);
-          transform:translateY(-1px);
-        }
-
-        .admin-visitor-detail-number{
-          display:flex;
-          width:30px;
-          height:30px;
-          align-items:center;
-          justify-content:center;
-          border-radius:50%;
-          background:#303030;
-          color:#d4af37;
-          font-size:12px;
-          font-weight:900;
-        }
-
-        .admin-visitor-detail-main{
-          min-width:0;
-        }
-
-        .admin-visitor-detail-top{
-          display:flex;
-          align-items:flex-start;
-          justify-content:space-between;
-          gap:12px;
-        }
-
-        .admin-visitor-detail-top strong{
-          color:#fff;
-          font-size:14px;
-        }
-
-        .admin-visitor-detail-top time{
-          color:#9f9f9f;
-          font-size:11px;
-          white-space:nowrap;
-        }
-
-        .admin-visitor-detail-body{
-          display:grid;
-          grid-template-columns:repeat(2,minmax(0,1fr));
-          gap:8px 14px;
-          margin-top:10px;
-        }
-
-        .admin-visitor-detail-body div{
-          min-width:0;
-        }
-
-        .admin-visitor-detail-body span,
-        .admin-visitor-note span{
-          display:block;
-          margin-bottom:3px;
-          color:#9f9f9f;
-          font-size:10px;
-          font-weight:800;
-          text-transform:uppercase;
-        }
-
-        .admin-visitor-detail-body b{
-          display:block;
-          color:#fff;
-          font-size:12px;
-          font-weight:700;
-          line-height:1.45;
-          overflow-wrap:anywhere;
-        }
-
-        .admin-visitor-detail-wide{
-          grid-column:1 / -1;
-        }
-
-        .admin-visitor-note{
-          margin-top:10px;
-          padding:9px 10px;
-          border-left:3px solid #d4af37;
-          border-radius:6px;
-          background:#111;
-        }
-
-        .admin-visitor-note p{
-          margin:0;
-          color:#ddd;
-          font-size:12px;
-          line-height:1.5;
-          white-space:pre-wrap;
-        }
-
-        #canvasCartaPengunjung{
-          cursor:pointer !important;
-        }
-
-        @media(max-width:1050px){
-          .admin-visitor-layout{
-            grid-template-columns:1fr;
-          }
-        }
-
-        @media(max-width:620px){
-          .admin-visitor-detail-body{
-            grid-template-columns:1fr;
-          }
-
-          .admin-visitor-detail-wide{
-            grid-column:auto;
-          }
-
-          .admin-visitor-detail-top{
-            flex-direction:column;
-          }
-        }
-      `;
-
-      document.head.appendChild(gaya);
-    }
+  try {
+    pastikanChartJsPentadbir();
+  } catch (error) {
+    return;
   }
 
-  return layout;
+  const ringkasan =
+    ringkasanPengunjungMengikutLokasiPentadbir();
+
+  const labels =
+    ringkasan.map(
+      item => item.lokasi
+    );
+
+  const nilai =
+    ringkasan.map(
+      item => item.jumlah
+    );
+
+  const jumlahKeseluruhan =
+    ringkasan.reduce(
+      (jumlah, item) =>
+        jumlah + item.jumlah,
+      0
+    );
+
+  if (
+    el(
+      "jumlahKeseluruhanPengunjungLokasiPentadbir"
+    )
+  ) {
+    el(
+      "jumlahKeseluruhanPengunjungLokasiPentadbir"
+    ).textContent =
+      jumlahKeseluruhan.toLocaleString(
+        "ms-MY"
+      );
+  }
+
+  kemusnahkanCartaPentadbir(
+    cartaPengunjungLokasiPentadbir
+  );
+
+  cartaPengunjungLokasiPentadbir =
+    new Chart(
+      kanvas,
+      {
+        type: "bar",
+
+        data: {
+          labels,
+
+          datasets: [
+            {
+              label:
+                "Jumlah Pengunjung Mengikut Lokasi",
+
+              data: nilai,
+
+              borderWidth: 2,
+
+              borderRadius: 6,
+
+              borderSkipped: false
+            }
+          ]
+        },
+
+        options: {
+          ...pilihanCartaPentadbir(
+            "Jumlah Pengunjung"
+          ),
+
+          indexAxis: "y",
+
+          maintainAspectRatio: false,
+
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                color: "#d8d8d8",
+                precision: 0
+              },
+              grid: {
+                color:
+                  "rgba(255,255,255,.08)"
+              },
+              title: {
+                display: true,
+                text:
+                  "Jumlah Pengunjung",
+                color: "#d8d8d8"
+              }
+            },
+
+            y: {
+              ticks: {
+                color: "#ffffff",
+                font: {
+                  weight: "700"
+                }
+              },
+              grid: {
+                color:
+                  "rgba(255,255,255,.05)"
+              }
+            }
+          },
+
+          onClick(event) {
+            const elemen =
+              cartaPengunjungLokasiPentadbir
+                ?.getElementsAtEventForMode(
+                  event,
+                  "nearest",
+                  {
+                    intersect: true
+                  },
+                  true
+                ) || [];
+
+            if (!elemen.length) return;
+
+            const rekod =
+              ringkasan[
+                elemen[0].index
+              ];
+
+            if (!rekod) return;
+
+            pilihLokasiPengunjungPentadbir(
+              rekod.lokasi
+            );
+          },
+
+          onHover(event, elements) {
+            const sasaran =
+              event?.native?.target;
+
+            if (sasaran) {
+              sasaran.style.cursor =
+                elements?.length
+                  ? "pointer"
+                  : "default";
+            }
+          },
+
+          plugins: {
+            ...pilihanCartaPentadbir(
+              "Jumlah Pengunjung"
+            ).plugins,
+
+            legend: {
+              labels: {
+                color: "#ffffff",
+                font: {
+                  weight: "700"
+                }
+              }
+            },
+
+            tooltip: {
+              enabled: true,
+
+              callbacks: {
+                label(context) {
+                  const rekod =
+                    ringkasan[
+                      context.dataIndex
+                    ];
+
+                  return [
+                    `${Number(context.raw || 0).toLocaleString("ms-MY")} pengunjung`,
+                    `${rekod?.bilLaporan || 0} laporan`
+                  ];
+                },
+
+                afterLabel() {
+                  return (
+                    "Klik untuk papar butiran lokasi ini"
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    );
+
+  /*
+    Highlight lokasi dipilih pada senarai label
+    melalui tajuk/panel butiran. Chart.js tidak
+    memerlukan perubahan data asal.
+  */
 }
+
 
 
 function rekodPetugasUntukLaporanPengunjungPentadbir(item) {
@@ -5417,18 +5421,83 @@ function jumlahKenderaanPengunjungPentadbir(item) {
 function paparButiranPengunjungPentadbir(indexDipilih = -1) {
   binaPanelPengunjungPentadbir();
 
-  const senarai =
+  const semua =
     senaraiPengunjungCartaPentadbir();
 
+  const lokasiDipilih =
+    atas(
+      lokasiPengunjungDipilihPentadbir
+    ) || "SEMUA";
+
+  const senarai =
+    lokasiDipilih === "SEMUA"
+      ? semua
+      : semua.filter(
+          item =>
+            lokasiLaporanPengunjungPentadbir(
+              item
+            ) === lokasiDipilih
+        );
+
   const ruang =
-    el("senaraiButiranPengunjungPentadbir");
+    el(
+      "senaraiButiranPengunjungPentadbir"
+    );
 
   const jumlahBox =
-    el("jumlahButiranPengunjungPentadbir");
+    el(
+      "jumlahButiranPengunjungPentadbir"
+    );
+
+  const tajuk =
+    el(
+      "tajukButiranPengunjungPentadbir"
+    );
+
+  const ringkasan =
+    el(
+      "ringkasanLokasiPengunjungPentadbir"
+    );
+
+  const jumlahDipaparkan =
+    senarai.reduce(
+      (jumlah, item) =>
+        jumlah +
+        nilaiJumlahPengunjungPentadbir(
+          item
+        ),
+      0
+    );
+
+  if (tajuk) {
+    tajuk.textContent =
+      lokasiDipilih === "SEMUA"
+        ? "SEMUA LOKASI"
+        : lokasiDipilih;
+  }
 
   if (jumlahBox) {
     jumlahBox.textContent =
-      senarai.length.toLocaleString("ms-MY");
+      senarai.length.toLocaleString(
+        "ms-MY"
+      );
+  }
+
+  if (ringkasan) {
+    ringkasan.innerHTML = `
+      <span>
+        ${
+          lokasiDipilih === "SEMUA"
+            ? "JUMLAH KESELURUHAN"
+            : "JUMLAH LOKASI"
+        }
+      </span>
+
+      <strong>
+        ${jumlahDipaparkan.toLocaleString("ms-MY")}
+        PENGUNJUNG
+      </strong>
+    `;
   }
 
   if (!ruang) return;
@@ -5436,175 +5505,246 @@ function paparButiranPengunjungPentadbir(indexDipilih = -1) {
   if (!senarai.length) {
     ruang.innerHTML = `
       <div class="empty-row">
-        Tiada laporan pengunjung untuk tarikh ini.
+        Tiada laporan pengunjung untuk
+        ${
+          lokasiDipilih === "SEMUA"
+            ? "tarikh ini"
+            : escapeHtml(lokasiDipilih)
+        }.
       </div>
     `;
+
     return;
   }
 
   ruang.innerHTML =
-    senarai.map((item, index) => {
-      const data =
-        dataLaporanCarta(item);
+    senarai.map(
+      (item, index) => {
+        const data =
+          dataLaporanCarta(item);
 
-      const petugas =
-        rekodPetugasUntukLaporanPengunjungPentadbir(
-          item
-        );
+        const petugas =
+          rekodPetugasUntukLaporanPengunjungPentadbir(
+            item
+          );
 
-      const jumlahPengunjung =
-        nilaiJumlahPengunjungPentadbir(
-          item
-        );
+        const jumlahPengunjung =
+          nilaiJumlahPengunjungPentadbir(
+            item
+          );
 
-      const jumlahKenderaan =
-        jumlahKenderaanPengunjungPentadbir(
-          item
-        );
+        const jumlahKenderaan =
+          jumlahKenderaanPengunjungPentadbir(
+            item
+          );
 
-      const namaPetugas =
-        petugas
-          ? `${teks(petugas.pangkat)} ${teks(petugas.nama)}`.trim()
-          : teks(
-              item.nama_petugas ||
-              item.nama
-            ) || "-";
+        const namaPetugas =
+          petugas
+            ? `${teks(petugas.pangkat)} ${teks(petugas.nama)}`.trim()
+            : teks(
+                item.nama_petugas ||
+                item.nama
+              ) || "-";
 
-      const noBadan =
-        teks(petugas?.noBadan) ||
-        teks(item.no_badan) ||
-        "-";
+        const noBadan =
+          teks(petugas?.noBadan) ||
+          teks(item.no_badan) ||
+          "-";
 
-      const telefon =
-        teks(petugas?.telefon) ||
-        teks(item.no_telefon) ||
-        teks(item.telefon) ||
-        "-";
+        const telefon =
+          teks(petugas?.telefon) ||
+          teks(item.no_telefon) ||
+          teks(item.telefon) ||
+          "-";
 
-      const callSign =
-        teks(petugas?.callSign) ||
-        teks(item.call_sign) ||
-        "-";
+        const callSign =
+          teks(petugas?.callSign) ||
+          teks(item.call_sign) ||
+          "-";
 
-      const lokasi =
-        teks(
-          data.lokasi ??
-          data.tempat_tugas ??
-          item.tempat_tugas ??
-          petugas?.tempatTugas
-        ) || "-";
+        const lokasi =
+          lokasiLaporanPengunjungPentadbir(
+            item
+          );
 
-      const jenisTugas =
-        jenisTugasCarta(item) ||
-        petugas?.jenisTugas ||
-        "KAWALAN KESELAMATAN";
+        const jenisTugas =
+          jenisTugasCarta(item) ||
+          petugas?.jenisTugas ||
+          "KAWALAN KESELAMATAN";
 
-      const vvipVip =
-        teksNilaiCarta(
-          data.vvip_vip ??
-          item.vvip_vip
-        ) || "TIADA";
+        const vvipVip =
+          teksNilaiCarta(
+            data.vvip_vip ??
+            item.vvip_vip
+          ) || "TIADA";
 
-      const perkaraMenarik =
-        teksNilaiCarta(
-          data.perkara_menarik ??
-          data.catatan ??
-          item.perkara_menarik
-        );
+        const perkaraMenarik =
+          teksNilaiCarta(
+            data.perkara_menarik ??
+            data.catatan ??
+            item.perkara_menarik
+          );
 
-      return `
-        <article
-          class="admin-visitor-detail-item ${index === indexDipilih ? "aktif" : ""}"
-          data-index-pengunjung="${index}"
-        >
-          <div class="admin-visitor-detail-number">
-            ${index + 1}
-          </div>
-
-          <div class="admin-visitor-detail-main">
-            <div class="admin-visitor-detail-top">
-              <strong>
-                ${jumlahPengunjung.toLocaleString("ms-MY")} PENGUNJUNG
-              </strong>
-
-              <time>
-                ${escapeHtml(
-                  formatMasaLaporanAdmin(
-                    item.tarikh_masa
-                  )
-                )}
-              </time>
-            </div>
-
-            <div class="admin-visitor-detail-body">
-              <div>
-                <span>Jumlah Pengunjung</span>
-                <b>${jumlahPengunjung.toLocaleString("ms-MY")}</b>
-              </div>
-
-              <div>
-                <span>Jumlah Kenderaan</span>
-                <b>${jumlahKenderaan.toLocaleString("ms-MY")}</b>
-              </div>
-
-              <div>
-                <span>Lokasi</span>
-                <b>${escapeHtml(lokasi)}</b>
-              </div>
-
-              <div>
-                <span>Call Sign</span>
-                <b>${escapeHtml(callSign)}</b>
-              </div>
-
-              <div>
-                <span>Petugas</span>
-                <b>${escapeHtml(namaPetugas)}</b>
-              </div>
-
-              <div>
-                <span>No Badan</span>
-                <b>${escapeHtml(noBadan)}</b>
-              </div>
-
-              <div>
-                <span>No. Telefon</span>
-                <b>${escapeHtml(telefon)}</b>
-              </div>
-
-              <div>
-                <span>VVIP / VIP</span>
-                <b>${escapeHtml(vvipVip)}</b>
-              </div>
-
-              <div class="admin-visitor-detail-wide">
-                <span>Jenis Tugas</span>
-                <b>${escapeHtml(jenisTugas)}</b>
-              </div>
-            </div>
-
-            ${
-              perkaraMenarik
-                ? `
-                  <div class="admin-visitor-note">
-                    <span>Perkara Menarik / Catatan</span>
-                    <p>${escapeHtml(perkaraMenarik)}</p>
-                  </div>
-                `
+        return `
+          <article
+            class="admin-visitor-detail-item ${
+              index === indexDipilih
+                ? "aktif"
                 : ""
-            }
-            ${item._manual ? `
-              <div class="admin-manual-record-actions">
-                <span class="badge badge-yellow">REKOD MANUAL</span>
-                <button class="red compact-button" type="button" onclick="padamPengunjungManualPentadbir('${item._manualId}')">PADAM</button>
-              </div>
-            ` : ""}
-          </div>
-        </article>
-      `;
-    }).join("");
+            }"
+            data-index-pengunjung="${index}"
+            data-lokasi-pengunjung="${escapeHtml(lokasi)}"
+          >
+            <div
+              class="admin-visitor-detail-number"
+            >
+              ${index + 1}
+            </div>
 
-  if (indexDipilih >= 0) {
+            <div
+              class="admin-visitor-detail-main"
+            >
+              <div
+                class="admin-visitor-detail-top"
+              >
+                <strong>
+                  ${jumlahPengunjung.toLocaleString("ms-MY")}
+                  PENGUNJUNG
+                </strong>
+
+                <time>
+                  ${escapeHtml(
+                    formatMasaLaporanAdmin(
+                      item.tarikh_masa
+                    )
+                  )}
+                </time>
+              </div>
+
+              <div
+                class="admin-visitor-detail-body"
+              >
+                <div>
+                  <span>
+                    Jumlah Pengunjung
+                  </span>
+                  <b>
+                    ${jumlahPengunjung.toLocaleString("ms-MY")}
+                  </b>
+                </div>
+
+                <div>
+                  <span>
+                    Jumlah Kenderaan
+                  </span>
+                  <b>
+                    ${jumlahKenderaan.toLocaleString("ms-MY")}
+                  </b>
+                </div>
+
+                <div>
+                  <span>Lokasi</span>
+                  <b>
+                    ${escapeHtml(lokasi)}
+                  </b>
+                </div>
+
+                <div>
+                  <span>Call Sign</span>
+                  <b>
+                    ${escapeHtml(callSign)}
+                  </b>
+                </div>
+
+                <div>
+                  <span>Petugas</span>
+                  <b>
+                    ${escapeHtml(namaPetugas)}
+                  </b>
+                </div>
+
+                <div>
+                  <span>No Badan</span>
+                  <b>
+                    ${escapeHtml(noBadan)}
+                  </b>
+                </div>
+
+                <div>
+                  <span>No. Telefon</span>
+                  <b>
+                    ${escapeHtml(telefon)}
+                  </b>
+                </div>
+
+                <div>
+                  <span>VVIP / VIP</span>
+                  <b>
+                    ${escapeHtml(vvipVip)}
+                  </b>
+                </div>
+
+                <div
+                  class="admin-visitor-detail-wide"
+                >
+                  <span>Jenis Tugas</span>
+                  <b>
+                    ${escapeHtml(jenisTugas)}
+                  </b>
+                </div>
+              </div>
+
+              ${
+                perkaraMenarik
+                  ? `
+                    <div
+                      class="admin-visitor-note"
+                    >
+                      <span>
+                        Perkara Menarik / Catatan
+                      </span>
+
+                      <p>
+                        ${escapeHtml(perkaraMenarik)}
+                      </p>
+                    </div>
+                  `
+                  : ""
+              }
+
+              ${
+                item._manual
+                  ? `
+                    <div
+                      class="admin-manual-record-actions"
+                    >
+                      <span
+                        class="badge badge-yellow"
+                      >
+                        REKOD MANUAL
+                      </span>
+
+                      <button
+                        class="red compact-button"
+                        type="button"
+                        onclick="padamPengunjungManualPentadbir('${item._manualId}')"
+                      >
+                        PADAM
+                      </button>
+                    </div>
+                  `
+                  : ""
+              }
+            </div>
+          </article>
+        `;
+      }
+    )
+    .join("");
+
+  if (
+    indexDipilih >= 0
+  ) {
     const aktif =
       ruang.querySelector(
         `[data-index-pengunjung="${indexDipilih}"]`
@@ -5618,6 +5758,7 @@ function paparButiranPengunjungPentadbir(indexDipilih = -1) {
 }
 
 
+
 function pilihRekodPengunjungPentadbir(index) {
   const senarai =
     senaraiPengunjungCartaPentadbir();
@@ -5628,6 +5769,9 @@ function pilihRekodPengunjungPentadbir(index) {
   ) {
     return;
   }
+
+  lokasiPengunjungDipilihPentadbir =
+    "SEMUA";
 
   paparButiranPengunjungPentadbir(
     index
@@ -5774,9 +5918,12 @@ function paparCartaPengunjungPentadbir() {
     });
 
   /*
-    Semua butiran terus dipaparkan,
-    walaupun pengguna belum klik carta.
+    Paparkan kedua-dua perspektif:
+    1. Trend jumlah terkumpul mengikut masa.
+    2. Jumlah pengunjung mengikut lokasi.
   */
+  paparCartaPengunjungLokasiPentadbir();
+
   paparButiranPengunjungPentadbir();
 }
 
