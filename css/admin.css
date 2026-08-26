@@ -4059,3 +4059,275 @@ body.marker-dragging *{
     max-height:620px !important;
   }
 }
+
+
+/* ================================================================
+   CARTA KENDERAAN PENGUNJUNG — SAMA SEPERTI CARTA PENGUNJUNG
+   TREND + PECAHAN LOKASI + BUTIRAN SAMA TINGGI
+   26/08/2026
+================================================================ */
+
+.admin-vehicle-chart-card{
+  overflow:hidden;
+}
+
+.admin-vehicle-layout{
+  display:grid;
+  grid-template-columns:minmax(560px,1.08fr) minmax(420px,.92fr);
+  gap:16px;
+  align-items:stretch;
+  margin-top:14px;
+}
+
+.admin-vehicle-chart-panel,
+.admin-vehicle-detail-panel{
+  min-width:0;
+  border:1px solid #303030;
+  border-radius:12px;
+  background:#121212;
+}
+
+.admin-vehicle-chart-panel{
+  display:grid;
+  gap:14px;
+  height:auto;
+  padding:12px;
+  align-self:stretch;
+}
+
+.admin-vehicle-chart-block{
+  min-width:0;
+  padding:12px;
+  border:1px solid #2f2f2f;
+  border-radius:10px;
+  background:#151515;
+}
+
+.admin-vehicle-subheading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.admin-vehicle-subheading span{
+  display:block;
+  color:#999;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.05em;
+}
+
+.admin-vehicle-subheading strong{
+  display:block;
+  margin-top:4px;
+  color:var(--gold);
+  font-size:14px;
+}
+
+.admin-vehicle-time-canvas{
+  height:300px !important;
+  margin-top:0 !important;
+}
+
+.admin-vehicle-location-total{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:10px;
+  padding:9px 12px;
+  border:1px solid #333;
+  border-radius:8px;
+  background:#101010;
+}
+
+.admin-vehicle-location-total span{
+  color:#aaa;
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+}
+
+.admin-vehicle-location-total strong{
+  color:var(--gold);
+  font-size:22px;
+}
+
+.admin-vehicle-location-canvas{
+  min-height:320px;
+  height:clamp(320px,42vh,520px) !important;
+  margin-top:0 !important;
+}
+
+.admin-vehicle-detail-panel{
+  display:flex !important;
+  min-width:0 !important;
+  width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+  align-self:stretch !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+}
+
+.admin-vehicle-detail-heading{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 15px;
+  border-bottom:1px solid #303030;
+  background:#171717;
+}
+
+.admin-vehicle-detail-heading span{
+  display:block;
+  color:#9f9f9f;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.04em;
+}
+
+.admin-vehicle-detail-heading strong{
+  display:block;
+  margin-top:4px;
+  color:#d4af37;
+  font-size:18px;
+}
+
+.admin-vehicle-detail-count{
+  display:flex;
+  width:52px;
+  height:52px;
+  flex:0 0 52px;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#d4af37;
+  color:#111;
+  font-size:17px;
+  font-weight:900;
+}
+
+.admin-vehicle-selected-summary{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 15px;
+  border-bottom:1px solid #303030;
+  background:#101010;
+}
+
+.admin-vehicle-selected-summary span{
+  color:#999;
+  font-size:10px;
+  font-weight:800;
+}
+
+.admin-vehicle-selected-summary strong{
+  color:#fff;
+  font-size:14px;
+}
+
+.admin-vehicle-detail-list{
+  display:grid !important;
+  align-content:start !important;
+  gap:9px !important;
+  flex:1 1 0 !important;
+  min-height:0 !important;
+  height:auto !important;
+  max-height:none !important;
+  padding:12px !important;
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+}
+
+.admin-vehicle-note{
+  margin-top:10px;
+  padding:9px 10px;
+  border-left:3px solid #d4af37;
+  border-radius:6px;
+  background:#111;
+}
+
+.admin-vehicle-note span{
+  display:block;
+  margin-bottom:3px;
+  color:#9f9f9f;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+}
+
+.admin-vehicle-note p{
+  margin:0;
+  color:#ddd;
+  font-size:12px;
+  line-height:1.5;
+  white-space:pre-wrap;
+}
+
+#canvasCartaKenderaan,
+#canvasCartaKenderaanLokasi{
+  cursor:pointer;
+}
+
+@media(min-width:1121px){
+  .admin-vehicle-layout{
+    grid-auto-rows:1fr !important;
+  }
+
+  .admin-vehicle-chart-panel,
+  .admin-vehicle-detail-panel{
+    height:100% !important;
+  }
+}
+
+@media(max-width:1120px){
+  .admin-vehicle-layout{
+    grid-template-columns:1fr;
+  }
+
+  .admin-vehicle-detail-panel{
+    height:auto !important;
+    min-height:420px !important;
+  }
+
+  .admin-vehicle-detail-list{
+    max-height:620px !important;
+  }
+}
+
+@media(max-width:620px){
+  .admin-vehicle-subheading,
+  .admin-vehicle-selected-summary{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .admin-vehicle-detail-body{
+    grid-template-columns:1fr;
+  }
+
+  .admin-vehicle-detail-wide{
+    grid-column:auto;
+  }
+
+  .admin-vehicle-detail-top{
+    flex-direction:column;
+  }
+
+  .admin-vehicle-time-canvas{
+    height:260px !important;
+  }
+
+  .admin-vehicle-location-canvas{
+    min-height:360px;
+    height:360px !important;
+  }
+}
