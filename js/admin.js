@@ -1474,24 +1474,11 @@ function paparJadual() {
 
   tbody.innerHTML = dataPaparan.map((item, index) => {
     const kelas = kelasBadge(item.statusKehadiran);
-
-    /*
-      Kolum KEADAAN:
-      - CUTI SAKIT  -> CUTI SAKIT
-      - KECEMASAN   -> KECEMASAN
-      - Check-Out   -> SELESAI TUGAS
-      - Hadir       -> MASIH BERTUGAS
-    */
-    const keadaan =
-      item.statusPenugasanAsal === "CUTI SAKIT"
-        ? "CUTI SAKIT"
-        : item.statusPenugasanAsal === "KECEMASAN"
-          ? "KECEMASAN"
-          : item.checkout
-            ? "SELESAI TUGAS"
-            : item.statusKehadiran === "HADIR"
-              ? "MASIH BERTUGAS"
-              : "-";
+    const keadaan = item.checkout
+      ? "SELESAI TUGAS"
+      : item.statusKehadiran === "HADIR"
+        ? "MASIH BERTUGAS"
+        : "-";
 
     return `
       <tr>
@@ -1591,7 +1578,7 @@ function exportExcel() {
   const tajuk = [
     "BIL", "NO BADAN", "PANGKAT", "NAMA", "NO TELEFON", "CALL SIGN",
     "JENIS TUGAS", "TEMPAT TUGAS", "PEMEGANG SET",
-    "CHECK-IN", "STATUS", "SELESAI TUGAS", "TEMPOH"
+    "CHECK-IN", "STATUS", "CHECK-OUT", "TEMPOH"
   ];
 
   const baris = dataPaparan.map((item, index) => [
@@ -4762,17 +4749,18 @@ function laporanTerkiniKeselamatanCarta() {
 
 
 function jumlahPengunjungSemasaCarta() {
-  const item = laporanTerkiniKeselamatanCarta();
-
-  if (!item) return 0;
-
-  const data = dataLaporanCarta(item);
-
-  return nomborCarta(
-    data.jumlah_pengunjung ??
-    item.jumlah_pengunjung,
-    0
-  );
+  /*
+    JUMLAH KESELURUHAN PENGUNJUNG
+    Gabungkan semua laporan Kawalan Keselamatan
+    dan rekod manual + PENGUNJUNG bagi tarikh dipilih.
+  */
+  return senaraiPengunjungCartaPentadbir()
+    .reduce(
+      (jumlah, item) =>
+        jumlah +
+        nilaiJumlahPengunjungPentadbir(item),
+      0
+    );
 }
 
 
@@ -5669,12 +5657,22 @@ function paparCartaPengunjungPentadbir() {
       masaCartaLabel(item.tarikh_masa)
     );
 
+  /*
+    Carta memaparkan JUMLAH TERKUMPUL.
+    Contoh laporan 500, 0, 250:
+    carta akan menjadi 500, 500, 750.
+  */
+  let jumlahTerkumpul = 0;
+
   const nilai =
-    senarai.map(item =>
-      nilaiJumlahPengunjungPentadbir(
-        item
-      )
-    );
+    senarai.map(item => {
+      jumlahTerkumpul +=
+        nilaiJumlahPengunjungPentadbir(
+          item
+        );
+
+      return jumlahTerkumpul;
+    });
 
   kemusnahkanCartaPentadbir(
     cartaPengunjungPentadbir
@@ -5688,7 +5686,7 @@ function paparCartaPengunjungPentadbir() {
         labels,
         datasets: [
           {
-            label: "Jumlah Pengunjung",
+            label: "Jumlah Keseluruhan Pengunjung",
             data: nilai,
             tension: 0.28,
             fill: false,
@@ -5701,7 +5699,7 @@ function paparCartaPengunjungPentadbir() {
 
       options: {
         ...pilihanCartaPentadbir(
-          "Jumlah Pengunjung"
+          "Jumlah Keseluruhan Pengunjung"
         ),
 
         onClick(event) {
@@ -5752,11 +5750,22 @@ function paparCartaPengunjungPentadbir() {
             enabled: true,
             callbacks: {
               label(context) {
-                return `Jumlah Pengunjung: ${(Number(context.raw) || 0).toLocaleString("ms-MY")}`;
+                return `Jumlah Keseluruhan: ${(Number(context.raw) || 0).toLocaleString("ms-MY")} pengunjung`;
               },
 
-              afterLabel() {
-                return "Klik untuk sorot butiran di sebelah kanan";
+              afterLabel(context) {
+                const item =
+                  senarai[context.dataIndex];
+
+                const nilaiLaporan =
+                  item
+                    ? nilaiJumlahPengunjungPentadbir(item)
+                    : 0;
+
+                return [
+                  `Laporan ini: ${Number(nilaiLaporan || 0).toLocaleString("ms-MY")} pengunjung`,
+                  "Klik untuk sorot butiran di sebelah kanan"
+                ];
               }
             }
           }
@@ -6380,7 +6389,7 @@ function paparCartaKenderaanPentadbir() {
 function kategoriKehadiranCartaPentadbir(item) {
   /*
     Susunan keutamaan:
-    1. Jika sudah selesai tugas = SELESAI
+    1. Jika sudah Check-Out = SELESAI
     2. Jika status HADIR = HADIR
     3. Jika MENUNGGU = MENUNGGU
     4. Selain itu = TIDAK HADIR
@@ -6406,7 +6415,7 @@ function labelKategoriKehadiranPentadbir(kategori) {
   const peta = {
     HADIR: "HADIR",
     TIDAK_HADIR: "TIDAK HADIR",
-    SELESAI: "SELESAI TUGAS",
+    SELESAI: "SELESAI",
     MENUNGGU: "MENUNGGU"
   };
 
@@ -6572,7 +6581,7 @@ function paparSenaraiKehadiranPentadbir(kategori) {
               <small>
                 ${
                   kategori === "SELESAI"
-                    ? "Selesai Tugas"
+                    ? "Check-Out"
                     : kategori === "HADIR"
                       ? "Check-In"
                       : "Masa"
