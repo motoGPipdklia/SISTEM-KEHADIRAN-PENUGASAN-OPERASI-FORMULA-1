@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260826-f1-pengunjung-lokasi-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260826-f1-kenderaan-lokasi-001">
 </head>
 
 <body>
@@ -1033,17 +1033,20 @@
               <div>
                 <h3>CARTA KENDERAAN PENGUNJUNG</h3>
                 <p class="muted">
-                  Klik Bas, Motosikal atau Motokar untuk melihat butiran di sebelah kanan.
+                  Jumlah keseluruhan kenderaan pengunjung, trend terkumpul mengikut masa
+                  dan pecahan kenderaan mengikut lokasi.
                 </p>
               </div>
+
               <div class="admin-chart-manual-actions">
                 <button
                   class="gray compact-button admin-chart-print-button"
                   type="button"
-                  onclick="cetakCartaPentadbir('KENDERAAN','CARTA KENDERAAN')"
+                  onclick="cetakCartaPentadbir('KENDERAAN','CARTA KENDERAAN PENGUNJUNG')"
                 >
                   CETAK
                 </button>
+
                 <button
                   class="green-button compact-button"
                   type="button"
@@ -1051,6 +1054,7 @@
                 >
                   + KENDERAAN
                 </button>
+
                 <button
                   class="gray compact-button"
                   type="button"
@@ -1063,24 +1067,61 @@
 
             <div class="admin-vehicle-layout">
 
-              <!-- CARTA DI KIRI -->
+              <!-- GRAF DI KIRI -->
               <div class="admin-vehicle-chart-panel">
-                <div class="admin-chart-canvas-wrap admin-vehicle-canvas-wrap">
-                  <canvas id="canvasCartaKenderaan"></canvas>
-                </div>
 
-                <div class="admin-vehicle-hint">
-                  Klik bar atau label Bas, Motosikal atau Motokar.
-                </div>
+                <section class="admin-vehicle-chart-block">
+                  <div class="admin-vehicle-subheading">
+                    <div>
+                      <span>TREND OPERASI</span>
+                      <strong>JUMLAH TERKUMPUL MENGIKUT MASA</strong>
+                    </div>
+                  </div>
+
+                  <div class="admin-chart-canvas-wrap admin-vehicle-time-canvas">
+                    <canvas id="canvasCartaKenderaan"></canvas>
+                  </div>
+                </section>
+
+                <section class="admin-vehicle-chart-block admin-vehicle-location-block">
+                  <div class="admin-vehicle-subheading">
+                    <div>
+                      <span>PECAHAN LOKASI</span>
+                      <strong>KENDERAAN MENGIKUT LOKASI</strong>
+                    </div>
+
+                    <button
+                      class="gray compact-button"
+                      type="button"
+                      onclick="paparSemuaLokasiKenderaanPentadbir()"
+                    >
+                      SEMUA LOKASI
+                    </button>
+                  </div>
+
+                  <div class="admin-vehicle-location-total">
+                    <span>Jumlah Keseluruhan</span>
+                    <strong id="jumlahKeseluruhanKenderaanLokasiPentadbir">0</strong>
+                  </div>
+
+                  <div class="admin-chart-canvas-wrap admin-vehicle-location-canvas">
+                    <canvas id="canvasCartaKenderaanLokasi"></canvas>
+                  </div>
+
+                  <div class="admin-vehicle-hint">
+                    Klik bar lokasi untuk melihat laporan kenderaan lokasi tersebut.
+                  </div>
+                </section>
+
               </div>
 
               <!-- BUTIRAN DI KANAN -->
               <aside class="admin-vehicle-detail-panel">
                 <div class="admin-vehicle-detail-heading">
                   <div>
-                    <span>KATEGORI DIPILIH</span>
+                    <span>BUTIRAN KENDERAAN</span>
                     <strong id="tajukButiranKenderaanPentadbir">
-                      BAS
+                      SEMUA LOKASI
                     </strong>
                   </div>
 
@@ -1093,11 +1134,19 @@
                 </div>
 
                 <div
+                  class="admin-vehicle-selected-summary"
+                  id="ringkasanLokasiKenderaanPentadbir"
+                >
+                  <span>JUMLAH DIPAPARKAN</span>
+                  <strong>0 KENDERAAN</strong>
+                </div>
+
+                <div
                   class="admin-vehicle-detail-list"
                   id="senaraiButiranKenderaanPentadbir"
                 >
                   <div class="empty-row">
-                    Klik carta untuk memilih kategori kenderaan.
+                    Tiada laporan kenderaan.
                   </div>
                 </div>
               </aside>
@@ -2302,7 +2351,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260826-f1-pengunjung-lokasi-001"></script>
+<script src="js/admin.js?v=20260826-f1-kenderaan-lokasi-001"></script>
 
 
 
