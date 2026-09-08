@@ -4549,7 +4549,7 @@ body.marker-dragging *{
 }
 
 .auto-location-table{
-  min-width:1150px;
+  min-width:1500px;
 }
 
 .auto-preview-table{
@@ -4670,3 +4670,43 @@ body.marker-dragging *{
     display:none !important;
   }
 }
+
+.auto-location-table .auto-jumlah-petugas{
+  min-width:105px;
+  text-align:center;
+  font-weight:700;
+  color:#ffe08a;
+}
+
+.auto-kapasiti-hari-cell{
+  min-width:88px;
+  text-align:center;
+}
+
+.auto-kapasiti-hari-cell input{
+  min-width:76px;
+  width:76px;
+  text-align:center;
+}
+
+.auto-staff-table{
+  min-width:1080px;
+}
+
+.auto-corak-tugas{
+  min-width:115px !important;
+}
+
+.auto-lokasi-kekal{
+  min-width:220px !important;
+}
+
+.auto-lokasi-kekal:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.auto-corak-tugas option[value="KEKAL"]{
+  font-weight:700;
+}
+
