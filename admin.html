@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260909-f1-auto-penugasan-001">
+  <link rel="stylesheet" href="css/admin.css?v=20260909-f1-kekal-rotation-004">
 </head>
 
 <body>
@@ -1712,8 +1712,7 @@
           <div>
             <h3>1. Senarai Petugas</h3>
             <p class="muted">
-              Data Nama, No Badan dan Pangkat diambil terus daripada profiles.
-              Anda hanya perlu pilih anggota serta tetapkan Penyelia dan Pemegang Set.
+              Data Nama, No Badan dan Pangkat diambil terus daripada profiles. Pilih ROTATION untuk anggota yang bertukar tempat, atau KEKAL untuk anggota yang bertugas di lokasi sama setiap hari.
             </p>
           </div>
 
@@ -1726,6 +1725,10 @@
             </button>
             <button class="gray compact-button" type="button" onclick="pilihSemuaPetugasAuto(false)">
               BUANG PILIHAN
+            </button>
+
+            <button class="gray compact-button" type="button" onclick="kemasKiniPilihanLokasiKekalAuto(true)">
+              KEMAS KINI LOKASI KEKAL
             </button>
           </div>
         </div>
@@ -1745,13 +1748,15 @@
                 <th>No Badan</th>
                 <th>Pangkat</th>
                 <th>Nama</th>
+                <th>Corak Tugas</th>
+                <th>Lokasi Kekal</th>
                 <th>Penyelia</th>
                 <th>Pemegang Set</th>
               </tr>
             </thead>
             <tbody id="tbodyPetugasAuto">
               <tr>
-                <td colspan="6" class="empty-row">
+                <td colspan="8" class="empty-row">
                   Tekan MUAT SENARAI PETUGAS.
                 </td>
               </tr>
@@ -1763,8 +1768,7 @@
           <div>
             <h3>2. Lokasi & Penugasan</h3>
             <p class="muted">
-              Setiap baris ialah satu slot rotation. Jika ada 10 lokasi dan 100 petugas,
-              sistem akan mengagihkan petugas secara seimbang ke slot-slot tersebut.
+              Tetapkan jumlah petugas bagi setiap tempat tugas mengikut hari. Contohnya Paddock boleh mempunyai 5 petugas pada Hari 1, 3 petugas pada Hari 2 dan 6 petugas pada Hari 3.
             </p>
           </div>
 
@@ -1787,6 +1791,11 @@
                 <th>Latitude</th>
                 <th>Longitude</th>
                 <th>Radius (m)</th>
+                <th>Hari 1</th>
+                <th>Hari 2</th>
+                <th>Hari 3</th>
+                <th>Hari 4</th>
+                <th>Hari 5</th>
                 <th>Tindakan</th>
               </tr>
             </thead>
@@ -1851,6 +1860,7 @@
                 <th>Tarikh</th>
                 <th>No Badan</th>
                 <th>Pangkat / Nama</th>
+                <th>Corak Tugas</th>
                 <th>Call Sign</th>
                 <th>Jenis Tugas</th>
                 <th>Tempat Tugas</th>
@@ -1860,7 +1870,7 @@
             </thead>
             <tbody id="tbodyPreviewAuto">
               <tr>
-                <td colspan="9" class="empty-row">Belum ada pratonton.</td>
+                <td colspan="10" class="empty-row">Belum ada pratonton.</td>
               </tr>
             </tbody>
           </table>
@@ -2582,7 +2592,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260909-f1-auto-penugasan-001"></script>
+<script src="js/admin.js?v=20260909-f1-kekal-rotation-004"></script>
 
 
 
