@@ -27,6 +27,13 @@ let importSedangBerjalan = false;
 let rekodImportPengguna = [];
 let importPenggunaSedangBerjalan = false;
 
+/* Jana Penugasan Automatik 3–5 Hari */
+let dataPetugasAuto = [];
+let previewPenugasanAuto = [];
+let autoSedangSimpan = false;
+let autoLokasiCounter = 0;
+
+
 /* Peranti khas Pentadbir Formula 1 */
 const KUNCI_DEVICE_F1_ADMIN = "skpoF1DeviceId";
 const HAD_PERANTI_KHAS_ADMIN = 2;
@@ -2613,6 +2620,981 @@ async function importPenugasanCsv() {
 }
 
 /* ================================================================
+   JANA PENUGASAN AUTOMATIK 3–5 HARI — FORMULA 1
+================================================================ */
+
+function tambahHariISO(tarikhISO, jumlahHari) {
+  const padanan = teks(tarikhISO).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+  if (!padanan) {
+    throw new Error("Tarikh mula tidak sah.");
+  }
+
+  const tarikh = new Date(Date.UTC(
+    Number(padanan[1]),
+    Number(padanan[2]) - 1,
+    Number(padanan[3]) + Number(jumlahHari || 0)
+  ));
+
+  return tarikh.toISOString().slice(0, 10);
+}
+
+
+function bukaJanaPenugasan() {
+  tutupSemuaModulPentadbir();
+
+  const modul = el("modulJanaPenugasan");
+  const butangHeader = el("btnBukaJanaPenugasan");
+
+  if (!modul) {
+    alert("Modul Jana Penugasan tidak dijumpai dalam admin.html.");
+    return;
+  }
+
+  modul.hidden = false;
+  modul.removeAttribute("hidden");
+  modul.style.removeProperty("display");
+  modul.classList.add("modul-disorot");
+
+  if (butangHeader) {
+    butangHeader.setAttribute("aria-expanded", "true");
+  }
+
+  const inputTarikh = el("autoTarikhMula");
+  if (inputTarikh && !inputTarikh.value) {
+    inputTarikh.value =
+      el("tarikh")?.value ||
+      hariIniMalaysia();
+  }
+
+  if (!el("tbodyLokasiAuto")?.children.length) {
+    tambahLokasiAuto();
+    tambahLokasiAuto();
+    tambahLokasiAuto();
+    tambahLokasiAuto();
+  }
+
+  if (!dataPetugasAuto.length) {
+    muatPetugasAuto();
+  } else {
+    paparPetugasAuto();
+  }
+
+  window.setTimeout(() => {
+    modul.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }, 80);
+}
+
+
+function tutupJanaPenugasan() {
+  const modul = el("modulJanaPenugasan");
+  const butangHeader = el("btnBukaJanaPenugasan");
+
+  if (modul) {
+    modul.hidden = true;
+    modul.setAttribute("hidden", "");
+    modul.style.display = "none";
+    modul.classList.remove("modul-disorot");
+  }
+
+  if (butangHeader) {
+    butangHeader.setAttribute("aria-expanded", "false");
+  }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+async function muatPetugasAuto() {
+  paparMesej(
+    "statusPetugasAuto",
+    "Sedang memuatkan senarai petugas aktif...",
+    "warning"
+  );
+
+  try {
+    const { data, error } = await denganHadMasa(
+      db.from("profiles")
+        .select("*")
+        .eq("aktif", true)
+        .order("pangkat", { ascending: true })
+        .order("nama", { ascending: true })
+        .limit(3000)
+    );
+
+    if (error) throw error;
+
+    dataPetugasAuto = (data || [])
+      .filter(item => {
+        const peranan = atas(item.peranan || "PETUGAS");
+        return !["PENTADBIR", "ADMIN"].includes(peranan);
+      });
+
+    paparPetugasAuto();
+
+    paparMesej(
+      "statusPetugasAuto",
+      `${dataPetugasAuto.length} petugas aktif berjaya dimuatkan. ` +
+      `Pilih anggota yang terlibat dan tetapkan Penyelia / Pemegang Set.`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error("Muat petugas auto gagal:", error);
+
+    dataPetugasAuto = [];
+    paparPetugasAuto();
+
+    paparMesej(
+      "statusPetugasAuto",
+      `Gagal memuatkan petugas: ${escapeHtml(error.message)}`,
+      "error"
+    );
+  }
+}
+
+
+function paparPetugasAuto() {
+  const tbody = el("tbodyPetugasAuto");
+  if (!tbody) return;
+
+  if (!dataPetugasAuto.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-row">
+          Tiada petugas aktif ditemui.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  tbody.innerHTML = dataPetugasAuto
+    .map((item, index) => {
+      const penyeliaAsal = nilaiBoolean(item.penyelia);
+      const pemegangAsal = nilaiBoolean(item.pemegang_set);
+
+      return `
+        <tr data-auto-petugas-index="${index}">
+          <td>
+            <input
+              class="auto-pilih-petugas"
+              type="checkbox"
+              checked
+              aria-label="Pilih ${escapeHtml(item.no_badan || "")}"
+            >
+          </td>
+
+          <td>${escapeHtml(item.no_badan || "-")}</td>
+          <td>${escapeHtml(item.pangkat || "-")}</td>
+          <td>${escapeHtml(item.nama || "-")}</td>
+
+          <td>
+            <select
+              class="auto-penyelia-select ${penyeliaAsal ? "is-yes" : ""}"
+              onchange="kemasKiniWarnaSelectAuto(this)"
+            >
+              <option value="TIDAK" ${penyeliaAsal ? "" : "selected"}>TIDAK</option>
+              <option value="YA" ${penyeliaAsal ? "selected" : ""}>YA</option>
+            </select>
+          </td>
+
+          <td>
+            <select
+              class="auto-pemegang-select ${pemegangAsal ? "is-yes" : ""}"
+              onchange="kemasKiniWarnaSelectAuto(this)"
+            >
+              <option value="TIDAK" ${pemegangAsal ? "" : "selected"}>TIDAK</option>
+              <option value="YA" ${pemegangAsal ? "selected" : ""}>YA</option>
+            </select>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+
+function kemasKiniWarnaSelectAuto(select) {
+  if (!select) return;
+
+  select.classList.toggle(
+    "is-yes",
+    atas(select.value) === "YA"
+  );
+}
+
+
+function pilihSemuaPetugasAuto(aktif) {
+  document
+    .querySelectorAll("#tbodyPetugasAuto .auto-pilih-petugas")
+    .forEach(input => {
+      input.checked = Boolean(aktif);
+    });
+}
+
+
+function tambahLokasiAuto(data = {}) {
+  const tbody = el("tbodyLokasiAuto");
+  if (!tbody) return;
+
+  autoLokasiCounter += 1;
+
+  const tr = document.createElement("tr");
+  tr.dataset.autoLokasiId = String(autoLokasiCounter);
+
+  tr.innerHTML = `
+    <td>
+      <input
+        class="auto-call-sign"
+        type="text"
+        value="${escapeHtml(data.call_sign || "")}"
+        placeholder="Contoh: GATE 1"
+      >
+    </td>
+
+    <td>
+      <input
+        class="auto-jenis-tugas"
+        type="text"
+        value="${escapeHtml(data.jenis_tugas || "")}"
+        placeholder="Contoh: KAWALAN KESELAMATAN"
+      >
+    </td>
+
+    <td>
+      <input
+        class="auto-tempat-tugas"
+        type="text"
+        value="${escapeHtml(data.tempat_tugas || "")}"
+        placeholder="Contoh: PINTU UTAMA"
+      >
+    </td>
+
+    <td>
+      <input
+        class="auto-latitude"
+        type="number"
+        step="any"
+        value="${escapeHtml(data.latitude ?? "")}"
+        placeholder="2.7585826"
+      >
+    </td>
+
+    <td>
+      <input
+        class="auto-longitude"
+        type="number"
+        step="any"
+        value="${escapeHtml(data.longitude ?? "")}"
+        placeholder="101.7096481"
+      >
+    </td>
+
+    <td>
+      <input
+        class="auto-radius"
+        type="number"
+        min="1"
+        max="5000"
+        step="1"
+        value="${escapeHtml(data.radius_meter ?? 30)}"
+      >
+    </td>
+
+    <td>
+      <button
+        class="auto-location-remove"
+        type="button"
+        onclick="buangLokasiAuto(this)"
+      >
+        BUANG
+      </button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+}
+
+
+function buangLokasiAuto(butang) {
+  const tr = butang?.closest("tr");
+  if (!tr) return;
+
+  tr.remove();
+
+  previewPenugasanAuto = [];
+  paparPreviewPenugasanAuto();
+
+  if (el("btnSimpanAuto")) {
+    el("btnSimpanAuto").disabled = true;
+  }
+}
+
+
+function bacaPetugasDipilihAuto() {
+  const hasil = [];
+
+  document
+    .querySelectorAll("#tbodyPetugasAuto tr[data-auto-petugas-index]")
+    .forEach(tr => {
+      const pilih = tr.querySelector(".auto-pilih-petugas");
+
+      if (!pilih?.checked) return;
+
+      const index = Number(tr.dataset.autoPetugasIndex);
+      const profil = dataPetugasAuto[index];
+
+      if (!profil) return;
+
+      hasil.push({
+        id: profil.id,
+        no_badan: atas(profil.no_badan),
+        pangkat: atas(profil.pangkat),
+        nama: atas(profil.nama),
+        penyelia:
+          atas(tr.querySelector(".auto-penyelia-select")?.value) === "YA",
+        pemegang_set:
+          atas(tr.querySelector(".auto-pemegang-select")?.value) === "YA"
+      });
+    });
+
+  return hasil;
+}
+
+
+function bacaLokasiAuto() {
+  const hasil = [];
+
+  document
+    .querySelectorAll("#tbodyLokasiAuto tr")
+    .forEach((tr, index) => {
+      const callSign =
+        atas(tr.querySelector(".auto-call-sign")?.value);
+
+      const jenisTugas =
+        atas(tr.querySelector(".auto-jenis-tugas")?.value);
+
+      const tempatTugas =
+        atas(tr.querySelector(".auto-tempat-tugas")?.value);
+
+      const latitudeTeks =
+        teks(tr.querySelector(".auto-latitude")?.value);
+
+      const longitudeTeks =
+        teks(tr.querySelector(".auto-longitude")?.value);
+
+      const radiusTeks =
+        teks(tr.querySelector(".auto-radius")?.value);
+
+      const barisKosong =
+        !callSign &&
+        !jenisTugas &&
+        !tempatTugas &&
+        !latitudeTeks &&
+        !longitudeTeks;
+
+      if (barisKosong) return;
+
+      if (!jenisTugas) {
+        throw new Error(
+          `Lokasi baris ${index + 1}: Jenis Tugas wajib diisi.`
+        );
+      }
+
+      if (!tempatTugas) {
+        throw new Error(
+          `Lokasi baris ${index + 1}: Tempat Tugas wajib diisi.`
+        );
+      }
+
+      const latitude = Number(latitudeTeks);
+      const longitude = Number(longitudeTeks);
+      const radius = Number(radiusTeks || 30);
+
+      if (
+        !Number.isFinite(latitude) ||
+        latitude < -90 ||
+        latitude > 90
+      ) {
+        throw new Error(
+          `Lokasi baris ${index + 1}: Latitude tidak sah.`
+        );
+      }
+
+      if (
+        !Number.isFinite(longitude) ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
+        throw new Error(
+          `Lokasi baris ${index + 1}: Longitude tidak sah.`
+        );
+      }
+
+      if (
+        !Number.isInteger(radius) ||
+        radius < 1 ||
+        radius > 5000
+      ) {
+        throw new Error(
+          `Lokasi baris ${index + 1}: Radius mesti nombor bulat 1 hingga 5000.`
+        );
+      }
+
+      hasil.push({
+        call_sign: callSign || null,
+        jenis_tugas: jenisTugas,
+        tempat_tugas: tempatTugas,
+        latitude,
+        longitude,
+        radius_meter: radius
+      });
+    });
+
+  return hasil;
+}
+
+
+function janaPreviewPenugasanAuto() {
+  try {
+    const tarikhMula = teks(
+      el("autoTarikhMula")?.value
+    );
+
+    const bilHari = Number(
+      el("autoBilHari")?.value
+    );
+
+    if (!tarikhMula) {
+      throw new Error("Sila pilih Tarikh Mula.");
+    }
+
+    if (![3, 4, 5].includes(bilHari)) {
+      throw new Error(
+        "Bilangan hari mesti 3, 4 atau 5."
+      );
+    }
+
+    const petugas =
+      bacaPetugasDipilihAuto();
+
+    const lokasi =
+      bacaLokasiAuto();
+
+    if (!petugas.length) {
+      throw new Error(
+        "Pilih sekurang-kurangnya seorang petugas."
+      );
+    }
+
+    if (!lokasi.length) {
+      throw new Error(
+        "Masukkan sekurang-kurangnya satu lokasi / penugasan."
+      );
+    }
+
+    previewPenugasanAuto = [];
+
+    /*
+      ROTATION TERKAWAL
+
+      Hari 1:
+      Petugas 1 -> Slot 1
+      Petugas 2 -> Slot 2
+
+      Hari 2:
+      Petugas 1 -> Slot 2
+      Petugas 2 -> Slot 3
+
+      Ini mengelakkan petugas berada di slot yang sama pada hari
+      berturut-turut apabila terdapat lebih daripada satu slot.
+    */
+    for (let hari = 0; hari < bilHari; hari += 1) {
+      const tarikh =
+        tambahHariISO(
+          tarikhMula,
+          hari
+        );
+
+      petugas.forEach((anggota, indexPetugas) => {
+        const slot =
+          lokasi[
+            (indexPetugas + hari) %
+            lokasi.length
+          ];
+
+        previewPenugasanAuto.push({
+          acara: "FORMULA1",
+          hari: hari + 1,
+          tarikh,
+          no_badan: anggota.no_badan,
+          pangkat: anggota.pangkat,
+          nama: anggota.nama,
+          call_sign: slot.call_sign,
+          jenis_tugas: slot.jenis_tugas,
+          tempat_tugas: slot.tempat_tugas,
+          penyelia: anggota.penyelia,
+          pemegang_set: anggota.pemegang_set,
+          latitude: slot.latitude,
+          longitude: slot.longitude,
+          radius_meter: slot.radius_meter,
+          status: "AKTIF"
+        });
+      });
+    }
+
+    paparPreviewPenugasanAuto();
+
+    if (el("btnSimpanAuto")) {
+      el("btnSimpanAuto").disabled =
+        previewPenugasanAuto.length === 0;
+    }
+
+    paparMesej(
+      "statusJanaAuto",
+      `<strong>PRATONTON BERJAYA DIJANA</strong><br>` +
+      `${petugas.length} petugas × ${bilHari} hari = ` +
+      `${previewPenugasanAuto.length} rekod penugasan.`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Jana preview penugasan gagal:",
+      error
+    );
+
+    previewPenugasanAuto = [];
+    paparPreviewPenugasanAuto();
+
+    if (el("btnSimpanAuto")) {
+      el("btnSimpanAuto").disabled = true;
+    }
+
+    paparMesej(
+      "statusJanaAuto",
+      escapeHtml(error.message),
+      "error"
+    );
+  }
+}
+
+
+function paparPreviewPenugasanAuto() {
+  const tbody =
+    el("tbodyPreviewAuto");
+
+  const ringkasan =
+    el("ringkasanAuto");
+
+  if (!tbody) return;
+
+  if (!previewPenugasanAuto.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="9" class="empty-row">
+          Belum ada pratonton.
+        </td>
+      </tr>
+    `;
+
+    if (ringkasan) {
+      ringkasan.textContent =
+        "Belum ada jadual dijana.";
+    }
+
+    return;
+  }
+
+  let html = "";
+  let hariTerakhir = null;
+
+  previewPenugasanAuto
+    .forEach(item => {
+      if (hariTerakhir !== item.hari) {
+        hariTerakhir = item.hari;
+
+        html += `
+          <tr class="auto-day-row">
+            <td colspan="9">
+              HARI ${item.hari}
+              &nbsp;•&nbsp;
+              ${escapeHtml(formatTarikhMalaysia(item.tarikh))}
+              &nbsp;•&nbsp;
+              FORMULA 1
+            </td>
+          </tr>
+        `;
+      }
+
+      html += `
+        <tr>
+          <td>${item.hari}</td>
+          <td>${escapeHtml(formatTarikhMalaysia(item.tarikh))}</td>
+          <td>${escapeHtml(item.no_badan)}</td>
+          <td>
+            ${escapeHtml(item.pangkat)}
+            ${escapeHtml(item.nama)}
+          </td>
+          <td>${escapeHtml(item.call_sign || "-")}</td>
+          <td>${escapeHtml(item.jenis_tugas)}</td>
+          <td>${escapeHtml(item.tempat_tugas)}</td>
+          <td>
+            <span class="badge ${item.penyelia ? "badge-green" : "badge-gray"}">
+              ${item.penyelia ? "YA" : "TIDAK"}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${item.pemegang_set ? "badge-green" : "badge-gray"}">
+              ${item.pemegang_set ? "YA" : "TIDAK"}
+            </span>
+          </td>
+        </tr>
+      `;
+    });
+
+  tbody.innerHTML = html;
+
+  const bilHari =
+    new Set(
+      previewPenugasanAuto.map(item =>
+        item.hari
+      )
+    ).size;
+
+  const bilPetugas =
+    new Set(
+      previewPenugasanAuto.map(item =>
+        item.no_badan
+      )
+    ).size;
+
+  const bilLokasi =
+    new Set(
+      previewPenugasanAuto.map(item =>
+        `${item.jenis_tugas}|${item.tempat_tugas}`
+      )
+    ).size;
+
+  const bilPenyelia =
+    new Set(
+      previewPenugasanAuto
+        .filter(item => item.penyelia)
+        .map(item => item.no_badan)
+    ).size;
+
+  const bilPemegang =
+    new Set(
+      previewPenugasanAuto
+        .filter(item => item.pemegang_set)
+        .map(item => item.no_badan)
+    ).size;
+
+  if (ringkasan) {
+    ringkasan.innerHTML =
+      `<strong>${bilPetugas}</strong> Petugas &nbsp;•&nbsp; ` +
+      `<strong>${bilHari}</strong> Hari &nbsp;•&nbsp; ` +
+      `<strong>${bilLokasi}</strong> Slot &nbsp;•&nbsp; ` +
+      `<strong>${bilPenyelia}</strong> Penyelia &nbsp;•&nbsp; ` +
+      `<strong>${bilPemegang}</strong> Pemegang Set &nbsp;•&nbsp; ` +
+      `<strong>${previewPenugasanAuto.length}</strong> Rekod`;
+  }
+}
+
+
+async function simpanPenugasanAuto() {
+  if (
+    autoSedangSimpan ||
+    !previewPenugasanAuto.length
+  ) {
+    return;
+  }
+
+  const jumlah =
+    previewPenugasanAuto.length;
+
+  if (!confirm(
+    `Simpan ${jumlah} rekod penugasan FORMULA 1 ke Supabase?\n\n` +
+    `Jika No Badan dan tarikh yang sama sudah wujud, ` +
+    `rekod tersebut akan dikemas kini oleh sistem import sedia ada.`
+  )) {
+    return;
+  }
+
+  autoSedangSimpan = true;
+
+  const butang =
+    el("btnSimpanAuto");
+
+  if (butang) {
+    butang.disabled = true;
+  }
+
+  let diproses = 0;
+  let berjaya = 0;
+  let baharu = 0;
+  let dikemasKini = 0;
+  let gagal = 0;
+  const semuaRalat = [];
+
+  try {
+    /*
+      Payload sengaja menggunakan struktur yang SAMA dengan
+      Import Penugasan CSV sedia ada. Tiada kolum baharu dihantar.
+    */
+    const payload =
+      previewPenugasanAuto
+        .map((item, index) => ({
+          baris: index + 1,
+          tarikh: item.tarikh,
+          no_badan: item.no_badan,
+          call_sign: item.call_sign || null,
+          jenis_tugas: item.jenis_tugas,
+          tempat_tugas: item.tempat_tugas,
+          penyelia: item.penyelia === true,
+          pemegang_set: item.pemegang_set === true,
+          latitude: item.latitude,
+          longitude: item.longitude,
+          radius_meter: item.radius_meter,
+          status: "AKTIF"
+        }));
+
+    const kumpulan =
+      bahagiKumpulan(
+        payload,
+        200
+      );
+
+    for (
+      let i = 0;
+      i < kumpulan.length;
+      i += 1
+    ) {
+      if (butang) {
+        butang.textContent =
+          `MENYIMPAN ${diproses} / ${jumlah}...`;
+      }
+
+      paparMesej(
+        "statusJanaAuto",
+        `Sedang menyimpan kumpulan ${i + 1} ` +
+        `daripada ${kumpulan.length}...`,
+        "warning"
+      );
+
+      const { data, error } =
+        await denganHadMasa(
+          db.rpc(
+            "import_penugasan_csv",
+            {
+              p_rekod: kumpulan[i]
+            }
+          ),
+          60000
+        );
+
+      if (error) {
+        const mesej =
+          `${error.code || ""} ${error.message || ""}`;
+
+        if (
+          /PGRST202|does not exist|schema cache|Could not find/i
+            .test(mesej)
+        ) {
+          throw new Error(
+            "Fungsi import_penugasan_csv belum dipasang atau " +
+            "tidak ditemui dalam Supabase."
+          );
+        }
+
+        throw error;
+      }
+
+      const hasil =
+        typeof data === "string"
+          ? JSON.parse(data)
+          : (data || {});
+
+      berjaya +=
+        Number(hasil.berjaya || 0);
+
+      baharu +=
+        Number(hasil.baharu || 0);
+
+      dikemasKini +=
+        Number(hasil.dikemas_kini || 0);
+
+      gagal +=
+        Number(hasil.gagal || 0);
+
+      if (Array.isArray(hasil.ralat)) {
+        semuaRalat.push(
+          ...hasil.ralat
+        );
+      }
+
+      diproses +=
+        kumpulan[i].length;
+    }
+
+    const butiranRalat =
+      semuaRalat.length
+        ? `<br><details>` +
+          `<summary>Lihat ${semuaRalat.length} ralat</summary>` +
+          `<ul>` +
+          semuaRalat
+            .slice(0, 100)
+            .map(item =>
+              `<li>Baris ${escapeHtml(item.baris || "-")}: ` +
+              `${escapeHtml(item.mesej || "Ralat")}</li>`
+            )
+            .join("") +
+          `</ul></details>`
+        : "";
+
+    paparMesej(
+      "statusJanaAuto",
+      `<strong>SIMPANAN PENUGASAN SELESAI</strong><br>` +
+      `Berjaya: ${berjaya} ` +
+      `(Baharu: ${baharu}, Dikemas kini: ${dikemasKini})<br>` +
+      `Gagal: ${gagal}` +
+      butiranRalat,
+      gagal ? "warning" : "success"
+    );
+
+    const tarikhPertama =
+      previewPenugasanAuto[0]?.tarikh;
+
+    if (
+      el("tarikh") &&
+      tarikhPertama
+    ) {
+      el("tarikh").value =
+        tarikhPertama;
+    }
+
+    await muatData(true);
+
+  } catch (error) {
+    console.error(
+      "Simpan penugasan automatik gagal:",
+      error
+    );
+
+    paparMesej(
+      "statusJanaAuto",
+      `Simpan gagal: ${escapeHtml(error.message)}`,
+      "error"
+    );
+
+  } finally {
+    autoSedangSimpan = false;
+
+    if (butang) {
+      butang.textContent =
+        "SIMPAN KE SUPABASE";
+
+      butang.disabled =
+        previewPenugasanAuto.length === 0;
+    }
+  }
+}
+
+
+function resetJanaPenugasanAuto() {
+  if (
+    previewPenugasanAuto.length &&
+    !confirm(
+      "Kosongkan pratonton dan tetapan lokasi penugasan?"
+    )
+  ) {
+    return;
+  }
+
+  previewPenugasanAuto = [];
+  paparPreviewPenugasanAuto();
+
+  const tbodyLokasi =
+    el("tbodyLokasiAuto");
+
+  if (tbodyLokasi) {
+    tbodyLokasi.innerHTML = "";
+  }
+
+  for (let i = 0; i < 4; i += 1) {
+    tambahLokasiAuto();
+  }
+
+  pilihSemuaPetugasAuto(true);
+
+  document
+    .querySelectorAll(
+      "#tbodyPetugasAuto .auto-penyelia-select, " +
+      "#tbodyPetugasAuto .auto-pemegang-select"
+    )
+    .forEach(select => {
+      select.value = "TIDAK";
+      kemasKiniWarnaSelectAuto(select);
+    });
+
+  if (el("autoBilHari")) {
+    el("autoBilHari").value = "5";
+  }
+
+  if (el("autoTarikhMula")) {
+    el("autoTarikhMula").value =
+      el("tarikh")?.value ||
+      hariIniMalaysia();
+  }
+
+  if (el("btnSimpanAuto")) {
+    el("btnSimpanAuto").disabled = true;
+  }
+
+  const status =
+    el("statusJanaAuto");
+
+  if (status) {
+    status.className = "status-box";
+    status.innerHTML = "";
+  }
+}
+
+
+function sediakanJanaPenugasanAuto() {
+  const inputTarikh =
+    el("autoTarikhMula");
+
+  if (
+    inputTarikh &&
+    !inputTarikh.value
+  ) {
+    inputTarikh.value =
+      el("tarikh")?.value ||
+      hariIniMalaysia();
+  }
+
+  const tbodyLokasi =
+    el("tbodyLokasiAuto");
+
+  if (
+    tbodyLokasi &&
+    !tbodyLokasi.children.length
+  ) {
+    for (let i = 0; i < 4; i += 1) {
+      tambahLokasiAuto();
+    }
+  }
+}
+
+/* ================================================================
    RESET DEVICE
 ================================================================ */
 
@@ -2752,6 +3734,12 @@ function tutupSemuaModulPentadbir() {
       idKandungan: "kandunganImportPengguna",
       idButang: "btnToggleImportPengguna",
       teksButang: "PAPARKAN IMPORT"
+    },
+    {
+      idModul: "modulJanaPenugasan",
+      idKandungan: "",
+      idButang: "btnBukaJanaPenugasan",
+      teksButang: "JANA PENUGASAN"
     },
     {
       idModul: "modulImportPenugasan",
@@ -11326,6 +12314,7 @@ const manual =
 
 
 document.addEventListener("DOMContentLoaded", () => {
+  sediakanJanaPenugasanAuto();
   const inputTarikh = el("tarikh");
 
   if (inputTarikh) {
