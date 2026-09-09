@@ -7,7 +7,7 @@
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260909-f1-kekal-rotation-004">
+  <link rel="stylesheet" href="css/admin.css?v=20260909-f1-jenis-eksklusif-007">
 </head>
 
 <body>
@@ -1708,11 +1708,35 @@
           </div>
         </div>
 
+        <div class="auto-assignment-job-type">
+          <div class="form-group">
+            <label for="autoJenisPenugasan">Jenis Penugasan *</label>
+            <select id="autoJenisPenugasan" onchange="tukarJenisPenugasanAuto()">
+              <option value="">-- PILIH JENIS PENUGASAN --</option>
+              <option value="KAWALAN KESELAMATAN">KAWALAN KESELAMATAN</option>
+              <option value="KAWALAN LALU LINTAS">KAWALAN LALU LINTAS</option>
+              <option value="RONDAAN PENCEGAHAN JENAYAH">RONDAAN PENCEGAHAN JENAYAH</option>
+              <option value="RONDAAN PENCEGAHAN JENAYAH NARKOTIK">RONDAAN PENCEGAHAN JENAYAH NARKOTIK</option>
+              <option value="RONDAAN PENCEGAHAN JENAYAH KOMERSIL">RONDAAN PENCEGAHAN JENAYAH KOMERSIL</option>
+              <option value="LITUPAN KESELAMATAN">LITUPAN KESELAMATAN</option>
+              <option value="UNIT PEMUSNAH BOM">UNIT PEMUSNAH BOM</option>
+              <option value="SUBTEK">SUBTEK</option>
+            </select>
+          </div>
+
+          <div class="auto-assignment-job-type-info">
+            <span>
+              <strong>1 PETUGAS = 1 JENIS PENUGASAN.</strong><br>
+              Petugas yang telah ditetapkan pada satu kategori tidak boleh dipilih dalam kategori lain.
+            </span>
+          </div>
+        </div>
+
         <div class="auto-assignment-heading">
           <div>
             <h3>1. Senarai Petugas</h3>
             <p class="muted">
-              Data Nama, No Badan dan Pangkat diambil terus daripada profiles. Pilih ROTATION untuk anggota yang bertukar tempat, atau KEKAL untuk anggota yang bertugas di lokasi sama setiap hari.
+              Pilih Jenis Penugasan dahulu. Kemudian muat senarai petugas dan tandakan anggota untuk kategori tersebut. Pilihan nama disimpan berasingan bagi setiap jenis penugasan.
             </p>
           </div>
 
@@ -1748,6 +1772,7 @@
                 <th>No Badan</th>
                 <th>Pangkat</th>
                 <th>Nama</th>
+                <th>Jenis Tetap</th>
                 <th>Corak Tugas</th>
                 <th>Lokasi Kekal</th>
                 <th>Penyelia</th>
@@ -1756,7 +1781,7 @@
             </thead>
             <tbody id="tbodyPetugasAuto">
               <tr>
-                <td colspan="8" class="empty-row">
+                <td colspan="9" class="empty-row">
                   Tekan MUAT SENARAI PETUGAS.
                 </td>
               </tr>
@@ -1875,6 +1900,7 @@
             </tbody>
           </table>
         </div>
+
       </section>
 
       <!-- ===============================================
@@ -2592,7 +2618,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260909-f1-kekal-rotation-004"></script>
+<script src="js/admin.js?v=20260909-f1-jenis-eksklusif-007"></script>
 
 
 
