@@ -33,6 +33,31 @@ let previewPenugasanAuto = [];
 let autoSedangSimpan = false;
 let autoLokasiCounter = 0;
 
+const JENIS_PENUGASAN_AUTO_F1 = [
+  "KAWALAN KESELAMATAN",
+  "KAWALAN LALU LINTAS",
+  "RONDAAN PENCEGAHAN JENAYAH",
+  "RONDAAN PENCEGAHAN JENAYAH NARKOTIK",
+  "RONDAAN PENCEGAHAN JENAYAH KOMERSIL",
+  "LITUPAN KESELAMATAN",
+  "UNIT PEMUSNAH BOM",
+  "SUBTEK"
+];
+
+let jenisPenugasanAutoAktif = "";
+const pilihanPetugasMengikutJenisAuto = {};
+
+/*
+  Seorang petugas hanya boleh berada dalam SATU jenis penugasan
+  sepanjang tempoh operasi.
+  Map: NO_BADAN -> JENIS_PENUGASAN
+*/
+const jenisTetapPetugasAuto = {};
+
+
+
+
+
 
 /* Peranti khas Pentadbir Formula 1 */
 const KUNCI_DEVICE_F1_ADMIN = "skpoF1DeviceId";
@@ -2674,11 +2699,24 @@ function bukaJanaPenugasan() {
     tambahLokasiAuto();
   }
 
-  if (!dataPetugasAuto.length) {
-    muatPetugasAuto();
+  jenisPenugasanAutoAktif =
+    atas(el("autoJenisPenugasan")?.value);
+
+  if (jenisPenugasanAutoAktif) {
+    if (!dataPetugasAuto.length) {
+      muatPetugasAuto();
+    } else {
+      paparPetugasAuto();
+    }
   } else {
-    paparPetugasAuto();
+    const tbody = el("tbodyPetugasAuto");
+    if (tbody) {
+      tbody.innerHTML =
+        '<tr><td colspan="9" class="empty-row">Pilih Jenis Penugasan dahulu.</td></tr>';
+    }
   }
+
+  kemasKiniTarikhMuatTurunPenugasanAuto();
 
   window.setTimeout(() => {
     modul.scrollIntoView({
@@ -2712,9 +2750,23 @@ function tutupJanaPenugasan() {
 
 
 async function muatPetugasAuto() {
+  const jenis =
+    atas(el("autoJenisPenugasan")?.value);
+
+  if (!jenis) {
+    paparMesej(
+      "statusPetugasAuto",
+      "Sila pilih Jenis Penugasan terlebih dahulu.",
+      "warning"
+    );
+    return;
+  }
+
+  jenisPenugasanAutoAktif = jenis;
+
   paparMesej(
     "statusPetugasAuto",
-    "Sedang memuatkan senarai petugas aktif...",
+    `Sedang memuatkan senarai petugas untuk ${escapeHtml(jenis)}...`,
     "warning"
   );
 
@@ -2740,8 +2792,9 @@ async function muatPetugasAuto() {
 
     paparMesej(
       "statusPetugasAuto",
-      `${dataPetugasAuto.length} petugas aktif berjaya dimuatkan. ` +
-      `Pilih anggota yang terlibat dan tetapkan Penyelia / Pemegang Set.`,
+      `${dataPetugasAuto.length} petugas aktif dimuatkan untuk ` +
+      `<strong>${escapeHtml(jenis)}</strong>. ` +
+      `Tandakan hanya anggota yang terlibat dalam jenis penugasan ini.`,
       "success"
     );
 
@@ -2760,6 +2813,165 @@ async function muatPetugasAuto() {
 }
 
 
+function petugasDipilihJenisAuto(noBadan) {
+  const jenis =
+    jenisPenugasanAutoAktif ||
+    atas(el("autoJenisPenugasan")?.value);
+
+  if (!jenis) return false;
+
+  return jenisTetapPetugasAuto[atas(noBadan)] === jenis;
+}
+
+
+function jenisPetugasAuto(noBadan) {
+  return jenisTetapPetugasAuto[atas(noBadan)] || "";
+}
+
+
+function labelJenisPetugasAuto(noBadan) {
+  const jenis = jenisPetugasAuto(noBadan);
+
+  if (!jenis) {
+    return '<span class="badge badge-gray">BELUM DITETAPKAN</span>';
+  }
+
+  return `<span class="badge badge-blue">${escapeHtml(jenis)}</span>`;
+}
+
+
+function ubahPilihanPetugasJenisAuto(checkbox) {
+  const tr = checkbox?.closest("tr[data-auto-petugas-index]");
+  if (!tr) return;
+
+  const index = Number(tr.dataset.autoPetugasIndex);
+  const profil = dataPetugasAuto[index];
+  if (!profil) return;
+
+  const noBadan = atas(profil.no_badan);
+  const jenisSemasa =
+    jenisPenugasanAutoAktif ||
+    atas(el("autoJenisPenugasan")?.value);
+
+  if (!jenisSemasa) {
+    checkbox.checked = false;
+    alert("Pilih Jenis Penugasan terlebih dahulu.");
+    return;
+  }
+
+  const jenisSediaAda = jenisTetapPetugasAuto[noBadan] || "";
+
+  if (checkbox.checked) {
+    if (
+      jenisSediaAda &&
+      jenisSediaAda !== jenisSemasa
+    ) {
+      checkbox.checked = false;
+
+      alert(
+        `${profil.pangkat || ""} ${profil.nama || noBadan} telah ditetapkan ` +
+        `di ${jenisSediaAda}.\n\n` +
+        `Petugas tidak boleh berada dalam dua jenis penugasan.`
+      );
+
+      return;
+    }
+
+    jenisTetapPetugasAuto[noBadan] = jenisSemasa;
+
+  } else {
+    if (jenisSediaAda === jenisSemasa) {
+      delete jenisTetapPetugasAuto[noBadan];
+    }
+  }
+
+  simpanPilihanPetugasJenisAuto();
+  paparPetugasAuto();
+  kemasKiniRingkasanKapasitiAuto();
+}
+
+
+function simpanPilihanPetugasJenisAuto() {
+  const jenis =
+    jenisPenugasanAutoAktif ||
+    atas(el("autoJenisPenugasan")?.value);
+
+  if (!jenis) return;
+
+  const setPilihan = new Set();
+
+  document
+    .querySelectorAll("#tbodyPetugasAuto tr[data-auto-petugas-index]")
+    .forEach(tr => {
+      const cb = tr.querySelector(".auto-pilih-petugas");
+      const index = Number(tr.dataset.autoPetugasIndex);
+      const profil = dataPetugasAuto[index];
+
+      if (!profil?.no_badan) return;
+
+      const noBadan = atas(profil.no_badan);
+
+      if (
+        cb?.checked &&
+        (
+          !jenisTetapPetugasAuto[noBadan] ||
+          jenisTetapPetugasAuto[noBadan] === jenis
+        )
+      ) {
+        jenisTetapPetugasAuto[noBadan] = jenis;
+        setPilihan.add(noBadan);
+      }
+    });
+
+  pilihanPetugasMengikutJenisAuto[jenis] = setPilihan;
+}
+
+
+function tukarJenisPenugasanAuto() {
+  simpanPilihanPetugasJenisAuto();
+
+  jenisPenugasanAutoAktif =
+    atas(el("autoJenisPenugasan")?.value);
+
+  previewPenugasanAuto = [];
+  paparPreviewPenugasanAuto();
+
+  if (el("btnSimpanAuto")) {
+    el("btnSimpanAuto").disabled = true;
+  }
+
+  if (!jenisPenugasanAutoAktif) {
+    dataPetugasAuto = [];
+
+    const tbody = el("tbodyPetugasAuto");
+    if (tbody) {
+      tbody.innerHTML =
+        '<tr><td colspan="9" class="empty-row">Pilih Jenis Penugasan dahulu.</td></tr>';
+    }
+
+    paparMesej(
+      "statusPetugasAuto",
+      "Pilih salah satu daripada 8 Jenis Penugasan.",
+      "warning"
+    );
+
+    return;
+  }
+
+  muatPetugasAuto();
+
+  /*
+    Semua slot lokasi baharu akan menggunakan jenis tugas yang dipilih.
+  */
+  document
+    .querySelectorAll("#tbodyLokasiAuto .auto-jenis-tugas")
+    .forEach(input => {
+      input.value = jenisPenugasanAutoAktif;
+      input.readOnly = true;
+    });
+}
+
+
 function paparPetugasAuto() {
   const tbody = el("tbodyPetugasAuto");
   if (!tbody) return;
@@ -2767,7 +2979,7 @@ function paparPetugasAuto() {
   if (!dataPetugasAuto.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-row">
+        <td colspan="9" class="empty-row">
           Tiada petugas aktif ditemui.
         </td>
       </tr>
@@ -2779,6 +2991,12 @@ function paparPetugasAuto() {
     .map((item, index) => {
       const penyeliaAsal = nilaiBoolean(item.penyelia);
       const pemegangAsal = nilaiBoolean(item.pemegang_set);
+      const jenisSediaAda = jenisPetugasAuto(item.no_badan);
+      const dimilikiJenisLain =
+        Boolean(jenisSediaAda) &&
+        jenisSediaAda !== jenisPenugasanAutoAktif;
+      const dipilihJenisSemasa =
+        jenisSediaAda === jenisPenugasanAutoAktif;
 
       return `
         <tr data-auto-petugas-index="${index}">
@@ -2786,8 +3004,9 @@ function paparPetugasAuto() {
             <input
               class="auto-pilih-petugas"
               type="checkbox"
-              checked
-              onchange="kemasKiniRingkasanKapasitiAuto()"
+              ${dipilihJenisSemasa ? "checked" : ""}
+              ${dimilikiJenisLain ? "disabled" : ""}
+              onchange="ubahPilihanPetugasJenisAuto(this)"
               aria-label="Pilih ${escapeHtml(item.no_badan || "")}"
             >
           </td>
@@ -2796,10 +3015,15 @@ function paparPetugasAuto() {
           <td>${escapeHtml(item.pangkat || "-")}</td>
           <td>${escapeHtml(item.nama || "-")}</td>
 
+          <td class="auto-jenis-tetap-cell">
+            ${labelJenisPetugasAuto(item.no_badan)}
+          </td>
+
           <td>
             <select
               class="auto-corak-tugas"
               onchange="ubahCorakTugasAuto(this)"
+              ${dimilikiJenisLain ? "disabled" : ""}
             >
               <option value="ROTATION" selected>ROTATION</option>
               <option value="KEKAL">KEKAL</option>
@@ -2819,6 +3043,7 @@ function paparPetugasAuto() {
             <select
               class="auto-penyelia-select ${penyeliaAsal ? "is-yes" : ""}"
               onchange="kemasKiniWarnaSelectAuto(this)"
+              ${dimilikiJenisLain ? "disabled" : ""}
             >
               <option value="TIDAK" ${penyeliaAsal ? "" : "selected"}>TIDAK</option>
               <option value="YA" ${penyeliaAsal ? "selected" : ""}>YA</option>
@@ -2829,6 +3054,7 @@ function paparPetugasAuto() {
             <select
               class="auto-pemegang-select ${pemegangAsal ? "is-yes" : ""}"
               onchange="kemasKiniWarnaSelectAuto(this)"
+              ${dimilikiJenisLain ? "disabled" : ""}
             >
               <option value="TIDAK" ${pemegangAsal ? "" : "selected"}>TIDAK</option>
               <option value="YA" ${pemegangAsal ? "selected" : ""}>YA</option>
@@ -2947,15 +3173,46 @@ function kemasKiniPilihanLokasiKekalAuto(paparStatusSelepas = false) {
 
 
 function pilihSemuaPetugasAuto(aktif) {
+  const jenis =
+    jenisPenugasanAutoAktif ||
+    atas(el("autoJenisPenugasan")?.value);
+
+  if (!jenis) {
+    alert("Pilih Jenis Penugasan terlebih dahulu.");
+    return;
+  }
+
   document
-    .querySelectorAll("#tbodyPetugasAuto .auto-pilih-petugas")
-    .forEach(input => {
+    .querySelectorAll("#tbodyPetugasAuto tr[data-auto-petugas-index]")
+    .forEach(tr => {
+      const input = tr.querySelector(".auto-pilih-petugas");
+      const index = Number(tr.dataset.autoPetugasIndex);
+      const profil = dataPetugasAuto[index];
+
+      if (!input || !profil?.no_badan) return;
+
+      const noBadan = atas(profil.no_badan);
+      const jenisSediaAda = jenisTetapPetugasAuto[noBadan] || "";
+
+      if (jenisSediaAda && jenisSediaAda !== jenis) {
+        input.checked = false;
+        input.disabled = true;
+        return;
+      }
+
       input.checked = Boolean(aktif);
+
+      if (aktif) {
+        jenisTetapPetugasAuto[noBadan] = jenis;
+      } else if (jenisTetapPetugasAuto[noBadan] === jenis) {
+        delete jenisTetapPetugasAuto[noBadan];
+      }
     });
 
+  simpanPilihanPetugasJenisAuto();
+  paparPetugasAuto();
   kemasKiniRingkasanKapasitiAuto();
 }
-
 
 function tambahLokasiAuto(data = {}) {
   const tbody = el("tbodyLokasiAuto");
@@ -2980,8 +3237,9 @@ function tambahLokasiAuto(data = {}) {
       <input
         class="auto-jenis-tugas"
         type="text"
-        value="${escapeHtml(data.jenis_tugas || "")}"
-        placeholder="Contoh: KAWALAN KESELAMATAN"
+        value="${escapeHtml(data.jenis_tugas || jenisPenugasanAutoAktif || atas(el("autoJenisPenugasan")?.value) || "")}"
+        placeholder="Pilih Jenis Penugasan di atas"
+        readonly
       >
     </td>
 
@@ -3089,6 +3347,15 @@ function bacaPetugasDipilihAuto() {
 
       if (!profil) return;
 
+      const jenisPetugas =
+        jenisTetapPetugasAuto[atas(profil.no_badan)] || "";
+
+      if (
+        jenisPetugas !== jenisPenugasanAutoAktif
+      ) {
+        return;
+      }
+
       const corak =
         atas(tr.querySelector(".auto-corak-tugas")?.value || "ROTATION");
 
@@ -3129,6 +3396,8 @@ function bacaLokasiAuto() {
         atas(tr.querySelector(".auto-call-sign")?.value);
 
       const jenisTugas =
+        jenisPenugasanAutoAktif ||
+        atas(el("autoJenisPenugasan")?.value) ||
         atas(tr.querySelector(".auto-jenis-tugas")?.value);
 
       const tempatTugas =
@@ -3432,6 +3701,18 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
 
 function janaPreviewPenugasanAuto() {
   try {
+    const jenisPenugasan =
+      atas(el("autoJenisPenugasan")?.value);
+
+    if (!jenisPenugasan) {
+      throw new Error(
+        "Pilih Jenis Penugasan terlebih dahulu."
+      );
+    }
+
+    jenisPenugasanAutoAktif =
+      jenisPenugasan;
+
     const tarikhMula = teks(
       el("autoTarikhMula")?.value
     );
@@ -3549,6 +3830,7 @@ function janaPreviewPenugasanAuto() {
     paparMesej(
       "statusJanaAuto",
       `<strong>PRATONTON BERJAYA DIJANA</strong><br>` +
+      `Jenis: ${escapeHtml(jenisPenugasanAutoAktif)}<br>` +
       `${petugas.length} petugas × ${bilHari} hari = ` +
       `${previewPenugasanAuto.length} rekod penugasan.`,
       "success"
@@ -4020,6 +4302,7 @@ function sediakanJanaPenugasanAuto() {
     }
   }
 }
+
 
 /* ================================================================
    RESET DEVICE
