@@ -4710,3 +4710,62 @@ body.marker-dragging *{
   font-weight:700;
 }
 
+.auto-assignment-job-type{
+  display:grid;
+  grid-template-columns:minmax(280px,480px) 1fr;
+  gap:14px;
+  align-items:end;
+  margin:18px 0 8px;
+  padding:14px;
+  border:1px solid #5d4d1d;
+  border-radius:10px;
+  background:#211c0e;
+}
+
+.auto-assignment-job-type-info{
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  padding:10px 12px;
+  border-radius:8px;
+  background:#171717;
+  color:#d6d6d6;
+  font-size:12px;
+}
+
+#autoJenisPenugasan{
+  border-color:#80671f;
+  color:#ffe08a;
+  font-weight:700;
+}
+
+.auto-jenis-tugas[readonly]{
+  background:#24200f;
+  border-color:#5d4d1d;
+  color:#ffe08a;
+  cursor:not-allowed;
+}
+
+@media(max-width:800px){
+  .auto-assignment-job-type{
+    grid-template-columns:1fr;
+  }
+}
+
+.auto-jenis-tetap-cell{
+  min-width:210px;
+}
+
+.auto-pilih-petugas:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+}
+
+#tbodyPetugasAuto tr:has(.auto-pilih-petugas:disabled){
+  opacity:.68;
+}
+
+.auto-staff-table{
+  min-width:1320px;
+}
+
