@@ -2712,7 +2712,7 @@ function bukaJanaPenugasan() {
     const tbody = el("tbodyPetugasAuto");
     if (tbody) {
       tbody.innerHTML =
-        '<tr><td colspan="9" class="empty-row">Pilih Jenis Penugasan dahulu.</td></tr>';
+        '<tr><td colspan="11" class="empty-row">Pilih Jenis Penugasan dahulu.</td></tr>';
     }
   }
 
@@ -2946,7 +2946,7 @@ function tukarJenisPenugasanAuto() {
     const tbody = el("tbodyPetugasAuto");
     if (tbody) {
       tbody.innerHTML =
-        '<tr><td colspan="9" class="empty-row">Pilih Jenis Penugasan dahulu.</td></tr>';
+        '<tr><td colspan="11" class="empty-row">Pilih Jenis Penugasan dahulu.</td></tr>';
     }
 
     paparMesej(
@@ -2979,7 +2979,7 @@ function paparPetugasAuto() {
   if (!dataPetugasAuto.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="9" class="empty-row">
+        <td colspan="11" class="empty-row">
           Tiada petugas aktif ditemui.
         </td>
       </tr>
@@ -3014,6 +3014,8 @@ function paparPetugasAuto() {
           <td>${escapeHtml(item.no_badan || "-")}</td>
           <td>${escapeHtml(item.pangkat || "-")}</td>
           <td>${escapeHtml(item.nama || "-")}</td>
+          <td>${escapeHtml(item.daerah || "-")}</td>
+          <td>${escapeHtml(item.telefon || item.no_telefon || "-")}</td>
 
           <td class="auto-jenis-tetap-cell">
             ${labelJenisPetugasAuto(item.no_badan)}
