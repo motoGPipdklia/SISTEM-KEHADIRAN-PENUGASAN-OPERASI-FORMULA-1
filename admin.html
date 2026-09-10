@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>OP LITAR Formula 1 | Pentadbir</title>
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
-  <link rel="stylesheet" href="css/admin.css?v=20260909-f1-jenis-eksklusif-007">
+  <link rel="stylesheet" href="css/admin.css?v=20260910-f1-kalendar-dinamik-001">
 </head>
 
 <body>
@@ -1657,7 +1660,7 @@
       >
         <div class="section-heading">
           <div>
-            <h2>Jana Penugasan Automatik 3–5 Hari</h2>
+            <h2>Jana Penugasan Automatik</h2>
             <p class="muted">
               Pilih petugas sekali sahaja, tetapkan Penyelia / Pemegang Set dan
               masukkan lokasi penugasan. Sistem akan membuat rotation automatik
@@ -1679,22 +1682,37 @@
           <span>•</span>
           <span>Kaedah: Rotation Terkawal</span>
           <span>•</span>
-          <span>Tempoh: 3 hingga 5 hari</span>
+          <span>Tempoh: Mengikut pilihan kalendar</span>
         </div>
 
         <div class="auto-assignment-grid">
           <div class="form-group">
             <label for="autoTarikhMula">Tarikh Mula *</label>
-            <input id="autoTarikhMula" type="date">
+            <input
+              id="autoTarikhMula"
+              type="date"
+              onchange="kemasKiniBilHariAutoDariKalendar()"
+            >
           </div>
 
           <div class="form-group">
-            <label for="autoBilHari">Bilangan Hari *</label>
-            <select id="autoBilHari">
-              <option value="3">3 HARI</option>
-              <option value="4">4 HARI</option>
-              <option value="5" selected>5 HARI</option>
-            </select>
+            <label for="autoTarikhTamat">Tarikh Tamat *</label>
+            <input
+              id="autoTarikhTamat"
+              type="date"
+              onchange="kemasKiniBilHariAutoDariKalendar()"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="autoBilHariPaparan">Bilangan Hari</label>
+            <input
+              id="autoBilHariPaparan"
+              type="text"
+              value="1 HARI"
+              readonly
+            >
+            <input id="autoBilHari" type="hidden" value="1">
           </div>
 
           <div class="form-group">
@@ -1818,12 +1836,7 @@
                 <th>Latitude</th>
                 <th>Longitude</th>
                 <th>Radius (m)</th>
-                <th>Hari 1</th>
-                <th>Hari 2</th>
-                <th>Hari 3</th>
-                <th>Hari 4</th>
-                <th>Hari 5</th>
-                <th>Tindakan</th>
+                <th id="autoHeaderTindakan">Tindakan</th>
               </tr>
             </thead>
             <tbody id="tbodyLokasiAuto"></tbody>
@@ -1870,7 +1883,7 @@
           <div>
             <h3>3. Pratonton Jadual</h3>
             <p class="muted">
-              Semak keseluruhan Hari 1 hingga Hari 5 sebelum disimpan.
+              Semak keseluruhan jadual mengikut julat tarikh yang dipilih sebelum disimpan.
             </p>
           </div>
         </div>
@@ -2620,7 +2633,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260909-f1-jenis-eksklusif-007"></script>
+<script src="js/admin.js?v=20260910-f1-kalendar-dinamik-001"></script>
 
 
 
