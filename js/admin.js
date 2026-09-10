@@ -1772,8 +1772,8 @@ function binaRekodImportPenggunaCsv(barisCsv) {
     NO_BADAN: ["NO_BADAN", "NOBADAN", "NO_POLIS", "BODY_NO"],
     PANGKAT: ["PANGKAT", "RANK"],
     NAMA: ["NAMA", "NAMA_PENUH", "NAME"],
+    TELEFON: ["TELEFON", "NO_TELEFON", "NO_TEL", "PHONE"],
     PERANAN: ["PERANAN", "ROLE"],
-    TELEFON: ["TELEFON", "NO_TELEFON", "PHONE"],
     BAHAGIAN: ["BAHAGIAN", "BALAI", "CAWANGAN", "BAHAGIAN_BALAI_CAWANGAN"],
     DAERAH: ["DAERAH", "DISTRICT"],
     KATA_LALUAN: ["KATA_LALUAN", "KATALALUAN", "PASSWORD"],
@@ -1825,8 +1825,8 @@ function binaRekodImportPenggunaCsv(barisCsv) {
         no_badan: noBadan,
         pangkat,
         nama,
-        peranan,
         telefon: ambil(baris, "TELEFON") || null,
+        peranan,
         bahagian: atas(ambil(baris, "BAHAGIAN")) || null,
         daerah: atas(ambil(baris, "DAERAH")) || null,
         password,
@@ -1900,8 +1900,8 @@ function paparPratontonImportPengguna() {
         <td>${escapeHtml(d.no_badan || "-")}</td>
         <td>${escapeHtml(d.pangkat || "-")}</td>
         <td>${escapeHtml(d.nama || "-")}</td>
-        <td>${escapeHtml(d.peranan || "-")}</td>
         <td>${escapeHtml(d.telefon || "-")}</td>
+        <td>${escapeHtml(d.peranan || "-")}</td>
         <td>${escapeHtml(d.bahagian || "-")}</td>
         <td>${escapeHtml(d.daerah || "-")}</td>
         <td>${d.aktif ? "YA" : "TIDAK"}</td>
@@ -1963,10 +1963,10 @@ function kosongkanImportPengguna() {
 
 function muatTurunTemplatPengguna() {
   const kandungan = [
-    "NO_BADAN,PANGKAT,NAMA,PERANAN,TELEFON,BAHAGIAN,DAERAH,KATA_LALUAN,AKTIF",
-    "197898,L/KPL,NORHISHAM BIN CHE MAT,PETUGAS,0193151615,BKDNKA,KLIA,Skpo@A7m2#1,YA",
-    "199898,SJN,AHMAD BIN ALI,PENYELIA,0123456789,IPD KLIA,SEPANG,Skpo@B9n4#2,YA",
-    "PUSATF1,INSP,PUSAT KAWALAN FORMULA 1,PUSAT_KAWALAN,0123456789,IPK,KUALA LUMPUR,Skpo@F1PK2026#1,YA"
+    "NO_BADAN,PANGKAT,NAMA,NO_TELEFON,PERANAN,BAHAGIAN,DAERAH,KATA_LALUAN,AKTIF",
+    "197898,L/KPL,NORHISHAM BIN CHE MAT,0193151615,PETUGAS,BKDNKA,SEPANG,Skpo@A7m2#1,YA",
+    "199898,SJN,AHMAD BIN ALI,0123456789,PENYELIA,CAWANGAN KHAS,SEPANG,Skpo@B9n4#2,YA",
+    "PUSATF1,INSP,PUSAT KAWALAN FORMULA 1,0123456789,PUSAT_KAWALAN,IPK,SELANGOR,Skpo@F1PK2026#1,YA"
   ].join("\r\n");
 
   const blob = new Blob(["\uFEFF", kandungan], { type: "text/csv;charset=utf-8" });
@@ -2044,8 +2044,8 @@ async function importPenggunaCsv() {
             noBadan: d.no_badan,
             pangkat: d.pangkat,
             nama: d.nama,
-            peranan: d.peranan || "PETUGAS",
             telefon: d.telefon || "",
+            peranan: d.peranan || "PETUGAS",
             bahagian: d.bahagian || "",
             daerah: d.daerah || "",
             password: d.password,
