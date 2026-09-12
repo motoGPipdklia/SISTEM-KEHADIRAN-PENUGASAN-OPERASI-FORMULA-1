@@ -1,0 +1,28 @@
+<!-- =========================================================
+     TAMBAH DALAM <head>
+========================================================= -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d0d0d">
+
+<!-- iPhone / iPad -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SKPO">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<!-- =========================================================
+     TAMBAH DI DALAM LOGIN BOX / TEMPAT YANG SESUAI
+========================================================= -->
+<button id="btnInstallPwa" type="button" hidden>
+  PASANG APLIKASI SKPO
+</button>
+
+<div id="iosInstallHint" hidden style="margin-top:12px;font-size:0.9rem;line-height:1.5;">
+  Untuk iPhone/iPad: buka menu <strong>Share</strong> dalam Safari,
+  kemudian pilih <strong>Add to Home Screen</strong>.
+</div>
+
+<!-- =========================================================
+     TAMBAH SEBELUM </body>
+========================================================= -->
+<script src="js/pwa.js"></script>
