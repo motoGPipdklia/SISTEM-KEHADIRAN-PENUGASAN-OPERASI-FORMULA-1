@@ -1,23 +1,15 @@
 {
-  "name": "SKPO - Sistem Kehadiran & Penugasan Operasi",
-  "short_name": "SKPO",
-  "description": "Sistem Kehadiran & Penugasan Operasi",
-  "start_url": "./index.html",
+  "id": "./index.html",
+  "name": "SKPO Formula 1 2026",
+  "short_name": "SKPO F1",
+  "description": "Sistem Kehadiran dan Penugasan Operasi Formula 1",
+  "start_url": "./index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
-  "display_override": [
-    "window-controls-overlay",
-    "standalone",
-    "minimal-ui"
-  ],
   "background_color": "#0d0d0d",
   "theme_color": "#0d0d0d",
   "orientation": "portrait-primary",
   "lang": "ms-MY",
-  "categories": [
-    "productivity",
-    "utilities"
-  ],
   "icons": [
     {
       "src": "icons/icon-192.png",

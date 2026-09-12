@@ -1,0 +1,17 @@
+<!-- BUTANG DI PORTAL UNTUK FORMULA 1 -->
+<a class="portal-app-card" href="formula1/index.html">
+  <div class="portal-app-title">OP LITAR FORMULA 1</div>
+  <div class="portal-app-subtitle">Sistem Kehadiran & Penugasan Operasi</div>
+</a>
+
+<button id="btnPasangFormula1" type="button" onclick="pasangFormula1DariPortal()">
+  MUAT TURUN / PASANG APLIKASI FORMULA 1
+</button>
+
+<script>
+async function pasangFormula1DariPortal() {
+  // PWA install prompt hanya boleh digunakan oleh halaman/app dalam scope PWA itu sendiri.
+  // Jadi Portal arahkan pengguna ke halaman Formula 1 dengan flag install.
+  window.location.href = "formula1/index.html?install=1";
+}
+</script>

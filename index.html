@@ -6,10 +6,18 @@
   <meta name="theme-color" content="#0d0d0d">
   <title>OP LITAR Formula 1 | SKPO</title>
 
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SKPO F1">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
   <!-- Gaya global mesti dimuatkan dahulu. -->
   <link rel="stylesheet" href="css/style.css">
   <!-- Gaya khusus halaman Petugas dimuatkan selepas gaya global. -->
-  <link rel="stylesheet" href="css/index.css?v=20260824-subtek-001">
+  <link rel="stylesheet" href="css/index.css?v=20260912-pwa-001">
 </head>
 
 <body>
@@ -31,6 +39,16 @@
 
     <button id="btnLogin" type="button" onclick="login()">LOGIN</button>
     <div id="status" role="status" aria-live="polite"></div>
+
+    <!-- BUTANG PASANG PWA -->
+    <button id="btnInstallPwa" type="button" hidden>
+      PASANG APLIKASI FORMULA 1
+    </button>
+
+    <div id="iosInstallHint" hidden style="margin-top:12px;line-height:1.5;text-align:center;">
+      iPhone/iPad: buka menggunakan Safari, tekan <strong>Share</strong>,
+      kemudian pilih <strong>Add to Home Screen</strong>.
+    </div>
 
     <a class="supervisor-link" href="admin.html">LOGIN PENTADBIR</a>
     <a class="supervisor-link" href="penyelia.html">LOGIN URUSETIA</a>
@@ -61,38 +79,19 @@
       <h2>Maklumat Tugas Hari Ini</h2>
 
       <div class="info-box">
-        <div class="info-row">
-          <div class="info-label">Call Sign:</div>
-          <div class="info-value" id="callSignTugas">Memuatkan...</div>
-        </div>
-        <div class="info-row">
-          <div class="info-label">Jenis Tugas:</div>
-          <div class="info-value" id="jenisTugas">Memuatkan...</div>
-        </div>
-        <div class="info-row">
-          <div class="info-label">Tempat Tugas:</div>
-          <div class="info-value" id="lokasiTugas">Memuatkan...</div>
-        </div>
-        <div class="info-row">
-          <div class="info-label">Penyelia:</div>
-          <div class="info-value" id="penyeliaTugas">Memuatkan...</div>
-        </div>
-        <div class="info-row">
-          <div class="info-label">Pemegang Set:</div>
-          <div class="info-value" id="pemegangSetTugas">Memuatkan...</div>
-        </div>
+        <div class="info-row"><div class="info-label">Call Sign:</div><div class="info-value" id="callSignTugas">Memuatkan...</div></div>
+        <div class="info-row"><div class="info-label">Jenis Tugas:</div><div class="info-value" id="jenisTugas">Memuatkan...</div></div>
+        <div class="info-row"><div class="info-label">Tempat Tugas:</div><div class="info-value" id="lokasiTugas">Memuatkan...</div></div>
+        <div class="info-row"><div class="info-label">Penyelia:</div><div class="info-value" id="penyeliaTugas">Memuatkan...</div></div>
+        <div class="info-row"><div class="info-label">Pemegang Set:</div><div class="info-value" id="pemegangSetTugas">Memuatkan...</div></div>
       </div>
 
       <div id="statusTugas" role="status" aria-live="polite"></div>
       <div class="status-box" id="statusKehadiran"></div>
       <div class="status-box" id="statusCheckout"></div>
 
-      <button id="btnCheckin" type="button" disabled onclick="mulaCheckin()">
-        CHECK-IN KEHADIRAN
-      </button>
-      <button id="btnCheckout" type="button" disabled onclick="mulaCheckout()">
-        CHECK-OUT KEHADIRAN
-      </button>
+      <button id="btnCheckin" type="button" disabled onclick="mulaCheckin()">CHECK-IN KEHADIRAN</button>
+      <button id="btnCheckout" type="button" disabled onclick="mulaCheckout()">CHECK-OUT KEHADIRAN</button>
 
       <section class="walkie-card" id="modulWalkiePetugas">
         <div class="walkie-header">
@@ -100,11 +99,7 @@
             <h2>Permohonan Set Walkie-Talkie</h2>
             <p>Mohon dan semak status set komunikasi untuk penugasan hari ini.</p>
           </div>
-          <button
-            class="secondary walkie-refresh-button"
-            type="button"
-            onclick="window.SKPOWalkie?.muatSemula()"
-          >
+          <button class="secondary walkie-refresh-button" type="button" onclick="window.SKPOWalkie?.muatSemula()">
             SEMAK STATUS SET
           </button>
         </div>
@@ -114,25 +109,12 @@
         </div>
       </section>
 
-      <button
-        class="gold-report"
-        id="btnLaporan"
-        type="button"
-        disabled
-        style="display:none"
-        onclick="bukaLaporan()"
-      >
+      <button class="gold-report" id="btnLaporan" type="button" disabled style="display:none" onclick="bukaLaporan()">
         HANTAR PELAPORAN
       </button>
 
-      <button class="map-button" id="btnPaparPeta" type="button" onclick="bukaPeta()">
-        PAPARAN PETA
-      </button>
-
-      <button class="refresh-button" id="btnRefreshStatus" type="button" onclick="refreshDashboard()">
-        SEMAK SEMULA STATUS
-      </button>
-
+      <button class="map-button" id="btnPaparPeta" type="button" onclick="bukaPeta()">PAPARAN PETA</button>
+      <button class="refresh-button" id="btnRefreshStatus" type="button" onclick="refreshDashboard()">SEMAK SEMULA STATUS</button>
       <button class="secondary" type="button" onclick="logout()">LOG KELUAR</button>
     </section>
   </main>
@@ -161,15 +143,9 @@
       <p id="koordinatCheckout"></p>
       <p id="jarakStatusCheckout"></p>
       <div class="status-box" id="statusHantarCheckout"></div>
-      <button id="btnDapatGPSCheckout" type="button" onclick="dapatkanGPSCheckout()">
-        DAPATKAN LOKASI GPS
-      </button>
-      <button id="btnHantarCheckout" type="button" disabled onclick="hantarCheckout()">
-        HANTAR CHECK-OUT
-      </button>
-      <button class="secondary" id="btnKembaliCheckout" type="button" onclick="kembaliDashboardCheckout()">
-        KEMBALI
-      </button>
+      <button id="btnDapatGPSCheckout" type="button" onclick="dapatkanGPSCheckout()">DAPATKAN LOKASI GPS</button>
+      <button id="btnHantarCheckout" type="button" disabled onclick="hantarCheckout()">HANTAR CHECK-OUT</button>
+      <button class="secondary" id="btnKembaliCheckout" type="button" onclick="kembaliDashboardCheckout()">KEMBALI</button>
     </section>
   </main>
 
@@ -177,30 +153,17 @@
   <main class="laporan" id="laporan" style="display:none">
     <section class="card">
       <h1 id="tajukLaporanPetugas">Pelaporan Petugas</h1>
-
-      <div class="info-box">
-        <div id="tugasLaporan"></div>
-      </div>
-
+      <div class="info-box"><div id="tugasLaporan"></div></div>
       <div class="info-box" id="blokTarikhMasaLaporan">
         <div class="info-row">
           <div class="info-label">Tarikh / Masa:</div>
           <div class="info-value" id="tarikhMasaLaporan">-</div>
         </div>
       </div>
-
-      <!-- Borang akan dijana secara automatik mengikut jenis tugas. -->
       <div id="borangLaporanDinamik"></div>
-
       <div class="status-box" id="statusLaporan" role="status" aria-live="polite"></div>
-
-      <button id="btnHantarLaporan" type="button" onclick="hantarLaporan()">
-        HANTAR LAPORAN KEPADA URUSETIA
-      </button>
-
-      <button class="secondary" id="btnKembaliLaporan" type="button" onclick="tutupLaporan()">
-        KEMBALI
-      </button>
+      <button id="btnHantarLaporan" type="button" onclick="hantarLaporan()">HANTAR LAPORAN KEPADA URUSETIA</button>
+      <button class="secondary" id="btnKembaliLaporan" type="button" onclick="tutupLaporan()">KEMBALI</button>
     </section>
   </main>
 
@@ -236,5 +199,8 @@
   <script src="js/supabase-client.js"></script>
   <script src="js/index.js?v=20260824-subtek-001"></script>
   <script src="js/walkie-petugas.js"></script>
+
+  <!-- PWA mesti selepas script utama -->
+  <script src="js/pwa-install.js?v=20260912-001"></script>
 </body>
 </html>

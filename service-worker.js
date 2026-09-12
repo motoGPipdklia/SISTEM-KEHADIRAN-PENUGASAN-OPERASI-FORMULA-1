@@ -1,35 +1,38 @@
-const CACHE_NAME = "skpo-pwa-v1";
+const CACHE_NAME = "skpo-f1-v20260912-001";
 
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./manifest.json"
-];
-
-// Fail yang tidak patut dicache kerana data/login perlu sentiasa terkini.
-const NETWORK_FIRST_PATTERNS = [
-  /supabase\.co/i,
-  /supabase\.in/i,
-  /\/rest\/v1\//i,
-  /\/auth\/v1\//i,
-  /\/functions\/v1\//i
+  "./manifest.json",
+  "./css/style.css",
+  "./css/index.css",
+  "./js/api-config.js",
+  "./js/supabase-client.js",
+  "./js/index.js",
+  "./js/walkie-petugas.js",
+  "./js/pwa-install.js",
+  "./images/logo-utama.png",
+  "./images/logo-gabungan.png",
+  "./images/peta.png",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const url of APP_SHELL) {
+        try { await cache.add(url); } catch (e) { console.warn("Tidak dapat cache:", url); }
+      }
+    })
   );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -37,51 +40,39 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-
-  if (request.method !== "GET") {
-    return;
-  }
+  if (request.method !== "GET") return;
 
   const url = new URL(request.url);
 
-  if (NETWORK_FIRST_PATTERNS.some((pattern) => pattern.test(url.href))) {
-    event.respondWith(
-      fetch(request).catch(() => caches.match(request))
-    );
+  // Supabase / API sentiasa utamakan network supaya status semasa tidak basi.
+  if (
+    /supabase/i.test(url.hostname) ||
+    url.pathname.includes("/rest/v1/") ||
+    url.pathname.includes("/auth/v1/") ||
+    url.pathname.includes("/functions/v1/")
+  ) {
+    event.respondWith(fetch(request));
     return;
   }
 
+  // Navigasi: network dahulu, fallback cache.
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          return response;
-        })
-        .catch(async () => {
-          return (
-            (await caches.match(request)) ||
-            (await caches.match("./index.html"))
-          );
-        })
+      fetch(request).catch(() => caches.match("./index.html"))
     );
     return;
   }
 
+  // Asset statik: cache dahulu.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(request).then((response) => {
-        if (!response || response.status !== 200 || response.type === "opaque") {
-          return response;
+    caches.match(request).then(cached =>
+      cached || fetch(request).then(response => {
+        if (response && response.status === 200 && response.type === "basic") {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
         }
-
-        const clone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         return response;
-      });
-    })
+      })
+    )
   );
 });
