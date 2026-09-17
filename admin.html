@@ -1892,6 +1892,49 @@
           Belum ada jadual dijana.
         </div>
 
+        <!-- CETAK JADUAL PENUGASAN -->
+        <div class="auto-print-toolbar" style="
+          display:grid;
+          grid-template-columns:repeat(3,minmax(180px,1fr)) auto;
+          gap:12px;
+          align-items:end;
+          margin:16px 0;
+          padding:14px;
+          border:1px solid #333;
+          border-radius:12px;
+          background:#151515;
+        ">
+          <div>
+            <label for="cetakTarikhAuto">Tarikh</label>
+            <select id="cetakTarikhAuto" onchange="kemasKiniPilihanCetakAuto()" style="width:100%">
+              <option value="">PILIH TARIKH</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="cetakJenisTugasAuto">Jenis Tugas</label>
+            <select id="cetakJenisTugasAuto" onchange="kemasKiniPilihanTempatCetakAuto()" style="width:100%">
+              <option value="">SEMUA JENIS TUGAS</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="cetakTempatTugasAuto">Tempat Tugas</label>
+            <select id="cetakTempatTugasAuto" style="width:100%">
+              <option value="">SEMUA TEMPAT TUGAS</option>
+            </select>
+          </div>
+
+          <button
+            class="gold"
+            id="btnCetakJadualAuto"
+            type="button"
+            onclick="cetakJadualPenugasanAuto()"
+          >
+            CETAK JADUAL
+          </button>
+        </div>
+
         <div class="auto-assignment-table-wrap auto-preview-wrap">
           <table class="auto-assignment-table auto-preview-table">
             <thead>
