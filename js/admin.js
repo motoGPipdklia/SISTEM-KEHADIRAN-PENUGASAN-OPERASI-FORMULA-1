@@ -829,6 +829,138 @@ function semakPerananPentadbir(profil) {
   return ["PENTADBIR", "ADMIN"].includes(atas(profil?.peranan));
 }
 
+
+/* ================================================================
+   TUKAR PASSWORD PENTADBIR
+================================================================ */
+
+function bukaTukarPasswordAdmin() {
+  const modal = el("modalTukarPasswordAdmin");
+  if (!modal) return;
+
+  ["passwordSemasaAdmin", "passwordBaharuAdmin", "sahkanPasswordBaharuAdmin"]
+    .forEach(id => {
+      const input = el(id);
+      if (input) input.value = "";
+    });
+
+  const status = el("statusTukarPasswordAdmin");
+  if (status) {
+    status.className = "status-box";
+    status.innerHTML = "";
+    status.style.display = "none";
+  }
+
+  modal.hidden = false;
+  modal.style.display = "block";
+  modal.classList.add("open");
+
+  setTimeout(() => el("passwordSemasaAdmin")?.focus(), 50);
+}
+
+function tutupTukarPasswordAdmin() {
+  const modal = el("modalTukarPasswordAdmin");
+  if (!modal) return;
+
+  modal.classList.remove("open");
+  modal.hidden = true;
+  modal.style.display = "none";
+}
+
+async function simpanPasswordAdmin() {
+  const passwordSemasa = el("passwordSemasaAdmin")?.value || "";
+  const passwordBaharu = el("passwordBaharuAdmin")?.value || "";
+  const pengesahan = el("sahkanPasswordBaharuAdmin")?.value || "";
+  const btn = el("btnSimpanPasswordAdmin");
+
+  const mesej = (teksMesej, jenis = "warning") => {
+    const ruang = el("statusTukarPasswordAdmin");
+    if (!ruang) return;
+    ruang.style.display = "block";
+    ruang.className = jenis;
+    ruang.textContent = teksMesej;
+  };
+
+  if (!passwordSemasa || !passwordBaharu || !pengesahan) {
+    mesej("Sila lengkapkan semua ruangan password.", "warning");
+    return;
+  }
+
+  if (passwordBaharu.length < 6) {
+    mesej("Password baharu mestilah sekurang-kurangnya 6 aksara.", "warning");
+    return;
+  }
+
+  if (passwordBaharu !== pengesahan) {
+    mesej("Pengesahan password baharu tidak sepadan.", "error");
+    return;
+  }
+
+  if (passwordSemasa === passwordBaharu) {
+    mesej("Password baharu mestilah berbeza daripada password semasa.", "warning");
+    return;
+  }
+
+  try {
+    pastikanSupabase();
+    if (btn) btn.disabled = true;
+    mesej("Sedang mengesahkan password semasa...", "warning");
+
+    const { data: userData, error: userError } =
+      await denganHadMasa(db.auth.getUser());
+
+    if (userError) throw userError;
+
+    const email = teks(userData?.user?.email);
+    if (!email) {
+      throw new Error("E-mel akaun Pentadbir tidak dapat dikenal pasti.");
+    }
+
+    // Re-authentication: password semasa mesti betul sebelum perubahan dibuat.
+    const { error: loginError } =
+      await denganHadMasa(
+        db.auth.signInWithPassword({
+          email,
+          password: passwordSemasa
+        })
+      );
+
+    if (loginError) {
+      mesej("Password semasa tidak betul.", "error");
+      return;
+    }
+
+    mesej("Password disahkan. Sedang menukar password...", "warning");
+
+    const { error: updateError } =
+      await denganHadMasa(
+        db.auth.updateUser({
+          password: passwordBaharu
+        })
+      );
+
+    if (updateError) throw updateError;
+
+    mesej("Password Pentadbir berjaya ditukar.", "success");
+
+    el("passwordSemasaAdmin").value = "";
+    el("passwordBaharuAdmin").value = "";
+    el("sahkanPasswordBaharuAdmin").value = "";
+
+    setTimeout(() => tutupTukarPasswordAdmin(), 1400);
+
+  } catch (error) {
+    console.error("Tukar password Pentadbir gagal:", error);
+    mesej(
+      `Gagal menukar password: ${error?.message || "Ralat tidak diketahui."}`,
+      "error"
+    );
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+
 /* ================================================================
    PERANTI KHAS PENTADBIR
 ================================================================ */
