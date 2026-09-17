@@ -55,6 +55,7 @@ const pilihanPetugasMengikutJenisAuto = {};
   Map: NO_BADAN -> JENIS_PENUGASAN
 */
 const jenisTetapPetugasAuto = {};
+const jenisTersimpanPetugasAuto = {};
 
 
 
@@ -2952,6 +2953,9 @@ async function muatPetugasAuto() {
         return !["PENTADBIR", "ADMIN"].includes(peranan);
       });
 
+    // Kunci petugas yang sudah mempunyai penugasan dalam julat tarikh operasi.
+    await muatJenisPenugasanTersimpanAuto();
+
     paparPetugasAuto();
 
     paparMesej(
@@ -2977,6 +2981,77 @@ async function muatPetugasAuto() {
 }
 
 
+async function muatJenisPenugasanTersimpanAuto() {
+  const mula =
+    teks(el("autoTarikhMula")?.value) ||
+    teks(el("tarikh")?.value) ||
+    hariIniMalaysia();
+
+  const tamat =
+    teks(el("autoTarikhTamat")?.value) ||
+    mula;
+
+  Object.keys(jenisTersimpanPetugasAuto).forEach(kunci => {
+    delete jenisTersimpanPetugasAuto[kunci];
+  });
+
+  const { data: rekod, error } = await denganHadMasa(
+    db.from("penugasan")
+      .select("*")
+      .gte("tarikh", mula)
+      .lte("tarikh", tamat)
+      .order("tarikh", { ascending: true })
+  );
+
+  if (error) throw error;
+
+  const profilById = new Map();
+  const profilByAuth = new Map();
+
+  dataPetugasAuto.forEach(profil => {
+    if (profil?.id) profilById.set(String(profil.id), profil);
+    if (profil?.auth_user_id) {
+      profilByAuth.set(String(profil.auth_user_id), profil);
+    }
+  });
+
+  (rekod || []).forEach(item => {
+    const petugasId = String(item.petugas_id || item.profile_id || "");
+    const profil =
+      profilById.get(petugasId) ||
+      profilByAuth.get(petugasId) ||
+      null;
+
+    const noBadan =
+      atas(
+        profil?.no_badan ||
+        item.no_badan ||
+        ""
+      );
+
+    const jenis =
+      atas(item.jenis_tugas || "");
+
+    if (!noBadan || !jenis) return;
+
+    /*
+      Jika seseorang mempunyai rekod pada beberapa hari untuk jenis yang sama,
+      ia tetap dianggap satu Jenis Penugasan.
+    */
+    if (!jenisTersimpanPetugasAuto[noBadan]) {
+      jenisTersimpanPetugasAuto[noBadan] = jenis;
+    }
+
+    /*
+      Penugasan yang sudah tersimpan adalah authoritative.
+      Ini memastikan refresh/login semula masih mengunci petugas.
+    */
+    jenisTetapPetugasAuto[noBadan] =
+      jenisTersimpanPetugasAuto[noBadan];
+  });
+}
+
+
 function petugasDipilihJenisAuto(noBadan) {
   const jenis =
     jenisPenugasanAutoAktif ||
@@ -2989,7 +3064,12 @@ function petugasDipilihJenisAuto(noBadan) {
 
 
 function jenisPetugasAuto(noBadan) {
-  return jenisTetapPetugasAuto[atas(noBadan)] || "";
+  const kunci = atas(noBadan);
+  return (
+    jenisTersimpanPetugasAuto[kunci] ||
+    jenisTetapPetugasAuto[kunci] ||
+    ""
+  );
 }
 
 
@@ -3023,7 +3103,20 @@ function ubahPilihanPetugasJenisAuto(checkbox) {
     return;
   }
 
-  const jenisSediaAda = jenisTetapPetugasAuto[noBadan] || "";
+  const jenisTersimpan = jenisTersimpanPetugasAuto[noBadan] || "";
+  const jenisSediaAda = jenisPetugasAuto(noBadan);
+
+  if (jenisTersimpan) {
+    checkbox.checked = jenisTersimpan === jenisSemasa;
+
+    alert(
+      `${profil.pangkat || ""} ${profil.nama || noBadan} sudah mempunyai penugasan ` +
+      `${jenisTersimpan}.\n\nPetugas yang sudah mempunyai penugasan tidak boleh dipilih semula.`
+    );
+
+    paparPetugasAuto();
+    return;
+  }
 
   if (checkbox.checked) {
     if (
@@ -3155,12 +3248,17 @@ function paparPetugasAuto() {
     .map((item, index) => {
       const penyeliaAsal = nilaiBoolean(item.penyelia);
       const pemegangAsal = nilaiBoolean(item.pemegang_set);
+      const noBadanKunci = atas(item.no_badan);
+      const jenisTersimpan =
+        jenisTersimpanPetugasAuto[noBadanKunci] || "";
       const jenisSediaAda = jenisPetugasAuto(item.no_badan);
       const dimilikiJenisLain =
         Boolean(jenisSediaAda) &&
         jenisSediaAda !== jenisPenugasanAutoAktif;
       const dipilihJenisSemasa =
         jenisSediaAda === jenisPenugasanAutoAktif;
+      const sudahAdaPenugasan =
+        Boolean(jenisTersimpan);
 
       return `
         <tr data-auto-petugas-index="${index}">
@@ -3169,7 +3267,7 @@ function paparPetugasAuto() {
               class="auto-pilih-petugas"
               type="checkbox"
               ${dipilihJenisSemasa ? "checked" : ""}
-              ${dimilikiJenisLain ? "disabled" : ""}
+              ${(dimilikiJenisLain || sudahAdaPenugasan) ? "disabled" : ""}
               onchange="ubahPilihanPetugasJenisAuto(this)"
               aria-label="Pilih ${escapeHtml(item.no_badan || "")}"
             >
@@ -3183,6 +3281,7 @@ function paparPetugasAuto() {
 
           <td class="auto-jenis-tetap-cell">
             ${labelJenisPetugasAuto(item.no_badan)}
+            ${sudahAdaPenugasan ? '<div style="font-size:10px;color:#f0c94d;margin-top:4px;">SUDAH ADA PENUGASAN</div>' : ''}
           </td>
 
           <td>
@@ -4567,8 +4666,17 @@ function isiSelectCetakAuto(id, labelSemua, senarai, nilaiSemasa = "") {
 function kemasKiniPenapisCetakJadualAuto() {
   const selectTarikh = el("cetakTarikhAuto");
   const selectJenis = el("cetakJenisTugasAuto");
+  const selectTempat = el("cetakTempatTugasAuto");
+  const btnCetak = el("btnCetakJadualAuto");
 
   if (!selectTarikh || !selectJenis) return;
+
+  const adaJadual = previewPenugasanAuto.length > 0;
+
+  selectTarikh.disabled = !adaJadual;
+  selectJenis.disabled = !adaJadual;
+  if (selectTempat) selectTempat.disabled = !adaJadual;
+  if (btnCetak) btnCetak.disabled = !adaJadual;
 
   const tarikhLama = selectTarikh.value;
   const jenisLama = selectJenis.value;
