@@ -1,6 +1,6 @@
 "use strict";
 
-/* SKPO FORMULA 1 BUILD: 20260917-CLEAN-ALFA-BRAVO-015 */
+/* SKPO FORMULA 1 BUILD: 20260917-CLEAN-ALFA-BRAVO-014 */
 
 /* ================================================================
    SKPO FORMULA 1 — PENTADBIR
@@ -3191,7 +3191,12 @@ function petugasDipilihJenisAuto(noBadan) {
 
   if (!jenis) return false;
 
-  return jenisTetapPetugasAuto[atas(noBadan)] === jenis;
+  const kunci = atas(noBadan);
+
+  // Petugas yang sudah mempunyai rekod penugasan tidak boleh dipilih semula.
+  if (jenisTersimpanPetugasAuto[kunci]) return false;
+
+  return jenisTetapPetugasAuto[kunci] === jenis;
 }
 
 
@@ -3932,8 +3937,22 @@ function bacaPetugasDipilihAuto() {
 
       if (!profil) return;
 
+      const noBadanKunci = atas(profil.no_badan);
+
+      /*
+        FIX 006 — Rekod Supabase adalah authoritative.
+        Jika petugas SUDAH mempunyai apa-apa penugasan tersimpan dalam
+        julat operasi, jangan masukkan semula petugas itu ke generator,
+        walaupun checkbox masih kelihatan checked akibat pilihan lama.
+        Contoh: 170510 sudah bertugas LSF -> tidak boleh masuk jadual
+        KAWALAN KESELAMATAN yang sedang dijana.
+      */
+      if (jenisTersimpanPetugasAuto[noBadanKunci]) {
+        return;
+      }
+
       const jenisPetugas =
-        jenisTetapPetugasAuto[atas(profil.no_badan)] || "";
+        jenisTetapPetugasAuto[noBadanKunci] || "";
 
       if (
         jenisPetugas !== jenisPenugasanAutoAktif
@@ -4287,27 +4306,12 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       Nilai penyelia pada hasil ditentukan oleh kedudukan sebenar
       dalam jadual hari tersebut, bukan sekadar nilai dropdown asal.
     */
-    /*
-      FIX 015:
-      Jangan simpan rujukan objek slot asal di dalam setiap rekod petugas.
-      Satu slot boleh digunakan oleh beberapa petugas. Jika objek yang sama
-      dikongsi, perubahan Call Sign seorang petugas (contohnya ALFA) akan
-      turut menukar Call Sign petugas lain dalam slot yang sama.
-
-      Nilai baki masih ditolak pada slot asal di atas, tetapi rekod hasil
-      menerima SALINAN slot yang bebas untuk setiap petugas.
-    */
     hasil.push({
       anggota: {
         ...anggota,
         penyelia: sebagaiPenyelia
       },
-      slot: {
-        ...slot,
-        jumlah_mengikut_hari: Array.isArray(slot.jumlah_mengikut_hari)
-          ? [...slot.jumlah_mengikut_hari]
-          : slot.jumlah_mengikut_hari
-      }
+      slot
     });
   }
 
