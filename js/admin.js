@@ -2692,48 +2692,24 @@ async function muatJadualTersimpanKePratontonAuto() {
       return;
     }
 
-    /*
-      Ambil profil petugas terus daripada table profiles.
-      Padanan dibuat menggunakan tiga kemungkinan kunci:
-      1. profiles.id
-      2. profiles.auth_user_id
-      3. profiles.no_badan
+    const ids = [...new Set(
+      senarai.map(item => item.petugas_id || item.profile_id).filter(Boolean)
+    )];
 
-      Ini penting kerana sesetengah rekod penugasan lama menggunakan petugas_id /
-      profile_id yang tidak semestinya sama dengan profiles.id. No. Telefon dan
-      Daerah tetap boleh diperoleh melalui No Badan.
-    */
-    const { data: profilData, error: profilError } = await denganHadMasa(
-      db.from("profiles")
-        .select("*")
-        .limit(3000)
-    );
+    let profil = [];
+    if (ids.length) {
+      const { data, error: profilError } = await denganHadMasa(
+        db.from("profiles").select("*").in("id", ids)
+      );
+      if (profilError) throw profilError;
+      profil = data || [];
+    }
 
-    if (profilError) throw profilError;
-
-    const profil = profilData || [];
-    const profilIkutId = new Map();
-    const profilIkutAuthId = new Map();
-    const profilIkutNoBadan = new Map();
-
-    profil.forEach(item => {
-      if (item.id) profilIkutId.set(String(item.id), item);
-      if (item.auth_user_id) profilIkutAuthId.set(String(item.auth_user_id), item);
-      if (item.no_badan) profilIkutNoBadan.set(atas(item.no_badan), item);
-    });
-
+    const profilMap = new Map(profil.map(item => [item.id, item]));
     const mulaUTC = Date.parse(`${mula}T00:00:00Z`);
 
     previewPenugasanAuto = senarai.map(item => {
-      const idPetugas = item.petugas_id || item.profile_id || "";
-      const noBadanRekod = atas(item.no_badan || "");
-
-      const pengguna =
-        profilIkutId.get(String(idPetugas)) ||
-        profilIkutAuthId.get(String(idPetugas)) ||
-        profilIkutNoBadan.get(noBadanRekod) ||
-        {};
-
+      const pengguna = profilMap.get(item.petugas_id || item.profile_id) || {};
       const tarikhItem = teks(item.tarikh);
       const tarikhUTC = Date.parse(`${tarikhItem}T00:00:00Z`);
       const hari = Number.isFinite(tarikhUTC) && Number.isFinite(mulaUTC)
@@ -2747,18 +2723,8 @@ async function muatJadualTersimpanKePratontonAuto() {
         no_badan: atas(pengguna.no_badan || item.no_badan || ""),
         pangkat: atas(pengguna.pangkat || item.pangkat || ""),
         nama: atas(pengguna.nama || item.nama || ""),
-        telefon: teks(
-          pengguna.telefon ||
-          pengguna.no_telefon ||
-          item.telefon ||
-          item.no_telefon ||
-          ""
-        ),
-        daerah: atas(
-          pengguna.daerah ||
-          item.daerah ||
-          ""
-        ),
+        telefon: pengguna.telefon || pengguna.no_telefon || item.telefon || item.no_telefon || "",
+        daerah: pengguna.daerah || item.daerah || "",
         corak_tugas: atas(item.corak_tugas || "ROTATION"),
         call_sign: atas(item.call_sign || ""),
         jenis_tugas: atas(item.jenis_tugas || ""),
@@ -2775,6 +2741,7 @@ async function muatJadualTersimpanKePratontonAuto() {
     paparPreviewPenugasanAuto();
 
     if (el("btnSimpanAuto")) {
+      // Jadual ini sudah berada di Supabase; butang simpan hanya untuk pratonton baharu.
       el("btnSimpanAuto").disabled = true;
     }
 
@@ -2783,7 +2750,7 @@ async function muatJadualTersimpanKePratontonAuto() {
       `<strong>JADUAL TERSIMPAN DIMUATKAN</strong><br>` +
       `${previewPenugasanAuto.length} rekod daripada ${escapeHtml(formatTarikhMalaysia(mula))}` +
       (tamat !== mula ? ` hingga ${escapeHtml(formatTarikhMalaysia(tamat))}` : "") +
-      ` dipaparkan semula dari Supabase. Maklumat No. Telefon dan Daerah diambil daripada profil petugas.`,
+      ` dipaparkan semula dari Supabase.`,
       "success"
     );
   } catch (error) {
@@ -2795,6 +2762,7 @@ async function muatJadualTersimpanKePratontonAuto() {
     );
   }
 }
+
 
 async function bukaJanaPenugasan() {
   tutupSemuaModulPentadbir();
@@ -5080,18 +5048,14 @@ async function simpanPenugasanAuto() {
 }
 
 
-function resetJanaPenugasanAuto() {
+async function resetJanaPenugasanAuto() {
   if (
-    previewPenugasanAuto.length &&
     !confirm(
-      "Kosongkan pratonton dan tetapan lokasi penugasan?"
+      "Reset borang Jana Penugasan? Jadual yang telah disimpan di Supabase akan dikekalkan dan dimuatkan semula ke Pratonton Jadual."
     )
   ) {
     return;
   }
-
-  previewPenugasanAuto = [];
-  paparPreviewPenugasanAuto();
 
   const tbodyLokasi =
     el("tbodyLokasiAuto");
@@ -5156,6 +5120,19 @@ function resetJanaPenugasanAuto() {
   if (status) {
     status.className = "status-box";
     status.innerHTML = "";
+  }
+
+  // RESET hanya mengosongkan borang penjanaan.
+  // Jadual yang sudah disimpan tidak dipadam; muat semula dari Supabase.
+  try {
+    await muatJadualTersimpanKePratontonAuto();
+  } catch (error) {
+    console.error("Gagal memuat semula pratonton selepas RESET:", error);
+    paparMesej(
+      "statusJanaAuto",
+      `Borang telah direset tetapi jadual tersimpan gagal dimuatkan semula: ${escapeHtml(error.message)}`,
+      "error"
+    );
   }
 }
 
