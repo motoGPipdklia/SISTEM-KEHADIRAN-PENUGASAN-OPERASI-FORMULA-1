@@ -1,6 +1,6 @@
 "use strict";
 
-/* SKPO FORMULA 1 BUILD: 20260917-CLEAN-ALFA-BRAVO-014 */
+/* SKPO FORMULA 1 BUILD: 20260917-CLEAN-ALFA-BRAVO-015 */
 
 /* ================================================================
    SKPO FORMULA 1 — PENTADBIR
@@ -4287,12 +4287,27 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       Nilai penyelia pada hasil ditentukan oleh kedudukan sebenar
       dalam jadual hari tersebut, bukan sekadar nilai dropdown asal.
     */
+    /*
+      FIX 015:
+      Jangan simpan rujukan objek slot asal di dalam setiap rekod petugas.
+      Satu slot boleh digunakan oleh beberapa petugas. Jika objek yang sama
+      dikongsi, perubahan Call Sign seorang petugas (contohnya ALFA) akan
+      turut menukar Call Sign petugas lain dalam slot yang sama.
+
+      Nilai baki masih ditolak pada slot asal di atas, tetapi rekod hasil
+      menerima SALINAN slot yang bebas untuk setiap petugas.
+    */
     hasil.push({
       anggota: {
         ...anggota,
         penyelia: sebagaiPenyelia
       },
-      slot
+      slot: {
+        ...slot,
+        jumlah_mengikut_hari: Array.isArray(slot.jumlah_mengikut_hari)
+          ? [...slot.jumlah_mengikut_hari]
+          : slot.jumlah_mengikut_hari
+      }
     });
   }
 
