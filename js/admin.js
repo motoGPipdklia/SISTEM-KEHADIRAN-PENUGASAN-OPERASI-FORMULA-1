@@ -3745,6 +3745,36 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
 
   const hasil = [];
 
+  /*
+    PERATURAN WAJIB PENYELIA
+    ------------------------------------------------------------
+    - Setiap TEMPAT TUGAS yang aktif pada hari berkenaan WAJIB
+      mempunyai TEPAT 1 penyelia.
+    - Petugas yang ditanda PENYELIA = YA akan digunakan sebagai
+      penyelia lokasi.
+    - Bilangan penyelia yang dipilih mesti sama dengan bilangan
+      lokasi aktif pada hari tersebut.
+    - Penyelia KEKAL kekal di lokasi yang dipilih.
+    - Penyelia ROTATION diagihkan dahulu ke lokasi yang masih belum
+      mempunyai penyelia.
+    - Selepas itu barulah petugas biasa diagihkan mengikut baki kuota.
+  */
+
+  const lokasiAktif =
+    baki.filter(item => item.baki > 0);
+
+  const penyeliaDipilih =
+    petugas.filter(item => item.penyelia === true);
+
+  if (penyeliaDipilih.length !== lokasiAktif.length) {
+    throw new Error(
+      `Hari ${hari + 1}: Terdapat ${lokasiAktif.length} Tempat Tugas aktif, ` +
+      `jadi sistem memerlukan tepat ${lokasiAktif.length} penyelia. ` +
+      `Penyelia yang ditetapkan sekarang ialah ${penyeliaDipilih.length}. ` +
+      `Sila tandakan tepat seorang penyelia bagi setiap Tempat Tugas.`
+    );
+  }
+
   const petugasKekal =
     petugas.filter(item =>
       item.corak_tugas === "KEKAL"
@@ -3755,9 +3785,55 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       item.corak_tugas !== "KEKAL"
     );
 
+  const penyeliaLokasi = new Map();
+  const petugasSudahDiagih = new Set();
+
+  function masukkanKeSlot(anggota, slot, sebagaiPenyelia = false) {
+    if (!slot) {
+      throw new Error(
+        `Hari ${hari + 1}: Lokasi untuk ${anggota.pangkat} ${anggota.nama} tidak dijumpai.`
+      );
+    }
+
+    if (slot.baki <= 0) {
+      throw new Error(
+        `Hari ${hari + 1}: Kuota ${slot.tempat_tugas} tidak mencukupi.`
+      );
+    }
+
+    if (sebagaiPenyelia) {
+      if (penyeliaLokasi.has(slot.kunci_lokasi)) {
+        const sediaAda = penyeliaLokasi.get(slot.kunci_lokasi);
+        throw new Error(
+          `Hari ${hari + 1}: Tempat Tugas ${slot.tempat_tugas} mempunyai lebih daripada seorang penyelia ` +
+          `(${sediaAda.pangkat} ${sediaAda.nama} dan ${anggota.pangkat} ${anggota.nama}). ` +
+          `Setiap Tempat Tugas hanya dibenarkan 1 penyelia.`
+        );
+      }
+
+      penyeliaLokasi.set(slot.kunci_lokasi, anggota);
+    }
+
+    slot.baki -= 1;
+    petugasSudahDiagih.add(anggota.no_badan);
+
+    /*
+      Nilai penyelia pada hasil ditentukan oleh kedudukan sebenar
+      dalam jadual hari tersebut, bukan sekadar nilai dropdown asal.
+    */
+    hasil.push({
+      anggota: {
+        ...anggota,
+        penyelia: sebagaiPenyelia
+      },
+      slot
+    });
+  }
+
   /*
-    1. PETUGAS KEKAL DIMASUKKAN DAHULU.
-    Mereka menggunakan kuota lokasi bagi hari tersebut.
+    1. MASUKKAN PETUGAS KEKAL DAHULU.
+       Jika petugas KEKAL ialah penyelia, lokasi itu terus mempunyai
+       seorang penyelia dan tidak akan menerima penyelia kedua.
   */
   petugasKekal.forEach(anggota => {
     const slot =
@@ -3779,17 +3855,16 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       );
     }
 
-    slot.baki -= 1;
-
-    hasil.push({
+    masukkanKeSlot(
       anggota,
-      slot
-    });
+      slot,
+      anggota.penyelia === true
+    );
   });
 
   /*
-    Ambil lokasi petugas ROTATION pada hari sebelumnya sahaja.
-    Petugas KEKAL tidak perlu disemak kerana mereka memang kekal.
+    Ambil lokasi petugas ROTATION pada hari sebelumnya supaya sistem
+    masih cuba mengelakkan lokasi yang sama dua hari berturut-turut.
   */
   const lokasiSemalam = new Map();
 
@@ -3808,10 +3883,95 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
   }
 
   /*
-    2. BAKI KUOTA DIISI OLEH PETUGAS ROTATION.
+    2. AGIHKAN PENYELIA ROTATION DAHULU.
+       Hanya lokasi yang BELUM mempunyai penyelia boleh dipilih.
   */
-  const susunanPetugas =
+  const penyeliaRotation =
     petugasRotation
+      .filter(item => item.penyelia === true)
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => {
+        const panjang = Math.max(1, penyeliaDipilih.length);
+        const ka = (a.index + hari) % panjang;
+        const kb = (b.index + hari) % panjang;
+        return ka - kb;
+      })
+      .map(x => x.item);
+
+  penyeliaRotation.forEach((anggota, urutan) => {
+    if (petugasSudahDiagih.has(anggota.no_badan)) return;
+
+    const lokasiSebelum =
+      lokasiSemalam.get(anggota.no_badan) || "";
+
+    const lokasiPerluPenyelia =
+      baki.filter(item =>
+        item.baki > 0 &&
+        !penyeliaLokasi.has(item.kunci_lokasi)
+      );
+
+    let calon = null;
+
+    /* Utamakan lokasi yang bukan lokasi semalam. */
+    for (let offset = 0; offset < lokasiPerluPenyelia.length; offset += 1) {
+      const idx =
+        (urutan + hari + offset) %
+        Math.max(1, lokasiPerluPenyelia.length);
+
+      const item = lokasiPerluPenyelia[idx];
+      if (!item) continue;
+
+      if (item.kunci_lokasi !== lokasiSebelum) {
+        calon = item;
+        break;
+      }
+    }
+
+    /* Jika semua pilihan sama dengan semalam, tetap isi lokasi kosong. */
+    if (!calon) {
+      calon = lokasiPerluPenyelia[0] || null;
+    }
+
+    if (!calon) {
+      throw new Error(
+        `Hari ${hari + 1}: Tiada Tempat Tugas kosong untuk penyelia ` +
+        `${anggota.pangkat} ${anggota.nama}. Semak tetapan penyelia.`
+      );
+    }
+
+    masukkanKeSlot(anggota, calon, true);
+  });
+
+  /*
+    3. SEMAKAN WAJIB: SETIAP LOKASI AKTIF MESTI SUDAH ADA 1 PENYELIA
+       sebelum petugas biasa diagihkan.
+  */
+  const lokasiTiadaPenyelia =
+    lokasiAktif.filter(item =>
+      !penyeliaLokasi.has(item.kunci_lokasi)
+    );
+
+  if (lokasiTiadaPenyelia.length) {
+    const senarai =
+      lokasiTiadaPenyelia
+        .map(item => item.tempat_tugas)
+        .join(", ");
+
+    throw new Error(
+      `Hari ${hari + 1}: Tempat Tugas berikut belum mempunyai penyelia: ${senarai}. ` +
+      `Setiap Tempat Tugas wajib mempunyai tepat 1 penyelia.`
+    );
+  }
+
+  /*
+    4. AGIHKAN BAKI PETUGAS ROTATION BIASA.
+       Penyelia sudah selesai diagihkan dan tidak masuk semula di sini.
+  */
+  const petugasRotationBiasa =
+    petugasRotation
+      .filter(item =>
+        !petugasSudahDiagih.has(item.no_badan)
+      )
       .map((item, index) => ({ item, index }))
       .sort((a, b) => {
         const panjang = Math.max(1, petugasRotation.length);
@@ -3821,7 +3981,7 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       })
       .map(x => x.item);
 
-  susunanPetugas.forEach((anggota, urutan) => {
+  petugasRotationBiasa.forEach((anggota, urutan) => {
     const lokasiSebelum =
       lokasiSemalam.get(anggota.no_badan) || "";
 
@@ -3830,11 +3990,11 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
     for (let offset = 0; offset < baki.length; offset += 1) {
       const idx =
         (urutan + hari + offset) %
-        baki.length;
+        Math.max(1, baki.length);
 
       const item = baki[idx];
 
-      if (item.baki <= 0) continue;
+      if (!item || item.baki <= 0) continue;
 
       if (item.kunci_lokasi !== lokasiSebelum) {
         calon = item;
@@ -3856,14 +4016,12 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       );
     }
 
-    calon.baki -= 1;
-
-    hasil.push({
-      anggota,
-      slot: calon
-    });
+    masukkanKeSlot(anggota, calon, false);
   });
 
+  /*
+    5. SEMAK KUOTA LOKASI MESTI HABIS TEPAT.
+  */
   const bakiTidakDiguna =
     baki.reduce(
       (jumlah, item) =>
@@ -3877,6 +4035,24 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       `yang belum diisi. Semak jumlah petugas.`
     );
   }
+
+  /*
+    6. SEMAKAN AKHIR: TEPAT 1 PENYELIA BAGI SETIAP TEMPAT TUGAS.
+  */
+  lokasiAktif.forEach(slot => {
+    const jumlahPenyelia =
+      hasil.filter(item =>
+        item.slot.kunci_lokasi === slot.kunci_lokasi &&
+        item.anggota.penyelia === true
+      ).length;
+
+    if (jumlahPenyelia !== 1) {
+      throw new Error(
+        `Hari ${hari + 1}: ${slot.tempat_tugas} mempunyai ${jumlahPenyelia} penyelia. ` +
+        `Setiap Tempat Tugas wajib mempunyai tepat 1 penyelia.`
+      );
+    }
+  });
 
   return hasil;
 }
