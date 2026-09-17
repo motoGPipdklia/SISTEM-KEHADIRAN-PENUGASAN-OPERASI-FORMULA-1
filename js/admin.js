@@ -4775,17 +4775,22 @@ function cetakJadualPenugasanAuto() {
       return true;
     })
     .sort((a, b) => {
-      const callA = teks(a.call_sign);
-      const callB = teks(b.call_sign);
-      const bezaCall = callA.localeCompare(callB, "ms", { numeric: true });
-      if (bezaCall) return bezaCall;
+      // No. Badan paling kecil di atas, paling besar di bawah.
+      const teksA = teks(a.no_badan);
+      const teksB = teks(b.no_badan);
+      const noA = Number(teksA);
+      const noB = Number(teksB);
+      const sahA = Number.isFinite(noA);
+      const sahB = Number.isFinite(noB);
 
-      const pangkatA = teks(a.pangkat);
-      const pangkatB = teks(b.pangkat);
-      const bezaPangkat = pangkatA.localeCompare(pangkatB, "ms");
-      if (bezaPangkat) return bezaPangkat;
+      if (sahA && sahB && noA !== noB) return noA - noB;
+      if (sahA && !sahB) return -1;
+      if (!sahA && sahB) return 1;
 
-      return teks(a.nama).localeCompare(teks(b.nama), "ms");
+      return teksA.localeCompare(teksB, "ms", {
+        numeric: true,
+        sensitivity: "base"
+      });
     });
 
   if (!rekod.length) {
