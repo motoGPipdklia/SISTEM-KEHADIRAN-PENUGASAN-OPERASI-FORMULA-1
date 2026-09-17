@@ -1,6 +1,6 @@
 "use strict";
 
-/* SKPO FORMULA 1 BUILD: 20260910-KALENDAR-DINAMIK */
+/* SKPO FORMULA 1 BUILD: 20260917-MULTI-CALLSIGN-008 */
 
 /* ================================================================
    SKPO FORMULA 1 — PENTADBIR
@@ -3766,6 +3766,27 @@ function kemasKiniBilHariAutoDariKalendar() {
 }
 
 
+
+const NAMA_CALL_SIGN_AUTO = [
+  "ALFA", "BRAVO", "CHARLIE", "DELTA", "ECHO", "FOXTROT",
+  "GOLF", "HOTEL", "INDIA", "JULIET", "KILO", "LIMA",
+  "MIKE", "NOVEMBER", "OSCAR", "PAPA", "QUEBEC", "ROMEO",
+  "SIERRA", "TANGO", "UNIFORM", "VICTOR", "WHISKEY", "XRAY",
+  "YANKEE", "ZULU"
+];
+
+function binaCallSignAuto(prefix, jumlah) {
+  const asas = atas(prefix);
+  const bil = Math.max(1, Number(jumlah) || 1);
+
+  if (bil === 1) return [asas];
+
+  return Array.from({ length: bil }, (_, index) => {
+    const suffix = NAMA_CALL_SIGN_AUTO[index] || String(index + 1);
+    return `${asas} ${suffix}`.trim();
+  });
+}
+
 function tambahLokasiAuto(data = {}) {
   const tbody = el("tbodyLokasiAuto");
   if (!tbody) return;
@@ -3782,6 +3803,18 @@ function tambahLokasiAuto(data = {}) {
         type="text"
         value="${escapeHtml(data.call_sign || "")}"
         placeholder="Contoh: GATE 1"
+      >
+    </td>
+
+    <td>
+      <input
+        class="auto-jumlah-pemegang-set"
+        type="number"
+        min="1"
+        max="26"
+        step="1"
+        value="${escapeHtml(data.jumlah_pemegang_set ?? 1)}"
+        title="Bilangan Call Sign / Pemegang Set di tempat tugas ini"
       >
     </td>
 
@@ -3961,6 +3994,21 @@ function bacaLokasiAuto() {
       const callSign =
         atas(tr.querySelector(".auto-call-sign")?.value);
 
+      const jumlahPemegangSetTeks =
+        teks(tr.querySelector(".auto-jumlah-pemegang-set")?.value || "1");
+
+      const jumlahPemegangSet = Number(jumlahPemegangSetTeks);
+
+      if (
+        !Number.isInteger(jumlahPemegangSet) ||
+        jumlahPemegangSet < 1 ||
+        jumlahPemegangSet > 26
+      ) {
+        throw new Error(
+          `Lokasi baris ${index + 1}: Jumlah Pemegang Set mesti 1 hingga 26.`
+        );
+      }
+
       const jenisTugas =
         jenisPenugasanAutoAktif ||
         atas(el("autoJenisPenugasan")?.value) ||
@@ -4070,14 +4118,37 @@ function bacaLokasiAuto() {
         );
       }
 
-      hasil.push({
-        call_sign: callSign || null,
-        jenis_tugas: jenisTugas,
-        tempat_tugas: tempatTugas,
-        latitude,
-        longitude,
-        radius_meter: radius,
-        jumlah_mengikut_hari: jumlahMengikutHari
+      const senaraiCallSign =
+        binaCallSignAuto(callSign || tempatTugas, jumlahPemegangSet);
+
+      /*
+        Satu baris ialah SATU tempat fizikal. Jika ada beberapa pemegang set,
+        sistem pecahkan tempat itu kepada beberapa Call Sign. Jumlah petugas
+        harian dibahagi seimbang; baki diberikan bermula Call Sign pertama.
+      */
+      senaraiCallSign.forEach((callSignPenuh, indeksCallSign) => {
+        const jumlahCallSignMengikutHari =
+          jumlahMengikutHari.map(jumlahKeseluruhan => {
+            if (jumlahKeseluruhan <= 0) return 0;
+
+            const asas = Math.floor(jumlahKeseluruhan / jumlahPemegangSet);
+            const baki = jumlahKeseluruhan % jumlahPemegangSet;
+
+            return asas + (indeksCallSign < baki ? 1 : 0);
+          });
+
+        hasil.push({
+          call_sign: callSignPenuh || null,
+          call_sign_prefix: callSign || tempatTugas,
+          indeks_call_sign: indeksCallSign,
+          jumlah_pemegang_set: jumlahPemegangSet,
+          jenis_tugas: jenisTugas,
+          tempat_tugas: tempatTugas,
+          latitude,
+          longitude,
+          radius_meter: radius,
+          jumlah_mengikut_hari: jumlahCallSignMengikutHari
+        });
       });
     });
 
@@ -4154,13 +4225,17 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
   const lokasiAktif =
     baki.filter(item => item.baki > 0);
 
+  const tempatAktif = [
+    ...new Set(lokasiAktif.map(item => item.tempat_tugas))
+  ];
+
   const penyeliaDipilih =
     petugas.filter(item => item.penyelia === true);
 
-  if (penyeliaDipilih.length !== lokasiAktif.length) {
+  if (penyeliaDipilih.length !== tempatAktif.length) {
     throw new Error(
-      `Hari ${hari + 1}: Terdapat ${lokasiAktif.length} Tempat Tugas aktif, ` +
-      `jadi sistem memerlukan tepat ${lokasiAktif.length} penyelia. ` +
+      `Hari ${hari + 1}: Terdapat ${tempatAktif.length} Tempat Tugas fizikal aktif, ` +
+      `jadi sistem memerlukan tepat ${tempatAktif.length} penyelia. ` +
       `Penyelia yang ditetapkan sekarang ialah ${penyeliaDipilih.length}. ` +
       `Sila tandakan tepat seorang penyelia bagi setiap Tempat Tugas.`
     );
@@ -4193,8 +4268,8 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
     }
 
     if (sebagaiPenyelia) {
-      if (penyeliaLokasi.has(slot.kunci_lokasi)) {
-        const sediaAda = penyeliaLokasi.get(slot.kunci_lokasi);
+      if (penyeliaLokasi.has(slot.tempat_tugas)) {
+        const sediaAda = penyeliaLokasi.get(slot.tempat_tugas);
         throw new Error(
           `Hari ${hari + 1}: Tempat Tugas ${slot.tempat_tugas} mempunyai lebih daripada seorang penyelia ` +
           `(${sediaAda.pangkat} ${sediaAda.nama} dan ${anggota.pangkat} ${anggota.nama}). ` +
@@ -4202,7 +4277,7 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
         );
       }
 
-      penyeliaLokasi.set(slot.kunci_lokasi, anggota);
+      penyeliaLokasi.set(slot.tempat_tugas, anggota);
     }
 
     slot.baki -= 1;
@@ -4298,7 +4373,7 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
     const lokasiPerluPenyelia =
       baki.filter(item =>
         item.baki > 0 &&
-        !penyeliaLokasi.has(item.kunci_lokasi)
+        !penyeliaLokasi.has(item.tempat_tugas)
       );
 
     let calon = null;
@@ -4338,15 +4413,13 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
        sebelum petugas biasa diagihkan.
   */
   const lokasiTiadaPenyelia =
-    lokasiAktif.filter(item =>
-      !penyeliaLokasi.has(item.kunci_lokasi)
+    tempatAktif.filter(tempat =>
+      !penyeliaLokasi.has(tempat)
     );
 
   if (lokasiTiadaPenyelia.length) {
     const senarai =
-      lokasiTiadaPenyelia
-        .map(item => item.tempat_tugas)
-        .join(", ");
+      lokasiTiadaPenyelia.join(", ");
 
     throw new Error(
       `Hari ${hari + 1}: Tempat Tugas berikut belum mempunyai penyelia: ${senarai}. ` +
@@ -4428,21 +4501,69 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
   }
 
   /*
-    6. SEMAKAN AKHIR: TEPAT 1 PENYELIA BAGI SETIAP TEMPAT TUGAS.
+    6. SEMAKAN AKHIR: TEPAT 1 PENYELIA BAGI SETIAP TEMPAT TUGAS FIZIKAL.
+       Beberapa Call Sign di tempat yang sama berkongsi penyelia yang sama.
   */
-  lokasiAktif.forEach(slot => {
+  tempatAktif.forEach(tempat => {
     const jumlahPenyelia =
       hasil.filter(item =>
-        item.slot.kunci_lokasi === slot.kunci_lokasi &&
+        item.slot.tempat_tugas === tempat &&
         item.anggota.penyelia === true
       ).length;
 
     if (jumlahPenyelia !== 1) {
       throw new Error(
-        `Hari ${hari + 1}: ${slot.tempat_tugas} mempunyai ${jumlahPenyelia} penyelia. ` +
-        `Setiap Tempat Tugas wajib mempunyai tepat 1 penyelia.`
+        `Hari ${hari + 1}: ${tempat} mempunyai ${jumlahPenyelia} penyelia. ` +
+        `Setiap Tempat Tugas fizikal wajib mempunyai tepat 1 penyelia.`
       );
     }
+  });
+
+  /*
+    7. PEMEGANG SET: TEPAT 1 BAGI SETIAP CALL SIGN AKTIF.
+       Petugas yang telah ditanda Pemegang Set akan ditempatkan semula secara
+       minimum jika perlu supaya setiap Call Sign mempunyai seorang.
+  */
+  const callSignAktif = lokasiAktif.map(slot => slot.kunci_lokasi);
+  const pemegangDipilih = petugas.filter(item => item.pemegang_set === true);
+
+  if (pemegangDipilih.length !== callSignAktif.length) {
+    throw new Error(
+      `Hari ${hari + 1}: Sistem memerlukan tepat ${callSignAktif.length} Pemegang Set ` +
+      `(1 bagi setiap Call Sign aktif), tetapi ${pemegangDipilih.length} petugas ditanda Pemegang Set.`
+    );
+  }
+
+  // Kosongkan flag dahulu; kemudian pilih seorang pada setiap Call Sign.
+  hasil.forEach(item => {
+    item.anggota.pemegang_set = false;
+  });
+
+  const pemegangBelumDiguna = [...pemegangDipilih];
+
+  lokasiAktif.forEach(slot => {
+    const ahliSlot = hasil.filter(item =>
+      item.slot.kunci_lokasi === slot.kunci_lokasi
+    );
+
+    let calonIndex = pemegangBelumDiguna.findIndex(p =>
+      ahliSlot.some(a => a.anggota.no_badan === p.no_badan)
+    );
+
+    // Jika pemegang set asal belum berada dalam slot ini, pilih ahli slot
+    // yang memang ditanda pemegang set jika ada; jika tiada, beri ralat
+    // supaya agihan tidak menukar lokasi petugas secara senyap.
+    if (calonIndex < 0) {
+      throw new Error(
+        `Hari ${hari + 1}: Call Sign ${slot.call_sign} di ${slot.tempat_tugas} ` +
+        `belum mempunyai petugas yang ditanda Pemegang Set. ` +
+        `Semak pilihan Pemegang Set atau gunakan ROTATION.`
+      );
+    }
+
+    const pemegang = pemegangBelumDiguna.splice(calonIndex, 1)[0];
+    const rekod = ahliSlot.find(a => a.anggota.no_badan === pemegang.no_badan);
+    if (rekod) rekod.anggota.pemegang_set = true;
   });
 
   return hasil;
