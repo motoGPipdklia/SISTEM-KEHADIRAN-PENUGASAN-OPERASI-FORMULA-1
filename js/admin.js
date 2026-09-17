@@ -1,6 +1,6 @@
 "use strict";
 
-/* SKPO FORMULA 1 BUILD: 20260917-MULTI-CALLSIGN-008 */
+/* SKPO FORMULA 1 BUILD: 20260917-MULTI-CALLSIGN-AUTO-009 */
 
 /* ================================================================
    SKPO FORMULA 1 — PENTADBIR
@@ -4520,50 +4520,61 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
   });
 
   /*
-    7. PEMEGANG SET: TEPAT 1 BAGI SETIAP CALL SIGN AKTIF.
-       Petugas yang telah ditanda Pemegang Set akan ditempatkan semula secara
-       minimum jika perlu supaya setiap Call Sign mempunyai seorang.
+    7. PEMEGANG SET AUTOMATIK: TEPAT 1 BAGI SETIAP CALL SIGN AKTIF.
+       Tidak perlu tandakan bilangan Pemegang Set secara manual.
+       Jika ada petugas yang asalnya ditanda Pemegang Set dalam Call Sign itu,
+       petugas tersebut diberi keutamaan. Jika tiada, sistem memilih seorang
+       petugas bukan Penyelia; jika perlu, petugas pertama dalam Call Sign.
   */
-  const callSignAktif = lokasiAktif.map(slot => slot.kunci_lokasi);
-  const pemegangDipilih = petugas.filter(item => item.pemegang_set === true);
+  const pemegangAsal = new Set(
+    petugas
+      .filter(item => item.pemegang_set === true)
+      .map(item => atas(item.no_badan))
+  );
 
-  if (pemegangDipilih.length !== callSignAktif.length) {
-    throw new Error(
-      `Hari ${hari + 1}: Sistem memerlukan tepat ${callSignAktif.length} Pemegang Set ` +
-      `(1 bagi setiap Call Sign aktif), tetapi ${pemegangDipilih.length} petugas ditanda Pemegang Set.`
-    );
-  }
-
-  // Kosongkan flag dahulu; kemudian pilih seorang pada setiap Call Sign.
   hasil.forEach(item => {
     item.anggota.pemegang_set = false;
   });
-
-  const pemegangBelumDiguna = [...pemegangDipilih];
 
   lokasiAktif.forEach(slot => {
     const ahliSlot = hasil.filter(item =>
       item.slot.kunci_lokasi === slot.kunci_lokasi
     );
 
-    let calonIndex = pemegangBelumDiguna.findIndex(p =>
-      ahliSlot.some(a => a.anggota.no_badan === p.no_badan)
-    );
-
-    // Jika pemegang set asal belum berada dalam slot ini, pilih ahli slot
-    // yang memang ditanda pemegang set jika ada; jika tiada, beri ralat
-    // supaya agihan tidak menukar lokasi petugas secara senyap.
-    if (calonIndex < 0) {
+    if (!ahliSlot.length) {
       throw new Error(
         `Hari ${hari + 1}: Call Sign ${slot.call_sign} di ${slot.tempat_tugas} ` +
-        `belum mempunyai petugas yang ditanda Pemegang Set. ` +
-        `Semak pilihan Pemegang Set atau gunakan ROTATION.`
+        `tidak mempunyai petugas. Semak jumlah petugas lokasi.`
       );
     }
 
-    const pemegang = pemegangBelumDiguna.splice(calonIndex, 1)[0];
-    const rekod = ahliSlot.find(a => a.anggota.no_badan === pemegang.no_badan);
-    if (rekod) rekod.anggota.pemegang_set = true;
+    let rekodPemegang = ahliSlot.find(item =>
+      pemegangAsal.has(atas(item.anggota.no_badan))
+    );
+
+    if (!rekodPemegang) {
+      rekodPemegang = ahliSlot.find(item =>
+        item.anggota.penyelia !== true
+      );
+    }
+
+    if (!rekodPemegang) rekodPemegang = ahliSlot[0];
+
+    rekodPemegang.anggota.pemegang_set = true;
+  });
+
+  lokasiAktif.forEach(slot => {
+    const jumlahPemegang = hasil.filter(item =>
+      item.slot.kunci_lokasi === slot.kunci_lokasi &&
+      item.anggota.pemegang_set === true
+    ).length;
+
+    if (jumlahPemegang !== 1) {
+      throw new Error(
+        `Hari ${hari + 1}: Call Sign ${slot.call_sign} di ${slot.tempat_tugas} ` +
+        `mempunyai ${jumlahPemegang} Pemegang Set. Sistem memerlukan tepat 1.`
+      );
+    }
   });
 
   return hasil;
