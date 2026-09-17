@@ -146,6 +146,14 @@
   </a>
 
   <button
+    class="header-action-button"
+    type="button"
+    onclick="bukaTukarPasswordAdmin()"
+  >
+    TUKAR PASSWORD
+  </button>
+
+  <button
     class="logout"
     type="button"
     onclick="logout()"
@@ -2676,7 +2684,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260917-cetak-sort-nobadan-005"></script>
+<script src="js/admin.js?v=20260917-tukar-password-admin-006"></script>
 
 
 
@@ -2775,5 +2783,41 @@
       </div>
     </div>
   </section>
+
+  <!-- =====================================================
+       TUKAR PASSWORD PENTADBIR
+  ====================================================== -->
+  <div id="modalTukarPasswordAdmin" class="modal" hidden style="display:none;">
+    <div class="modal-content card" style="max-width:520px;margin:5vh auto;">
+      <div class="section-heading">
+        <div>
+          <h2>TUKAR PASSWORD PENTADBIR</h2>
+          <p class="muted">Sahkan password semasa sebelum menetapkan password baharu.</p>
+        </div>
+      </div>
+
+      <label for="passwordSemasaAdmin">Password Semasa</label>
+      <input id="passwordSemasaAdmin" type="password" autocomplete="current-password"
+             placeholder="Masukkan password semasa">
+
+      <label for="passwordBaharuAdmin" style="margin-top:12px;">Password Baharu</label>
+      <input id="passwordBaharuAdmin" type="password" autocomplete="new-password"
+             placeholder="Masukkan password baharu">
+
+      <label for="sahkanPasswordBaharuAdmin" style="margin-top:12px;">Sahkan Password Baharu</label>
+      <input id="sahkanPasswordBaharuAdmin" type="password" autocomplete="new-password"
+             placeholder="Masukkan semula password baharu">
+
+      <div id="statusTukarPasswordAdmin" class="status-box" role="status"
+           aria-live="polite" style="margin-top:14px;"></div>
+
+      <div class="actions" style="margin-top:16px;">
+        <button id="btnSimpanPasswordAdmin" class="green-button" type="button"
+                onclick="simpanPasswordAdmin()">SIMPAN PASSWORD</button>
+        <button class="gray" type="button" onclick="tutupTukarPasswordAdmin()">BATAL</button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
