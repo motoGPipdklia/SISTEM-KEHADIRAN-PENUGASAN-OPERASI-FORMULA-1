@@ -3999,6 +3999,8 @@ function janaPreviewPenugasanAuto() {
           no_badan: anggota.no_badan,
           pangkat: anggota.pangkat,
           nama: anggota.nama,
+          telefon: anggota.telefon || anggota.no_telefon || "",
+          daerah: anggota.daerah || "",
           corak_tugas: anggota.corak_tugas,
           call_sign: slot.call_sign,
           jenis_tugas: slot.jenis_tugas,
@@ -4074,6 +4076,7 @@ function paparPreviewPenugasanAuto() {
         "Belum ada jadual dijana.";
     }
 
+    kemasKiniPenapisCetakJadualAuto();
     return;
   }
 
@@ -4176,6 +4179,8 @@ function paparPreviewPenugasanAuto() {
   const bilRotation =
     bilPetugas - bilKekal;
 
+  kemasKiniPenapisCetakJadualAuto();
+
   if (ringkasan) {
     ringkasan.innerHTML =
       `<strong>${bilPetugas}</strong> Petugas &nbsp;•&nbsp; ` +
@@ -4188,6 +4193,383 @@ function paparPreviewPenugasanAuto() {
       `<strong>${previewPenugasanAuto.length}</strong> Rekod<br>` +
       `<span style="color:#aaa">Jumlah setiap lokasi boleh berbeza mengikut hari dan akan mengikut julat tarikh yang dipilih.</span>`;
   }
+}
+
+
+/* ================================================================
+   CETAK JADUAL PENUGASAN AUTOMATIK
+   Penapis: Tarikh -> Jenis Tugas -> Tempat Tugas
+================================================================ */
+
+function pilihanUnikCetakAuto(senarai) {
+  return [...new Set(
+    (senarai || [])
+      .map(item => teks(item))
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "ms"));
+}
+
+
+function isiSelectCetakAuto(id, labelSemua, senarai, nilaiSemasa = "") {
+  const select = el(id);
+  if (!select) return;
+
+  const unik = pilihanUnikCetakAuto(senarai);
+
+  select.innerHTML =
+    `<option value="">${escapeHtml(labelSemua)}</option>` +
+    unik.map(item =>
+      `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`
+    ).join("");
+
+  if (unik.includes(nilaiSemasa)) {
+    select.value = nilaiSemasa;
+  }
+}
+
+
+function kemasKiniPenapisCetakJadualAuto() {
+  const selectTarikh = el("cetakTarikhAuto");
+  const selectJenis = el("cetakJenisTugasAuto");
+
+  if (!selectTarikh || !selectJenis) return;
+
+  const tarikhLama = selectTarikh.value;
+  const jenisLama = selectJenis.value;
+
+  const tarikh = pilihanUnikCetakAuto(
+    previewPenugasanAuto.map(item => item.tarikh)
+  );
+
+  selectTarikh.innerHTML =
+    '<option value="">PILIH TARIKH</option>' +
+    tarikh.map(item =>
+      `<option value="${escapeHtml(item)}">${escapeHtml(formatTarikhMalaysia(item))}</option>`
+    ).join("");
+
+  if (tarikh.includes(tarikhLama)) {
+    selectTarikh.value = tarikhLama;
+  } else if (tarikh.length === 1) {
+    selectTarikh.value = tarikh[0];
+  }
+
+  const dataTarikh = selectTarikh.value
+    ? previewPenugasanAuto.filter(item => item.tarikh === selectTarikh.value)
+    : previewPenugasanAuto;
+
+  isiSelectCetakAuto(
+    "cetakJenisTugasAuto",
+    "SEMUA JENIS TUGAS",
+    dataTarikh.map(item => item.jenis_tugas),
+    jenisLama
+  );
+
+  kemasKiniPilihanTempatCetakAuto();
+}
+
+
+function kemasKiniPilihanCetakAuto() {
+  const tarikh = el("cetakTarikhAuto")?.value || "";
+  const jenisLama = el("cetakJenisTugasAuto")?.value || "";
+
+  const dataTarikh = tarikh
+    ? previewPenugasanAuto.filter(item => item.tarikh === tarikh)
+    : previewPenugasanAuto;
+
+  isiSelectCetakAuto(
+    "cetakJenisTugasAuto",
+    "SEMUA JENIS TUGAS",
+    dataTarikh.map(item => item.jenis_tugas),
+    jenisLama
+  );
+
+  kemasKiniPilihanTempatCetakAuto();
+}
+
+
+function kemasKiniPilihanTempatCetakAuto() {
+  const tarikh = el("cetakTarikhAuto")?.value || "";
+  const jenis = atas(el("cetakJenisTugasAuto")?.value);
+  const tempatLama = el("cetakTempatTugasAuto")?.value || "";
+
+  const dataDitapis = previewPenugasanAuto.filter(item => {
+    if (tarikh && item.tarikh !== tarikh) return false;
+    if (jenis && atas(item.jenis_tugas) !== jenis) return false;
+    return true;
+  });
+
+  isiSelectCetakAuto(
+    "cetakTempatTugasAuto",
+    "SEMUA TEMPAT TUGAS",
+    dataDitapis.map(item => item.tempat_tugas),
+    tempatLama
+  );
+}
+
+
+function cetakJadualPenugasanAuto() {
+  if (!previewPenugasanAuto.length) {
+    alert("Jana pratonton jadual terlebih dahulu.");
+    return;
+  }
+
+  const tarikh = el("cetakTarikhAuto")?.value || "";
+  const jenis = atas(el("cetakJenisTugasAuto")?.value);
+  const tempat = atas(el("cetakTempatTugasAuto")?.value);
+
+  if (!tarikh) {
+    alert("Sila pilih tarikh untuk dicetak.");
+    el("cetakTarikhAuto")?.focus();
+    return;
+  }
+
+  const rekod = previewPenugasanAuto
+    .filter(item => {
+      if (item.tarikh !== tarikh) return false;
+      if (jenis && atas(item.jenis_tugas) !== jenis) return false;
+      if (tempat && atas(item.tempat_tugas) !== tempat) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const callA = teks(a.call_sign);
+      const callB = teks(b.call_sign);
+      const bezaCall = callA.localeCompare(callB, "ms", { numeric: true });
+      if (bezaCall) return bezaCall;
+
+      const pangkatA = teks(a.pangkat);
+      const pangkatB = teks(b.pangkat);
+      const bezaPangkat = pangkatA.localeCompare(pangkatB, "ms");
+      if (bezaPangkat) return bezaPangkat;
+
+      return teks(a.nama).localeCompare(teks(b.nama), "ms");
+    });
+
+  if (!rekod.length) {
+    alert("Tiada rekod dijumpai untuk pilihan cetakan tersebut.");
+    return;
+  }
+
+  const labelJenis =
+    teks(el("cetakJenisTugasAuto")?.value) || "SEMUA JENIS TUGAS";
+
+  const labelTempat =
+    teks(el("cetakTempatTugasAuto")?.value) || "SEMUA TEMPAT TUGAS";
+
+  const baris = rekod.map((item, index) => `
+    <tr>
+      <td class="center">${index + 1}</td>
+      <td class="center">${escapeHtml(item.no_badan || "-")}</td>
+      <td class="center">${escapeHtml(item.pangkat || "-")}</td>
+      <td class="nama">${escapeHtml(item.nama || "-")}</td>
+      <td class="center">${escapeHtml(item.telefon || "-")}</td>
+      <td class="center">${escapeHtml(item.daerah || "-")}</td>
+      <td class="center">${escapeHtml(item.call_sign || "-")}</td>
+      <td class="center">${item.penyelia ? "YA" : "TIDAK"}</td>
+      <td class="center">${item.pemegang_set ? "YA" : "TIDAK"}</td>
+    </tr>
+  `).join("");
+
+  const tetingkap = window.open(
+    "",
+    "_blank",
+    "width=1400,height=900"
+  );
+
+  if (!tetingkap) {
+    alert(
+      "Pelayar menghalang tetingkap cetak. " +
+      "Benarkan pop-up untuk laman ini dan cuba semula."
+    );
+    return;
+  }
+
+  tetingkap.document.open();
+  tetingkap.document.write(`
+    <!DOCTYPE html>
+    <html lang="ms">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>Jadual Penugasan - ${escapeHtml(formatTarikhMalaysia(tarikh))}</title>
+
+      <style>
+        @page {
+          size: A4 landscape;
+          margin: 9mm;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          background: #fff;
+          color: #111;
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+          padding: 5mm;
+        }
+
+        .header {
+          text-align: center;
+          margin-bottom: 12px;
+        }
+
+        .header h1 {
+          margin: 0;
+          font-size: 19px;
+          font-weight: 800;
+        }
+
+        .header h2 {
+          margin: 4px 0 0;
+          font-size: 15px;
+          font-weight: 700;
+        }
+
+        .maklumat {
+          width: 100%;
+          margin: 12px 0 10px;
+          border-collapse: collapse;
+          font-size: 11px;
+        }
+
+        .maklumat td {
+          border: 0;
+          padding: 2px 4px;
+          vertical-align: top;
+        }
+
+        .maklumat .label {
+          width: 105px;
+          font-weight: 700;
+        }
+
+        .jadual {
+          width: 100%;
+          border-collapse: collapse;
+          table-layout: fixed;
+          font-size: 9px;
+        }
+
+        .jadual th,
+        .jadual td {
+          border: 1px solid #333;
+          padding: 5px 4px;
+          vertical-align: middle;
+          overflow-wrap: anywhere;
+        }
+
+        .jadual th {
+          background: #ececec;
+          text-align: center;
+          font-weight: 800;
+        }
+
+        .jadual .center {
+          text-align: center;
+        }
+
+        .jadual .nama {
+          text-align: left;
+          font-weight: 600;
+        }
+
+        .jadual th:nth-child(1) { width: 4%; }
+        .jadual th:nth-child(2) { width: 9%; }
+        .jadual th:nth-child(3) { width: 7%; }
+        .jadual th:nth-child(4) { width: 25%; }
+        .jadual th:nth-child(5) { width: 12%; }
+        .jadual th:nth-child(6) { width: 10%; }
+        .jadual th:nth-child(7) { width: 11%; }
+        .jadual th:nth-child(8) { width: 10%; }
+        .jadual th:nth-child(9) { width: 12%; }
+
+        .jumlah {
+          margin-top: 10px;
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        thead {
+          display: table-header-group;
+        }
+
+        tr {
+          break-inside: avoid;
+        }
+
+        @media print {
+          body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
+      </style>
+    </head>
+
+    <body>
+      <header class="header">
+        <h1>OP LITAR FORMULA 1 2026</h1>
+        <h2>JADUAL PENUGASAN PETUGAS</h2>
+      </header>
+
+      <table class="maklumat">
+        <tr>
+          <td class="label">TARIKH</td>
+          <td>: ${escapeHtml(formatTarikhMalaysia(tarikh))}</td>
+        </tr>
+        <tr>
+          <td class="label">JENIS TUGAS</td>
+          <td>: ${escapeHtml(labelJenis)}</td>
+        </tr>
+        <tr>
+          <td class="label">TEMPAT TUGAS</td>
+          <td>: ${escapeHtml(labelTempat)}</td>
+        </tr>
+      </table>
+
+      <table class="jadual">
+        <thead>
+          <tr>
+            <th>BIL</th>
+            <th>NO BADAN</th>
+            <th>PANGKAT</th>
+            <th>NAMA</th>
+            <th>NO TELEFON</th>
+            <th>DAERAH</th>
+            <th>CALL SIGN</th>
+            <th>PENYELIA</th>
+            <th>PEMEGANG SET</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${baris}
+        </tbody>
+      </table>
+
+      <div class="jumlah">
+        JUMLAH PETUGAS: ${rekod.length}
+      </div>
+
+      <script>
+        window.addEventListener("load", function () {
+          setTimeout(function () {
+            window.focus();
+            window.print();
+          }, 300);
+        });
+      <\/script>
+    </body>
+    </html>
+  `);
+
+  tetingkap.document.close();
 }
 
 
