@@ -3692,9 +3692,23 @@ function bacaPetugasDipilihAuto() {
 
       hasil.push({
         id: profil.id,
+        auth_user_id: profil.auth_user_id || null,
         no_badan: atas(profil.no_badan),
         pangkat: atas(profil.pangkat),
         nama: atas(profil.nama),
+
+        // Bawa sekali maklumat profil untuk Pratonton dan Cetakan Jadual.
+        telefon:
+          teks(profil.telefon) ||
+          teks(profil.no_telefon) ||
+          "",
+        no_telefon:
+          teks(profil.no_telefon) ||
+          teks(profil.telefon) ||
+          "",
+        daerah:
+          atas(profil.daerah || ""),
+
         corak_tugas: corak,
         lokasi_kekal: lokasiKekal || null,
         penyelia:
