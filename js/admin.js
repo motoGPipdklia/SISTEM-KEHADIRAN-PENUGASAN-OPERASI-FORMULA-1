@@ -2692,24 +2692,48 @@ async function muatJadualTersimpanKePratontonAuto() {
       return;
     }
 
-    const ids = [...new Set(
-      senarai.map(item => item.petugas_id || item.profile_id).filter(Boolean)
-    )];
+    /*
+      Ambil profil petugas terus daripada table profiles.
+      Padanan dibuat menggunakan tiga kemungkinan kunci:
+      1. profiles.id
+      2. profiles.auth_user_id
+      3. profiles.no_badan
 
-    let profil = [];
-    if (ids.length) {
-      const { data, error: profilError } = await denganHadMasa(
-        db.from("profiles").select("*").in("id", ids)
-      );
-      if (profilError) throw profilError;
-      profil = data || [];
-    }
+      Ini penting kerana sesetengah rekod penugasan lama menggunakan petugas_id /
+      profile_id yang tidak semestinya sama dengan profiles.id. No. Telefon dan
+      Daerah tetap boleh diperoleh melalui No Badan.
+    */
+    const { data: profilData, error: profilError } = await denganHadMasa(
+      db.from("profiles")
+        .select("*")
+        .limit(3000)
+    );
 
-    const profilMap = new Map(profil.map(item => [item.id, item]));
+    if (profilError) throw profilError;
+
+    const profil = profilData || [];
+    const profilIkutId = new Map();
+    const profilIkutAuthId = new Map();
+    const profilIkutNoBadan = new Map();
+
+    profil.forEach(item => {
+      if (item.id) profilIkutId.set(String(item.id), item);
+      if (item.auth_user_id) profilIkutAuthId.set(String(item.auth_user_id), item);
+      if (item.no_badan) profilIkutNoBadan.set(atas(item.no_badan), item);
+    });
+
     const mulaUTC = Date.parse(`${mula}T00:00:00Z`);
 
     previewPenugasanAuto = senarai.map(item => {
-      const pengguna = profilMap.get(item.petugas_id || item.profile_id) || {};
+      const idPetugas = item.petugas_id || item.profile_id || "";
+      const noBadanRekod = atas(item.no_badan || "");
+
+      const pengguna =
+        profilIkutId.get(String(idPetugas)) ||
+        profilIkutAuthId.get(String(idPetugas)) ||
+        profilIkutNoBadan.get(noBadanRekod) ||
+        {};
+
       const tarikhItem = teks(item.tarikh);
       const tarikhUTC = Date.parse(`${tarikhItem}T00:00:00Z`);
       const hari = Number.isFinite(tarikhUTC) && Number.isFinite(mulaUTC)
@@ -2723,8 +2747,18 @@ async function muatJadualTersimpanKePratontonAuto() {
         no_badan: atas(pengguna.no_badan || item.no_badan || ""),
         pangkat: atas(pengguna.pangkat || item.pangkat || ""),
         nama: atas(pengguna.nama || item.nama || ""),
-        telefon: pengguna.telefon || pengguna.no_telefon || item.telefon || item.no_telefon || "",
-        daerah: pengguna.daerah || item.daerah || "",
+        telefon: teks(
+          pengguna.telefon ||
+          pengguna.no_telefon ||
+          item.telefon ||
+          item.no_telefon ||
+          ""
+        ),
+        daerah: atas(
+          pengguna.daerah ||
+          item.daerah ||
+          ""
+        ),
         corak_tugas: atas(item.corak_tugas || "ROTATION"),
         call_sign: atas(item.call_sign || ""),
         jenis_tugas: atas(item.jenis_tugas || ""),
@@ -2741,7 +2775,6 @@ async function muatJadualTersimpanKePratontonAuto() {
     paparPreviewPenugasanAuto();
 
     if (el("btnSimpanAuto")) {
-      // Jadual ini sudah berada di Supabase; butang simpan hanya untuk pratonton baharu.
       el("btnSimpanAuto").disabled = true;
     }
 
@@ -2750,7 +2783,7 @@ async function muatJadualTersimpanKePratontonAuto() {
       `<strong>JADUAL TERSIMPAN DIMUATKAN</strong><br>` +
       `${previewPenugasanAuto.length} rekod daripada ${escapeHtml(formatTarikhMalaysia(mula))}` +
       (tamat !== mula ? ` hingga ${escapeHtml(formatTarikhMalaysia(tamat))}` : "") +
-      ` dipaparkan semula dari Supabase.`,
+      ` dipaparkan semula dari Supabase. Maklumat No. Telefon dan Daerah diambil daripada profil petugas.`,
       "success"
     );
   } catch (error) {
@@ -2762,7 +2795,6 @@ async function muatJadualTersimpanKePratontonAuto() {
     );
   }
 }
-
 
 async function bukaJanaPenugasan() {
   tutupSemuaModulPentadbir();
