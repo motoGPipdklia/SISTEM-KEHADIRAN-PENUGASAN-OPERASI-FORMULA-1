@@ -2667,7 +2667,104 @@ function tambahHariISO(tarikhISO, jumlahHari) {
 }
 
 
-function bukaJanaPenugasan() {
+async function muatJadualTersimpanKePratontonAuto() {
+  const mula = teks(el("autoTarikhMula")?.value) || teks(el("tarikh")?.value) || hariIniMalaysia();
+  const tamat = teks(el("autoTarikhTamat")?.value) || mula;
+
+  if (!mula || !tamat) return;
+
+  try {
+    const { data: rekod, error } = await denganHadMasa(
+      db.from("penugasan")
+        .select("*")
+        .gte("tarikh", mula)
+        .lte("tarikh", tamat)
+        .order("tarikh", { ascending: true })
+        .order("created_at", { ascending: true })
+    );
+
+    if (error) throw error;
+
+    const senarai = rekod || [];
+    if (!senarai.length) {
+      previewPenugasanAuto = [];
+      paparPreviewPenugasanAuto();
+      return;
+    }
+
+    const ids = [...new Set(
+      senarai.map(item => item.petugas_id || item.profile_id).filter(Boolean)
+    )];
+
+    let profil = [];
+    if (ids.length) {
+      const { data, error: profilError } = await denganHadMasa(
+        db.from("profiles").select("*").in("id", ids)
+      );
+      if (profilError) throw profilError;
+      profil = data || [];
+    }
+
+    const profilMap = new Map(profil.map(item => [item.id, item]));
+    const mulaUTC = Date.parse(`${mula}T00:00:00Z`);
+
+    previewPenugasanAuto = senarai.map(item => {
+      const pengguna = profilMap.get(item.petugas_id || item.profile_id) || {};
+      const tarikhItem = teks(item.tarikh);
+      const tarikhUTC = Date.parse(`${tarikhItem}T00:00:00Z`);
+      const hari = Number.isFinite(tarikhUTC) && Number.isFinite(mulaUTC)
+        ? Math.floor((tarikhUTC - mulaUTC) / 86400000) + 1
+        : 1;
+
+      return {
+        acara: "FORMULA1",
+        hari,
+        tarikh: tarikhItem,
+        no_badan: atas(pengguna.no_badan || item.no_badan || ""),
+        pangkat: atas(pengguna.pangkat || item.pangkat || ""),
+        nama: atas(pengguna.nama || item.nama || ""),
+        telefon: pengguna.telefon || pengguna.no_telefon || item.telefon || item.no_telefon || "",
+        daerah: pengguna.daerah || item.daerah || "",
+        corak_tugas: atas(item.corak_tugas || "ROTATION"),
+        call_sign: atas(item.call_sign || ""),
+        jenis_tugas: atas(item.jenis_tugas || ""),
+        tempat_tugas: atas(item.tempat_tugas || item.lokasi || ""),
+        penyelia: nilaiBoolean(item.penyelia),
+        pemegang_set: nilaiBoolean(item.pemegang_set),
+        latitude: item.latitude ?? null,
+        longitude: item.longitude ?? null,
+        radius_meter: item.radius_meter ?? item.radius ?? null,
+        status: atas(item.status || "AKTIF")
+      };
+    });
+
+    paparPreviewPenugasanAuto();
+
+    if (el("btnSimpanAuto")) {
+      // Jadual ini sudah berada di Supabase; butang simpan hanya untuk pratonton baharu.
+      el("btnSimpanAuto").disabled = true;
+    }
+
+    paparMesej(
+      "statusJanaAuto",
+      `<strong>JADUAL TERSIMPAN DIMUATKAN</strong><br>` +
+      `${previewPenugasanAuto.length} rekod daripada ${escapeHtml(formatTarikhMalaysia(mula))}` +
+      (tamat !== mula ? ` hingga ${escapeHtml(formatTarikhMalaysia(tamat))}` : "") +
+      ` dipaparkan semula dari Supabase.`,
+      "success"
+    );
+  } catch (error) {
+    console.error("Muat jadual tersimpan ke pratonton gagal:", error);
+    paparMesej(
+      "statusJanaAuto",
+      `Jadual tersimpan gagal dimuatkan: ${escapeHtml(error.message)}`,
+      "error"
+    );
+  }
+}
+
+
+async function bukaJanaPenugasan() {
   tutupSemuaModulPentadbir();
 
   const modul = el("modulJanaPenugasan");
@@ -2735,6 +2832,9 @@ function bukaJanaPenugasan() {
   }
 
   kemasKiniTarikhMuatTurunPenugasanAuto();
+
+  // Paparkan semula jadual yang telah disimpan walaupun halaman di-refresh/login semula.
+  await muatJadualTersimpanKePratontonAuto();
 
   window.setTimeout(() => {
     modul.scrollIntoView({
