@@ -1,6 +1,6 @@
 "use strict";
 
-/* SKPO FORMULA 1 BUILD: 20260917-CLEAN-ALFA-BRAVO-014 */
+/* SKPO FORMULA 1 BUILD: 20260917-CLEAN-ALFA-BRAVO-016 */
 
 /* ================================================================
    SKPO FORMULA 1 — PENTADBIR
@@ -56,6 +56,8 @@ const pilihanPetugasMengikutJenisAuto = {};
 */
 const jenisTetapPetugasAuto = {};
 const jenisTersimpanPetugasAuto = {};
+/* FIX 016: semua petugas yang sudah mempunyai sekurang-kurangnya satu rekod penugasan */
+const petugasSudahAdaPenugasanAuto = new Set();
 
 
 
@@ -3126,6 +3128,7 @@ async function muatJenisPenugasanTersimpanAuto() {
   Object.keys(jenisTersimpanPetugasAuto).forEach(kunci => {
     delete jenisTersimpanPetugasAuto[kunci];
   });
+  petugasSudahAdaPenugasanAuto.clear();
 
   const { data: rekod, error } = await denganHadMasa(
     db.from("penugasan")
@@ -3166,6 +3169,9 @@ async function muatJenisPenugasanTersimpanAuto() {
 
     if (!noBadan || !jenis) return;
 
+    /* FIX 016: walau apa pun jenis tugasnya, kewujudan satu rekod sudah cukup untuk mengunci petugas. */
+    petugasSudahAdaPenugasanAuto.add(noBadan);
+
     /*
       Jika seseorang mempunyai rekod pada beberapa hari untuk jenis yang sama,
       ia tetap dianggap satu Jenis Penugasan.
@@ -3191,12 +3197,7 @@ function petugasDipilihJenisAuto(noBadan) {
 
   if (!jenis) return false;
 
-  const kunci = atas(noBadan);
-
-  // Petugas yang sudah mempunyai rekod penugasan tidak boleh dipilih semula.
-  if (jenisTersimpanPetugasAuto[kunci]) return false;
-
-  return jenisTetapPetugasAuto[kunci] === jenis;
+  return jenisTetapPetugasAuto[atas(noBadan)] === jenis;
 }
 
 
@@ -3395,7 +3396,7 @@ function paparPetugasAuto() {
       const dipilihJenisSemasa =
         jenisSediaAda === jenisPenugasanAutoAktif;
       const sudahAdaPenugasan =
-        Boolean(jenisTersimpan);
+        petugasSudahAdaPenugasanAuto.has(noBadanKunci);
 
       return `
         <tr data-auto-petugas-index="${index}">
@@ -3403,7 +3404,7 @@ function paparPetugasAuto() {
             <input
               class="auto-pilih-petugas"
               type="checkbox"
-              ${dipilihJenisSemasa ? "checked" : ""}
+              ${(!sudahAdaPenugasan && dipilihJenisSemasa) ? "checked" : ""}
               ${(dimilikiJenisLain || sudahAdaPenugasan) ? "disabled" : ""}
               onchange="ubahPilihanPetugasJenisAuto(this)"
               aria-label="Pilih ${escapeHtml(item.no_badan || "")}"
@@ -3937,22 +3938,11 @@ function bacaPetugasDipilihAuto() {
 
       if (!profil) return;
 
-      const noBadanKunci = atas(profil.no_badan);
-
-      /*
-        FIX 006 — Rekod Supabase adalah authoritative.
-        Jika petugas SUDAH mempunyai apa-apa penugasan tersimpan dalam
-        julat operasi, jangan masukkan semula petugas itu ke generator,
-        walaupun checkbox masih kelihatan checked akibat pilihan lama.
-        Contoh: 170510 sudah bertugas LSF -> tidak boleh masuk jadual
-        KAWALAN KESELAMATAN yang sedang dijana.
-      */
-      if (jenisTersimpanPetugasAuto[noBadanKunci]) {
-        return;
-      }
+      /* FIX 016: petugas yang sudah ada apa-apa rekod dalam Supabase tidak boleh dijana semula. */
+      if (petugasSudahAdaPenugasanAuto.has(atas(profil.no_badan))) return;
 
       const jenisPetugas =
-        jenisTetapPetugasAuto[noBadanKunci] || "";
+        jenisTetapPetugasAuto[atas(profil.no_badan)] || "";
 
       if (
         jenisPetugas !== jenisPenugasanAutoAktif
@@ -4306,12 +4296,27 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       Nilai penyelia pada hasil ditentukan oleh kedudukan sebenar
       dalam jadual hari tersebut, bukan sekadar nilai dropdown asal.
     */
+    /*
+      FIX 015:
+      Jangan simpan rujukan objek slot asal di dalam setiap rekod petugas.
+      Satu slot boleh digunakan oleh beberapa petugas. Jika objek yang sama
+      dikongsi, perubahan Call Sign seorang petugas (contohnya ALFA) akan
+      turut menukar Call Sign petugas lain dalam slot yang sama.
+
+      Nilai baki masih ditolak pada slot asal di atas, tetapi rekod hasil
+      menerima SALINAN slot yang bebas untuk setiap petugas.
+    */
     hasil.push({
       anggota: {
         ...anggota,
         penyelia: sebagaiPenyelia
       },
-      slot
+      slot: {
+        ...slot,
+        jumlah_mengikut_hari: Array.isArray(slot.jumlah_mengikut_hari)
+          ? [...slot.jumlah_mengikut_hari]
+          : slot.jumlah_mengikut_hari
+      }
     });
   }
 
