@@ -1821,7 +1821,7 @@
           <div>
             <h3>2. Lokasi & Penugasan</h3>
             <p class="muted">
-              Tetapkan jumlah petugas bagi setiap tempat tugas mengikut hari. Contohnya Paddock boleh mempunyai 5 petugas pada Hari 1, 3 petugas pada Hari 2 dan 6 petugas pada Hari 3.
+              Tetapkan jumlah petugas bagi setiap tempat tugas mengikut hari. Jika satu tempat tugas mempunyai beberapa pemegang set, masukkan Prefix Call Sign dan Jumlah Pemegang Set. Contoh: WELCOME + 3 akan menghasilkan WELCOME ALFA, WELCOME BRAVO dan WELCOME CHARLIE. Satu tempat tugas hanya mempunyai 1 Penyelia, manakala setiap Call Sign mempunyai 1 Pemegang Set.
             </p>
           </div>
 
@@ -1838,7 +1838,8 @@
           <table class="auto-assignment-table auto-location-table">
             <thead>
               <tr>
-                <th>Call Sign</th>
+                <th>Prefix Call Sign</th>
+                <th>Jumlah Pemegang Set</th>
                 <th>Jenis Tugas</th>
                 <th>Tempat Tugas</th>
                 <th>Latitude</th>
@@ -2684,7 +2685,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260917-tukar-password-admin-006"></script>
+<script src="js/admin.js?v=20260917-multi-callsign-008"></script>
 
 
 
