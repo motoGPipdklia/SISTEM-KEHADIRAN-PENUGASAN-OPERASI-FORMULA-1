@@ -1,6 +1,6 @@
 "use strict";
 
-/* SKPO FORMULA 1 BUILD: 20260917-PEMEGANGSET-NOBADAN-DESC-011 */
+/* SKPO FORMULA 1 BUILD: 20260917-ALFA-PENYELIA-BRAVO-SORT-012 */
 
 /* ================================================================
    SKPO FORMULA 1 — PENTADBIR
@@ -4569,129 +4569,166 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
   });
 
   /*
-    7. PEMEGANG SET AUTOMATIK.
+    7. SUSUNAN CALL SIGN + PEMEGANG SET AUTOMATIK.
 
     PERATURAN:
-    - Call Sign ALFA: Penyelia WAJIB menjadi Pemegang Set.
-    - Call Sign lain: tepat 1 Pemegang Set dipilih automatik berdasarkan No Badan paling besar.
-    - Pentadbir tidak perlu menandakan Pemegang Set secara manual.
+    - HANYA Penyelia menggunakan Call Sign ALFA.
+    - Semua petugas lain bermula BRAVO, CHARLIE, DELTA dan seterusnya.
+    - Penyelia ALFA juga Pemegang Set.
+    - Bagi setiap Call Sign selain ALFA, Pemegang Set ialah No Badan
+      paling besar dalam kumpulan tersebut.
+    - Susunan kumpulan BRAVO, CHARLIE, DELTA dan seterusnya ditentukan
+      berdasarkan No Badan paling kecil dalam setiap kumpulan.
   */
-  const pemegangAsal =
-    new Set(
-      petugas
-        .filter(item => item.pemegang_set === true)
-        .map(item => atas(item.no_badan))
-    );
 
+  // Kosongkan flag Pemegang Set dahulu.
   hasil.forEach(item => {
     item.anggota.pemegang_set = false;
   });
 
-  lokasiAktif.forEach(slot => {
-    const ahliSlot =
-      hasil.filter(item =>
-        item.slot.kunci_lokasi === slot.kunci_lokasi
-      );
+  tempatAktif.forEach(tempat => {
+    const rekodTempat =
+      hasil.filter(item => item.slot.tempat_tugas === tempat);
 
-    if (!ahliSlot.length) {
+    const rekodPenyelia =
+      rekodTempat.find(item => item.anggota.penyelia === true);
+
+    if (!rekodPenyelia) {
       throw new Error(
-        `Hari ${hari + 1}: Call Sign ${slot.call_sign} di ${slot.tempat_tugas} ` +
-        `tidak mempunyai petugas. Semak jumlah petugas lokasi.`
+        `Hari ${hari + 1}: ${tempat} tidak mempunyai Penyelia.`
       );
     }
 
-    const ialahAlfa =
-      /\sALFA$/i.test(teks(slot.call_sign)) ||
-      slot.indeks_call_sign === 0;
+    // Penyelia sahaja = ALFA + Pemegang Set.
+    const prefix =
+      teks(rekodPenyelia.slot.call_sign_prefix) ||
+      teks(rekodPenyelia.slot.call_sign)
+        .replace(/\s+(ALFA|BRAVO|CHARLIE|DELTA|ECHO|FOXTROT|GOLF|HOTEL|INDIA|JULIET|KILO|LIMA|MIKE|NOVEMBER|OSCAR|PAPA|QUEBEC|ROMEO|SIERRA|TANGO|UNIFORM|VICTOR|WHISKEY|XRAY|YANKEE|ZULU)$/i, "")
+        .trim();
 
-    let rekodPemegang = null;
+    rekodPenyelia.slot.call_sign = `${prefix} ALFA`.trim();
+    rekodPenyelia.slot.kunci_lokasi =
+      `${rekodPenyelia.slot.tempat_tugas}||${rekodPenyelia.slot.call_sign}`;
+    rekodPenyelia.anggota.pemegang_set = true;
 
-    if (ialahAlfa) {
-      rekodPemegang =
-        ahliSlot.find(item =>
-          item.anggota.penyelia === true
+    /*
+      Ambil semua petugas BUKAN Penyelia dan kumpulkan mengikut slot asal.
+      Slot ALFA tidak digunakan oleh petugas biasa.
+    */
+    const bukanPenyelia =
+      rekodTempat.filter(item => item.anggota.penyelia !== true);
+
+    const kumpulanMap = new Map();
+
+    bukanPenyelia.forEach(item => {
+      const kunci = item.slot.kunci_lokasi;
+      if (!kumpulanMap.has(kunci)) kumpulanMap.set(kunci, []);
+      kumpulanMap.get(kunci).push(item);
+    });
+
+    let kumpulan =
+      [...kumpulanMap.values()]
+        .filter(grup => grup.length > 0);
+
+    // Jika pertukaran Penyelia ke ALFA menyebabkan slot ALFA asal hanya
+    // mengandungi petugas biasa, ia tetap dianggap satu kumpulan biasa.
+    // Susun setiap kumpulan secara No Badan kecil -> besar.
+    kumpulan.forEach(grup => {
+      grup.sort((a, b) => {
+        const aa = Number(teks(a.anggota.no_badan));
+        const bb = Number(teks(b.anggota.no_badan));
+        if (Number.isFinite(aa) && Number.isFinite(bb) && aa !== bb) {
+          return aa - bb;
+        }
+        return teks(a.anggota.no_badan).localeCompare(
+          teks(b.anggota.no_badan), "ms",
+          { numeric: true, sensitivity: "base" }
         );
+      });
+    });
 
-      if (!rekodPemegang) {
-        throw new Error(
-          `Hari ${hari + 1}: Call Sign ${slot.call_sign} di ${slot.tempat_tugas} ` +
-          `mesti mempunyai Penyelia. Penyelia wajib berada di ALFA dan menjadi Pemegang Set.`
-        );
-      }
-    } else {
-      /*
-        Call Sign selain ALFA:
-        Pemegang Set dipilih AUTOMATIK berdasarkan No Badan PALING BESAR.
-        Jika ada beberapa Call Sign, setiap kumpulan memilih No Badan terbesar
-        dalam kumpulan masing-masing.
-      */
-      const calonPemegang =
-        ahliSlot
-          .filter(item => item.anggota.penyelia !== true)
-          .slice()
-          .sort((a, b) => {
-            const teksA = teks(a.anggota.no_badan);
-            const teksB = teks(b.anggota.no_badan);
-            const noA = Number(teksA);
-            const noB = Number(teksB);
+    /*
+      Susun kumpulan berdasarkan No Badan TERKECIL dalam kumpulan:
+      kumpulan dengan nombor paling kecil = BRAVO,
+      berikutnya = CHARLIE, kemudian DELTA, dan seterusnya.
+    */
+    kumpulan.sort((ga, gb) => {
+      const a = Number(teks(ga[0]?.anggota?.no_badan));
+      const b = Number(teks(gb[0]?.anggota?.no_badan));
+      if (Number.isFinite(a) && Number.isFinite(b) && a !== b) return a - b;
+      return teks(ga[0]?.anggota?.no_badan).localeCompare(
+        teks(gb[0]?.anggota?.no_badan), "ms",
+        { numeric: true, sensitivity: "base" }
+      );
+    });
 
-            if (Number.isFinite(noA) && Number.isFinite(noB) && noA !== noB) {
-              return noB - noA;
-            }
+    kumpulan.forEach((grup, index) => {
+      // index 0 => BRAVO. ALFA dikhaskan kepada Penyelia sahaja.
+      const suffix =
+        NAMA_CALL_SIGN_AUTO[index + 1] || String(index + 2);
 
-            return teksB.localeCompare(teksA, "ms", {
-              numeric: true,
-              sensitivity: "base"
-            });
-          });
+      const callSignBaharu = `${prefix} ${suffix}`.trim();
 
-      rekodPemegang = calonPemegang[0] || ahliSlot[0];
-    }
+      grup.forEach(item => {
+        item.slot.call_sign = callSignBaharu;
+        item.slot.indeks_call_sign = index + 1;
+        item.slot.kunci_lokasi =
+          `${item.slot.tempat_tugas}||${callSignBaharu}`;
+      });
 
-    rekodPemegang.anggota.pemegang_set = true;
+      // Pemegang Set kumpulan = No Badan PALING BESAR.
+      const pemegang = grup[grup.length - 1];
+      if (pemegang) pemegang.anggota.pemegang_set = true;
+    });
   });
 
   /*
     8. SEMAKAN AKHIR:
-       - tepat 1 Pemegang Set setiap Call Sign;
-       - Penyelia mesti berada di ALFA;
-       - Penyelia ALFA mesti juga Pemegang Set.
+       - ALFA hanya seorang dan orang itu mesti Penyelia + Pemegang Set.
+       - Tiada petugas bukan Penyelia dibenarkan menggunakan ALFA.
+       - Setiap Call Sign BRAVO dan seterusnya mempunyai tepat 1 Pemegang Set.
   */
-  lokasiAktif.forEach(slot => {
-    const ahliSlot =
-      hasil.filter(item =>
-        item.slot.kunci_lokasi === slot.kunci_lokasi
+  tempatAktif.forEach(tempat => {
+    const rekodTempat =
+      hasil.filter(item => item.slot.tempat_tugas === tempat);
+
+    const alfa =
+      rekodTempat.filter(item =>
+        /\sALFA$/i.test(teks(item.slot.call_sign))
       );
 
-    const jumlahPemegang =
-      ahliSlot.filter(item =>
-        item.anggota.pemegang_set === true
-      ).length;
-
-    if (jumlahPemegang !== 1) {
+    if (
+      alfa.length !== 1 ||
+      alfa[0].anggota.penyelia !== true ||
+      alfa[0].anggota.pemegang_set !== true
+    ) {
       throw new Error(
-        `Hari ${hari + 1}: Call Sign ${slot.call_sign} di ${slot.tempat_tugas} ` +
-        `mempunyai ${jumlahPemegang} Pemegang Set. Sistem memerlukan tepat 1.`
+        `Hari ${hari + 1}: ${tempat} mesti mempunyai tepat seorang ALFA, ` +
+        `dan ALFA mestilah Penyelia serta Pemegang Set.`
       );
     }
 
-    const ialahAlfa =
-      /\sALFA$/i.test(teks(slot.call_sign)) ||
-      slot.indeks_call_sign === 0;
+    const callSignBiasa =
+      [...new Set(
+        rekodTempat
+          .filter(item => item.anggota.penyelia !== true)
+          .map(item => item.slot.call_sign)
+      )];
 
-    if (ialahAlfa) {
-      const penyeliaAlfa =
-        ahliSlot.find(item =>
-          item.anggota.penyelia === true
-        );
+    callSignBiasa.forEach(callSign => {
+      const jumlahPemegang =
+        rekodTempat.filter(item =>
+          item.slot.call_sign === callSign &&
+          item.anggota.pemegang_set === true
+        ).length;
 
-      if (!penyeliaAlfa || penyeliaAlfa.anggota.pemegang_set !== true) {
+      if (jumlahPemegang !== 1) {
         throw new Error(
-          `Hari ${hari + 1}: Penyelia ${slot.tempat_tugas} mesti berada di ` +
-          `${slot.call_sign} dan menjadi Pemegang Set.`
+          `Hari ${hari + 1}: ${callSign} di ${tempat} mesti mempunyai ` +
+          `tepat 1 Pemegang Set.`
         );
       }
-    }
+    });
   });
 
   return hasil;
