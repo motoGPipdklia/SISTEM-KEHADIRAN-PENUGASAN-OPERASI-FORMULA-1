@@ -1506,8 +1506,8 @@ function sediakanModulPassKenderaanPetugas() {
   seksyen.innerHTML = `
     <div class="walkie-header">
       <div>
-        <h2>Maklumat PASS & Kenderaan</h2>
-        <p>Isi No. Siri PASS dan No. Kenderaan untuk penugasan hari ini.</p>
+        <h2>Maklumat Pas & Kenderaan</h2>
+        <p>Isi No. Siri Pas dan No. Kenderaan untuk penugasan hari ini.</p>
       </div>
     </div>
     <div class="info-box" style="margin-bottom:12px">
@@ -1519,7 +1519,7 @@ function sediakanModulPassKenderaanPetugas() {
       <div class="info-row"><div class="info-label">No. Kenderaan:</div><div class="info-value" id="paparanNoKenderaanPassKenderaan">-</div></div>
     </div>
     <div id="borangPassKenderaanPetugas">
-      <label for="noSiriPassPetugas"><strong>No. Siri PASS</strong></label>
+      <label for="noSiriPassPetugas"><strong>No. Siri Pas</strong></label>
       <input id="noSiriPassPetugas" type="text" placeholder="Contoh: F1-0045" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
       <label for="noKenderaanPetugas"><strong>No. Kenderaan</strong></label>
       <input id="noKenderaanPetugas" type="text" placeholder="Contoh: VAB 1234" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
