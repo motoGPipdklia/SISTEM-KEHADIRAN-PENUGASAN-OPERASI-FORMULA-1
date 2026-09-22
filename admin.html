@@ -11,6 +11,52 @@
 
   <link rel="stylesheet" href="css/style.css?v=20260722-0045">
   <link rel="stylesheet" href="css/admin.css?v=20260910-f1-kalendar-dinamik-001">
+
+  <style id="gayaMenuPentadbir">
+    .admin-menu-shell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .admin-menu-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-width: 170px;
+    }
+    .admin-menu-panel[hidden] { display: none !important; }
+    .admin-menu-panel {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 10px;
+      padding: 12px;
+      margin-top: 2px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      background: rgba(20,20,20,.98);
+      box-sizing: border-box;
+    }
+    .admin-menu-panel .header-action-button,
+    .admin-menu-panel .admin-menu-link {
+      width: 100%;
+      min-height: 42px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      text-decoration: none;
+    }
+    @media (max-width: 700px) {
+      .admin-menu-shell { align-items: stretch; }
+      .admin-menu-toggle, .admin-menu-shell > .logout { width: 100%; }
+      .admin-menu-panel { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 
 <body>
@@ -73,101 +119,77 @@
         <div id="adminName" aria-live="polite"></div>
       </div>
 
-      <nav class="topbar-actions" aria-label="Tindakan Pentadbir">
+      <nav class="topbar-actions admin-menu-shell" aria-label="Tindakan Pentadbir">
 
   <button
-    class="header-action-button"
+    class="header-action-button admin-menu-toggle"
+    id="btnToggleMenuPentadbir"
     type="button"
-    onclick="bukaPerantiKhasAdmin()"
-  >
-    PERANTI KHAS
-  </button>
-
-  <button
-    class="header-action-button header-import-user"
-    type="button"
-    onclick="bukaImportPengguna()"
-  >
-    IMPORT PENGGUNA CSV
-  </button>
-
-
-  <button
-    class="header-action-button header-auto-assignment"
-    id="btnBukaJanaPenugasan"
-    type="button"
-    onclick="bukaJanaPenugasan()"
-    aria-controls="modulJanaPenugasan"
+    onclick="toggleMenuPentadbir()"
+    aria-controls="menuPentadbir"
     aria-expanded="false"
   >
-    JANA PENUGASAN
+    <span>MENU PENTADBIR</span>
+    <span id="ikonMenuPentadbir" aria-hidden="true">▼</span>
   </button>
 
-  <button
-    class="header-action-button header-import-assignment"
-    type="button"
-    onclick="bukaImportPenugasan()"
-  >
-    IMPORT PENUGASAN CSV
-  </button>
+  <div id="menuPentadbir" class="admin-menu-panel" hidden>
+    <button class="header-action-button header-register-user" type="button" onclick="bukaDaftarPengguna()">
+      DAFTAR PENGGUNA
+    </button>
 
-  <button
-    class="header-action-button header-register-user"
-    type="button"
-    onclick="bukaDaftarPengguna()"
-  >
-    DAFTAR PENGGUNA
-  </button>
+    <button class="header-action-button header-import-user" type="button" onclick="bukaImportPengguna()">
+      IMPORT PENGGUNA CSV
+    </button>
 
+    <button class="header-action-button header-import-assignment" type="button" onclick="bukaImportPenugasan()">
+      IMPORT PENUGASAN CSV
+    </button>
 
-  <button
-    class="header-action-button"
-    id="btnBukaPassKenderaan"
-    type="button"
-    onclick="bukaModulPassKenderaanPentadbir()"
-  >
-    PAS & KENDERAAN
-  </button>
+    <button
+      class="header-action-button header-auto-assignment"
+      id="btnBukaJanaPenugasan"
+      type="button"
+      onclick="bukaJanaPenugasan()"
+      aria-controls="modulJanaPenugasan"
+      aria-expanded="false"
+    >
+      JANA PENUGASAN
+    </button>
 
-  <button
-    class="header-action-button header-reports"
-    type="button"
-    onclick="bukaModulLaporanPentadbir()"
-  >
-    LAPORAN
-  </button>
+    <button
+      class="header-action-button header-charts"
+      id="btnBukaCartaPentadbir"
+      type="button"
+      onclick="bukaModulCartaPentadbir()"
+      aria-controls="modulCartaPentadbir"
+      aria-expanded="false"
+    >
+      CARTA
+    </button>
 
-  <button
-    class="header-action-button header-charts"
-    id="btnBukaCartaPentadbir"
-    type="button"
-    onclick="bukaModulCartaPentadbir()"
-    aria-controls="modulCartaPentadbir"
-    aria-expanded="false"
-  >
-    CARTA
-  </button>
+    <button class="header-action-button header-reports" type="button" onclick="bukaModulLaporanPentadbir()">
+      LAPORAN
+    </button>
 
-  <a
-    class="tsm-button nav-button"
-    href="tsm.html"
-  >
-    MODUL TSM
-  </a>
+    <button class="header-action-button" id="btnBukaPassKenderaan" type="button" onclick="bukaModulPassKenderaanPentadbir()">
+      PASS &amp; KENDERAAN
+    </button>
 
-  <button
-    class="header-action-button"
-    type="button"
-    onclick="bukaTukarPasswordAdmin()"
-  >
-    TUKAR PASSWORD
-  </button>
+    <button class="header-action-button" type="button" onclick="bukaPerantiKhasAdmin()">
+      PERANTI KHAS
+    </button>
 
-  <button
-    class="logout"
-    type="button"
-    onclick="logout()"
-  >
+    <button class="header-action-button" type="button" onclick="bukaTukarPasswordAdmin()">
+      TUKAR PASSWORD
+    </button>
+
+    <a class="tsm-button nav-button admin-menu-link" href="tsm.html">
+      MODUL TSM
+    </a>
+  </div>
+
+  <button class="logout" type="button" onclick="logout()">
     LOG KELUAR
   </button>
 
@@ -2726,7 +2748,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260917-clean-alfa-bravo-014"></script>
+<script src="js/admin.js?v=20260922-menu-pentadbir-001"></script>
 
 
 
