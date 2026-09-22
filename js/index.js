@@ -1477,7 +1477,7 @@ async function hantarLaporan() {
 
 
 /* ================================================================
-   PASS & KENDERAAN PETUGAS — FIX 003
+   PASS & KENDERAAN PETUGAS — FIX 004
    Petugas mengisi No. Siri PASS dan No. Kenderaan sendiri.
    Draf input dikekalkan semasa auto-refresh dashboard.
 ================================================================ */
@@ -1515,6 +1515,8 @@ function sediakanModulPassKenderaanPetugas() {
       <div class="info-row"><div class="info-label">No. Badan:</div><div class="info-value" id="noBadanPassKenderaan">-</div></div>
       <div class="info-row"><div class="info-label">Pangkat:</div><div class="info-value" id="pangkatPassKenderaan">-</div></div>
       <div class="info-row"><div class="info-label">Nama:</div><div class="info-value" id="namaPassKenderaan">-</div></div>
+      <div class="info-row"><div class="info-label">No. Siri PASS:</div><div class="info-value" id="paparanNoSiriPassKenderaan">-</div></div>
+      <div class="info-row"><div class="info-label">No. Kenderaan:</div><div class="info-value" id="paparanNoKenderaanPassKenderaan">-</div></div>
     </div>
     <label for="noSiriPassPetugas"><strong>No. Siri PASS</strong></label>
     <input id="noSiriPassPetugas" type="text" placeholder="Contoh: F1-0045" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
@@ -1560,8 +1562,14 @@ async function muatPassKenderaanPetugas() {
       drafPassKenderaanPetugas.noSiriPass = data?.no_siri_pass || "";
       drafPassKenderaanPetugas.noKenderaan = data?.no_kenderaan || "";
     }
+    el("paparanNoSiriPassKenderaan").textContent = data?.no_siri_pass || "-";
+    el("paparanNoKenderaanPassKenderaan").textContent = data?.no_kenderaan || "-";
+
     if (data) {
-      paparStatus("statusPassKenderaanPetugas", `<strong>Maklumat telah direkodkan.</strong><br>No. Siri PASS: ${escapeHtml(data.no_siri_pass || "-")}<br>No. Kenderaan: ${escapeHtml(data.no_kenderaan || "-")}`, "success");
+      // Rekod yang telah disimpan dipaparkan terus di bawah Nama.
+      // Kotak hijau kejayaan tidak lagi diperlukan.
+      status.style.display = "none";
+      status.innerHTML = "";
       el("btnSimpanPassKenderaan").textContent = "KEMAS KINI MAKLUMAT";
     } else {
       status.style.display = "none";
@@ -1602,7 +1610,13 @@ async function simpanPassKenderaanPetugas() {
     drafPassKenderaanPetugas = { noSiriPass: noSiri, noKenderaan, sedangEdit: false };
     el("noSiriPassPetugas").value = noSiri;
     el("noKenderaanPetugas").value = noKenderaan;
-    paparStatus("statusPassKenderaanPetugas", `<strong>Berjaya disimpan.</strong><br>No. Siri PASS: ${escapeHtml(noSiri)}<br>No. Kenderaan: ${escapeHtml(noKenderaan)}`, "success");
+    el("paparanNoSiriPassKenderaan").textContent = noSiri;
+    el("paparanNoKenderaanPassKenderaan").textContent = noKenderaan;
+    const statusPass = el("statusPassKenderaanPetugas");
+    if (statusPass) {
+      statusPass.style.display = "none";
+      statusPass.innerHTML = "";
+    }
     btn.textContent = "KEMAS KINI MAKLUMAT";
   } catch (err) {
     paparStatus("statusPassKenderaanPetugas", `Gagal menyimpan: ${escapeHtml(err.message)}`, "error");
