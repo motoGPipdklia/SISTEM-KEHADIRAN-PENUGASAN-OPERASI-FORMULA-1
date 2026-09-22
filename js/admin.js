@@ -14486,15 +14486,15 @@ function paparPassKenderaanPentadbir() {
   tbody.innerHTML = rows.map((r,i) => `<tr>
     <td style="text-align:center">${i+1}</td><td style="text-align:center">${escapeHtml(formatTarikhMalaysia(r.tarikh_penugasan))}</td>
     <td style="text-align:center;font-weight:700">${escapeHtml(r.no_badan||"-")}</td><td>${escapeHtml(r.pangkat||"-")}</td>
-    <td>${escapeHtml(r.nama||"-")}</td><td style="text-align:center;font-weight:700">${escapeHtml(r.no_siri_pass||"-")}</td>
+    <td style="text-align:center;vertical-align:middle">${escapeHtml(r.nama||"-")}</td><td style="text-align:center;font-weight:700">${escapeHtml(r.no_siri_pass||"-")}</td>
     <td style="text-align:center;font-weight:700">${escapeHtml(r.no_kenderaan||"-")}</td></tr>`).join("");
 }
 function cetakPassKenderaanPentadbir() {
   const rows=dataPassKenderaanDitapis(); if(!rows.length) return alert("Tiada rekod untuk dicetak.");
   const tarikh=el("tarikhPassKenderaanAdmin")?.value||hariIniMalaysia();
-  const isi=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(formatTarikhMalaysia(r.tarikh_penugasan))}</td><td>${escapeHtml(r.no_badan||"-")}</td><td>${escapeHtml(r.pangkat||"-")}</td><td class="left">${escapeHtml(r.nama||"-")}</td><td>${escapeHtml(r.no_siri_pass||"-")}</td><td>${escapeHtml(r.no_kenderaan||"-")}</td></tr>`).join("");
+  const isi=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(formatTarikhMalaysia(r.tarikh_penugasan))}</td><td>${escapeHtml(r.no_badan||"-")}</td><td>${escapeHtml(r.pangkat||"-")}</td><td>${escapeHtml(r.nama||"-")}</td><td>${escapeHtml(r.no_siri_pass||"-")}</td><td>${escapeHtml(r.no_kenderaan||"-")}</td></tr>`).join("");
   const w=window.open("","_blank","width=1200,height=800"); if(!w) return alert("Benarkan pop-up untuk mencetak.");
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>PASS & Kenderaan</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1,h2,p{text-align:center;margin:4px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #555;padding:7px;font-size:11px;text-align:center}th{background:#eee}.left{text-align:left}</style></head><body><h1>OP LITAR FORMULA 1 2026</h1><h2>REKOD PASS & KENDERAAN PETUGAS</h2><p>TARIKH PENUGASAN: ${escapeHtml(formatTarikhMalaysia(tarikh))}</p><table><thead><tr><th>BIL</th><th>TARIKH PENUGASAN</th><th>NO BADAN</th><th>PANGKAT</th><th>NAMA</th><th>NO SIRI PASS</th><th>NO KENDERAAN</th></tr></thead><tbody>${isi}</tbody></table><p style="text-align:left;margin-top:10px"><strong>JUMLAH REKOD: ${rows.length}</strong></p><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`); w.document.close();
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>PASS & Kenderaan</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1,h2,p{text-align:center;margin:4px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #555;padding:7px;font-size:11px;text-align:center}th{background:#eee}</style></head><body><h1>OP LITAR FORMULA 1 2026</h1><h2>REKOD PASS & KENDERAAN PETUGAS</h2><p>TARIKH PENUGASAN: ${escapeHtml(formatTarikhMalaysia(tarikh))}</p><table><thead><tr><th>BIL</th><th>TARIKH PENUGASAN</th><th>NO BADAN</th><th>PANGKAT</th><th>NAMA</th><th>NO SIRI PASS</th><th>NO KENDERAAN</th></tr></thead><tbody>${isi}</tbody></table><p style="text-align:left;margin-top:10px"><strong>JUMLAH REKOD: ${rows.length}</strong></p><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`); w.document.close();
 }
 function csvSelamat(v){const s=String(v??"");return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
 function muatTurunCsvPassKenderaanPentadbir() {
