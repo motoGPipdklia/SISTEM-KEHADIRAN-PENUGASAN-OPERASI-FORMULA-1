@@ -1475,12 +1475,122 @@ async function hantarLaporan() {
   }
 }
 
+
+/* ================================================================
+   PASS & KENDERAAN PETUGAS
+   Petugas mengisi No. Siri PASS dan No. Kenderaan sendiri.
+================================================================ */
+function sediakanModulPassKenderaanPetugas() {
+  if (el("modulPassKenderaanPetugas")) return;
+  const btnCheckout = el("btnCheckout");
+  if (!btnCheckout) return;
+  const seksyen = document.createElement("section");
+  seksyen.id = "modulPassKenderaanPetugas";
+  seksyen.className = "walkie-card";
+  seksyen.style.marginTop = "16px";
+  seksyen.innerHTML = `
+    <div class="walkie-header">
+      <div>
+        <h2>Maklumat PASS & Kenderaan</h2>
+        <p>Isi No. Siri PASS dan No. Kenderaan untuk penugasan hari ini.</p>
+      </div>
+    </div>
+    <div class="info-box" style="margin-bottom:12px">
+      <div class="info-row"><div class="info-label">Tarikh Penugasan:</div><div class="info-value" id="tarikhPassKenderaan">-</div></div>
+      <div class="info-row"><div class="info-label">No. Badan:</div><div class="info-value" id="noBadanPassKenderaan">-</div></div>
+      <div class="info-row"><div class="info-label">Pangkat:</div><div class="info-value" id="pangkatPassKenderaan">-</div></div>
+      <div class="info-row"><div class="info-label">Nama:</div><div class="info-value" id="namaPassKenderaan">-</div></div>
+    </div>
+    <label for="noSiriPassPetugas"><strong>No. Siri PASS</strong></label>
+    <input id="noSiriPassPetugas" type="text" placeholder="Contoh: F1-0045" autocomplete="off" style="text-transform:uppercase;margin-bottom:10px">
+    <label for="noKenderaanPetugas"><strong>No. Kenderaan</strong></label>
+    <input id="noKenderaanPetugas" type="text" placeholder="Contoh: VAB 1234" autocomplete="off" style="text-transform:uppercase;margin-bottom:10px">
+    <div class="status-box" id="statusPassKenderaanPetugas" role="status" aria-live="polite" style="display:none"></div>
+    <button id="btnSimpanPassKenderaan" type="button" onclick="simpanPassKenderaanPetugas()">SIMPAN MAKLUMAT</button>
+  `;
+  btnCheckout.insertAdjacentElement("afterend", seksyen);
+}
+
+function paparModulPassKenderaanPetugas(aktif) {
+  sediakanModulPassKenderaanPetugas();
+  const modul = el("modulPassKenderaanPetugas");
+  if (!modul) return;
+  modul.style.display = aktif ? "block" : "none";
+  if (aktif) {
+    el("tarikhPassKenderaan").textContent = hariIniMalaysia();
+    el("noBadanPassKenderaan").textContent = userLogin?.noBadan || "-";
+    el("pangkatPassKenderaan").textContent = userLogin?.pangkat || "-";
+    el("namaPassKenderaan").textContent = userLogin?.nama || "-";
+  }
+}
+
+async function muatPassKenderaanPetugas() {
+  paparModulPassKenderaanPetugas(Boolean(userLogin && tugas));
+  if (!userLogin || !tugas) return;
+  const status = el("statusPassKenderaanPetugas");
+  try {
+    const { data, error } = await db.from("pass_kenderaan_petugas")
+      .select("*")
+      .eq("petugas_id", userLogin.id)
+      .eq("tarikh_penugasan", hariIniMalaysia())
+      .maybeSingle();
+    if (error) throw error;
+    el("noSiriPassPetugas").value = data?.no_siri_pass || "";
+    el("noKenderaanPetugas").value = data?.no_kenderaan || "";
+    if (data) {
+      paparStatus("statusPassKenderaanPetugas", `<strong>Maklumat telah direkodkan.</strong><br>No. Siri PASS: ${escapeHtml(data.no_siri_pass || "-")}<br>No. Kenderaan: ${escapeHtml(data.no_kenderaan || "-")}`, "success");
+      el("btnSimpanPassKenderaan").textContent = "KEMAS KINI MAKLUMAT";
+    } else {
+      status.style.display = "none";
+      status.innerHTML = "";
+      el("btnSimpanPassKenderaan").textContent = "SIMPAN MAKLUMAT";
+    }
+  } catch (err) {
+    paparStatus("statusPassKenderaanPetugas", `Ralat mendapatkan maklumat PASS/Kenderaan: ${escapeHtml(err.message)}`, "error");
+  }
+}
+
+async function simpanPassKenderaanPetugas() {
+  if (!userLogin || !tugas) return alert("Tiada penugasan yang sah untuk hari ini.");
+  const noSiri = atas(el("noSiriPassPetugas")?.value);
+  const noKenderaan = atas(el("noKenderaanPetugas")?.value);
+  if (!noSiri || !noKenderaan) return paparStatus("statusPassKenderaanPetugas", "Sila isi No. Siri PASS dan No. Kenderaan.", "error");
+  const btn = el("btnSimpanPassKenderaan");
+  btn.disabled = true; btn.textContent = "SEDANG MENYIMPAN...";
+  try {
+    const payload = {
+      tarikh_penugasan: hariIniMalaysia(),
+      petugas_id: userLogin.id,
+      penugasan_id: tugas.id || null,
+      no_badan: atas(userLogin.noBadan),
+      pangkat: atas(userLogin.pangkat),
+      nama: atas(userLogin.nama),
+      no_siri_pass: noSiri,
+      no_kenderaan: noKenderaan,
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await db.from("pass_kenderaan_petugas")
+      .upsert(payload, { onConflict: "tarikh_penugasan,petugas_id" });
+    if (error) {
+      if (/pass_kenderaan_no_siri_tarikh_key|duplicate key|unique/i.test(error.message || "")) {
+        throw new Error(`No. Siri PASS ${noSiri} telah digunakan oleh petugas lain pada tarikh ini.`);
+      }
+      throw error;
+    }
+    paparStatus("statusPassKenderaanPetugas", `<strong>Berjaya disimpan.</strong><br>No. Siri PASS: ${escapeHtml(noSiri)}<br>No. Kenderaan: ${escapeHtml(noKenderaan)}`, "success");
+    btn.textContent = "KEMAS KINI MAKLUMAT";
+  } catch (err) {
+    paparStatus("statusPassKenderaanPetugas", `Gagal menyimpan: ${escapeHtml(err.message)}`, "error");
+  } finally { btn.disabled = false; if (btn.textContent === "SEDANG MENYIMPAN...") btn.textContent = "SIMPAN MAKLUMAT"; }
+}
+
 async function refreshDashboard() {
   if (!userLogin) return;
   const b = el("btnRefreshStatus"); if (b) { b.disabled = true; b.textContent = "SEDANG MENYEMAK..."; }
   try {
     const ada = await dapatkanTugasHariIni();
     if (ada) await semakStatusCheckInPetugas();
+    await muatPassKenderaanPetugas();
     if (window.SKPOWalkie?.muatSemula) await window.SKPOWalkie.muatSemula();
   } finally { if (b) { b.disabled = false; b.textContent = "SEMAK SEMULA STATUS"; } }
 }
@@ -1570,6 +1680,8 @@ function kiraJarakMeter(lat1, lng1, lat2, lng2) {
 function darjahKeRadian(v) { return v * Math.PI / 180; }
 
 document.addEventListener("DOMContentLoaded", () => {
+  sediakanModulPassKenderaanPetugas();
+  paparModulPassKenderaanPetugas(false);
   el("password")?.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
   pulihkanSesi();
 });

@@ -21,6 +21,7 @@ let adminLogin = null;
 let dataDashboard = [];
 let dataLaporanPetugasAdmin = [];
 let dataSitrepAdmin = [];
+let dataPassKenderaanAdmin = [];
 let tabLaporanAdminAktif = "petugas";
 let dataPaparan = [];
 let rekodResetDevice = null;
@@ -5878,6 +5879,12 @@ function tutupSemuaModulPentadbir() {
       idKandungan: "",
       idButang: "",
       teksButang: ""
+    },
+    {
+      idModul: "modulPassKenderaanPentadbir",
+      idKandungan: "",
+      idButang: "btnBukaPassKenderaan",
+      teksButang: "PASS & KENDERAAN"
     },
     {
       idModul: "modulCartaPentadbir",
@@ -14432,6 +14439,71 @@ const manual =
     `).join("");
 }
 
+
+
+/* ================================================================
+   PASS & KENDERAAN PETUGAS — PENTADBIR
+================================================================ */
+function bukaModulPassKenderaanPentadbir() {
+  tutupSemuaModulPentadbir();
+  const modul = el("modulPassKenderaanPentadbir");
+  if (!modul) return;
+  modul.hidden = false; modul.removeAttribute("hidden"); modul.style.display = "block";
+  const inputTarikh = el("tarikhPassKenderaanAdmin");
+  if (inputTarikh && !inputTarikh.value) inputTarikh.value = el("tarikh")?.value || hariIniMalaysia();
+  muatPassKenderaanPentadbir();
+  modul.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function tutupModulPassKenderaanPentadbir() {
+  const modul = el("modulPassKenderaanPentadbir");
+  if (modul) { modul.hidden = true; modul.setAttribute("hidden", ""); modul.style.display = "none"; }
+}
+async function muatPassKenderaanPentadbir() {
+  const tarikh = el("tarikhPassKenderaanAdmin")?.value || hariIniMalaysia();
+  const status = el("statusPassKenderaanAdmin");
+  if (status) { status.className = "status-box warning"; status.style.display = "block"; status.textContent = "Sedang mendapatkan rekod..."; }
+  try {
+    const { data, error } = await db.from("pass_kenderaan_petugas").select("*")
+      .eq("tarikh_penugasan", tarikh).order("no_badan", { ascending: true });
+    if (error) throw error;
+    dataPassKenderaanAdmin = data || [];
+    paparPassKenderaanPentadbir();
+    if (status) { status.className = "status-box success"; status.innerHTML = `<strong>${dataPassKenderaanAdmin.length}</strong> rekod dijumpai untuk ${escapeHtml(formatTarikhMalaysia(tarikh))}.`; }
+  } catch (err) {
+    dataPassKenderaanAdmin = []; paparPassKenderaanPentadbir();
+    if (status) { status.className = "status-box error"; status.textContent = `Ralat: ${err.message}`; }
+  }
+}
+function dataPassKenderaanDitapis() {
+  const cari = atas(el("carianPassKenderaanAdmin")?.value);
+  if (!cari) return [...dataPassKenderaanAdmin];
+  return dataPassKenderaanAdmin.filter(r => [r.no_badan,r.pangkat,r.nama,r.no_siri_pass,r.no_kenderaan].some(v => atas(v).includes(cari)));
+}
+function paparPassKenderaanPentadbir() {
+  const tbody = el("tbodyPassKenderaanAdmin"); if (!tbody) return;
+  const rows = dataPassKenderaanDitapis();
+  if (!rows.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Tiada rekod dijumpai.</td></tr>'; return; }
+  tbody.innerHTML = rows.map((r,i) => `<tr>
+    <td style="text-align:center">${i+1}</td><td style="text-align:center">${escapeHtml(formatTarikhMalaysia(r.tarikh_penugasan))}</td>
+    <td style="text-align:center;font-weight:700">${escapeHtml(r.no_badan||"-")}</td><td>${escapeHtml(r.pangkat||"-")}</td>
+    <td>${escapeHtml(r.nama||"-")}</td><td style="text-align:center;font-weight:700">${escapeHtml(r.no_siri_pass||"-")}</td>
+    <td style="text-align:center;font-weight:700">${escapeHtml(r.no_kenderaan||"-")}</td></tr>`).join("");
+}
+function cetakPassKenderaanPentadbir() {
+  const rows=dataPassKenderaanDitapis(); if(!rows.length) return alert("Tiada rekod untuk dicetak.");
+  const tarikh=el("tarikhPassKenderaanAdmin")?.value||hariIniMalaysia();
+  const isi=rows.map((r,i)=>`<tr><td>${i+1}</td><td>${escapeHtml(formatTarikhMalaysia(r.tarikh_penugasan))}</td><td>${escapeHtml(r.no_badan||"-")}</td><td>${escapeHtml(r.pangkat||"-")}</td><td class="left">${escapeHtml(r.nama||"-")}</td><td>${escapeHtml(r.no_siri_pass||"-")}</td><td>${escapeHtml(r.no_kenderaan||"-")}</td></tr>`).join("");
+  const w=window.open("","_blank","width=1200,height=800"); if(!w) return alert("Benarkan pop-up untuk mencetak.");
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>PASS & Kenderaan</title><style>@page{size:A4 landscape;margin:10mm}body{font-family:Arial;color:#111}h1,h2,p{text-align:center;margin:4px}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #555;padding:7px;font-size:11px;text-align:center}th{background:#eee}.left{text-align:left}</style></head><body><h1>OP LITAR FORMULA 1 2026</h1><h2>REKOD PASS & KENDERAAN PETUGAS</h2><p>TARIKH PENUGASAN: ${escapeHtml(formatTarikhMalaysia(tarikh))}</p><table><thead><tr><th>BIL</th><th>TARIKH PENUGASAN</th><th>NO BADAN</th><th>PANGKAT</th><th>NAMA</th><th>NO SIRI PASS</th><th>NO KENDERAAN</th></tr></thead><tbody>${isi}</tbody></table><p style="text-align:left;margin-top:10px"><strong>JUMLAH REKOD: ${rows.length}</strong></p><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`); w.document.close();
+}
+function csvSelamat(v){const s=String(v??"");return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s;}
+function muatTurunCsvPassKenderaanPentadbir() {
+  const rows=dataPassKenderaanDitapis(); if(!rows.length) return alert("Tiada rekod untuk dimuat turun.");
+  const kepala=["BIL","TARIKH PENUGASAN","NO BADAN","PANGKAT","NAMA","NO SIRI PASS","NO KENDERAAN"];
+  const baris=rows.map((r,i)=>[i+1,r.tarikh_penugasan,r.no_badan,r.pangkat,r.nama,r.no_siri_pass,r.no_kenderaan].map(csvSelamat).join(","));
+  const blob=new Blob(["\ufeff"+[kepala.join(","),...baris].join("\r\n")],{type:"text/csv;charset=utf-8;"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`PASS_KENDERAAN_${el("tarikhPassKenderaanAdmin")?.value||hariIniMalaysia()}.csv`; document.body.appendChild(a); a.click(); URL.revokeObjectURL(a.href); a.remove();
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   sediakanJanaPenugasanAuto();
