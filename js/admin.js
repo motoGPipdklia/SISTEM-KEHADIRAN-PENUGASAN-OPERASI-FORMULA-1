@@ -14556,3 +14556,28 @@ window.simpanAgensiLuarPentadbir =
 
 window.padamAgensiLuarPentadbir =
   padamAgensiLuarPentadbir;
+
+/* ================================================================
+   MENU PENTADBIR — 20260922
+   Menu tindakan disembunyikan secara lalai dan dipaparkan apabila
+   butang MENU PENTADBIR ditekan.
+================================================================ */
+function toggleMenuPentadbir(paksaBuka = null) {
+  const menu = document.getElementById("menuPentadbir");
+  const butang = document.getElementById("btnToggleMenuPentadbir");
+  const ikon = document.getElementById("ikonMenuPentadbir");
+
+  if (!menu || !butang) return;
+
+  const sedangBuka = !menu.hidden;
+  const perluBuka = typeof paksaBuka === "boolean" ? paksaBuka : !sedangBuka;
+
+  menu.hidden = !perluBuka;
+  butang.setAttribute("aria-expanded", perluBuka ? "true" : "false");
+  if (ikon) ikon.textContent = perluBuka ? "▲" : "▼";
+}
+
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape") toggleMenuPentadbir(false);
+});
+
