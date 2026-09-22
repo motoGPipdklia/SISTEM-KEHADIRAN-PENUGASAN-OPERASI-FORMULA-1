@@ -119,6 +119,16 @@
     DAFTAR PENGGUNA
   </button>
 
+
+  <button
+    class="header-action-button"
+    id="btnBukaPassKenderaan"
+    type="button"
+    onclick="bukaModulPassKenderaanPentadbir()"
+  >
+    PASS & KENDERAAN
+  </button>
+
   <button
     class="header-action-button header-reports"
     type="button"
@@ -265,6 +275,37 @@
       </button>
     </div>
 </section>
+
+
+
+      <!-- ===============================================
+           PASS & KENDERAAN PETUGAS
+      ================================================ -->
+      <section class="card" id="modulPassKenderaanPentadbir" hidden style="display:none;">
+        <div class="section-heading">
+          <div>
+            <h2>PASS & KENDERAAN PETUGAS</h2>
+            <p class="muted">Rekod yang diisi sendiri oleh petugas mengikut tarikh penugasan.</p>
+          </div>
+          <button class="gray" type="button" onclick="tutupModulPassKenderaanPentadbir()">TUTUP</button>
+        </div>
+        <div class="filters" style="margin-top:14px">
+          <div><label for="tarikhPassKenderaanAdmin">Tarikh Penugasan</label><input id="tarikhPassKenderaanAdmin" type="date" onchange="muatPassKenderaanPentadbir()"></div>
+          <div><label for="carianPassKenderaanAdmin">Carian</label><input id="carianPassKenderaanAdmin" type="search" placeholder="No Badan, pangkat, nama, pass atau kenderaan..." oninput="paparPassKenderaanPentadbir()"></div>
+        </div>
+        <div class="actions" style="margin-top:12px">
+          <button class="blue" type="button" onclick="muatPassKenderaanPentadbir()">SEMAK SEMULA</button>
+          <button class="gray" type="button" onclick="cetakPassKenderaanPentadbir()">CETAK</button>
+          <button class="green-button" type="button" onclick="muatTurunCsvPassKenderaanPentadbir()">MUAT TURUN CSV</button>
+        </div>
+        <div class="status-box" id="statusPassKenderaanAdmin" role="status" aria-live="polite"></div>
+        <div class="wrap" style="margin-top:14px">
+          <table>
+            <thead><tr><th>Bil.</th><th>Tarikh Penugasan</th><th>No. Badan</th><th>Pangkat</th><th>Nama</th><th>No. Siri PASS</th><th>No. Kenderaan</th></tr></thead>
+            <tbody id="tbodyPassKenderaanAdmin"><tr><td colspan="7" class="empty-row">Belum ada data dipaparkan.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
 
       <!-- ===============================================
            PENAPIS
