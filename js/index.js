@@ -1477,9 +1477,24 @@ async function hantarLaporan() {
 
 
 /* ================================================================
-   PASS & KENDERAAN PETUGAS
+   PASS & KENDERAAN PETUGAS — FIX 003
    Petugas mengisi No. Siri PASS dan No. Kenderaan sendiri.
+   Draf input dikekalkan semasa auto-refresh dashboard.
 ================================================================ */
+let drafPassKenderaanPetugas = { noSiriPass: "", noKenderaan: "", sedangEdit: false };
+
+function simpanDrafPassKenderaanDaripadaInput() {
+  const inputPass = el("noSiriPassPetugas");
+  const inputKenderaan = el("noKenderaanPetugas");
+  if (!inputPass || !inputKenderaan) return;
+  drafPassKenderaanPetugas.noSiriPass = inputPass.value;
+  drafPassKenderaanPetugas.noKenderaan = inputKenderaan.value;
+}
+
+function tandaDrafPassKenderaanBerubah() {
+  drafPassKenderaanPetugas.sedangEdit = true;
+  simpanDrafPassKenderaanDaripadaInput();
+}
 function sediakanModulPassKenderaanPetugas() {
   if (el("modulPassKenderaanPetugas")) return;
   const btnCheckout = el("btnCheckout");
@@ -1502,9 +1517,9 @@ function sediakanModulPassKenderaanPetugas() {
       <div class="info-row"><div class="info-label">Nama:</div><div class="info-value" id="namaPassKenderaan">-</div></div>
     </div>
     <label for="noSiriPassPetugas"><strong>No. Siri PASS</strong></label>
-    <input id="noSiriPassPetugas" type="text" placeholder="Contoh: F1-0045" autocomplete="off" style="text-transform:uppercase;margin-bottom:10px">
+    <input id="noSiriPassPetugas" type="text" placeholder="Contoh: F1-0045" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
     <label for="noKenderaanPetugas"><strong>No. Kenderaan</strong></label>
-    <input id="noKenderaanPetugas" type="text" placeholder="Contoh: VAB 1234" autocomplete="off" style="text-transform:uppercase;margin-bottom:10px">
+    <input id="noKenderaanPetugas" type="text" placeholder="Contoh: VAB 1234" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
     <div class="status-box" id="statusPassKenderaanPetugas" role="status" aria-live="polite" style="display:none"></div>
     <button id="btnSimpanPassKenderaan" type="button" onclick="simpanPassKenderaanPetugas()">SIMPAN MAKLUMAT</button>
   `;
@@ -1535,8 +1550,16 @@ async function muatPassKenderaanPetugas() {
       .eq("tarikh_penugasan", hariIniMalaysia())
       .maybeSingle();
     if (error) throw error;
-    el("noSiriPassPetugas").value = data?.no_siri_pass || "";
-    el("noKenderaanPetugas").value = data?.no_kenderaan || "";
+    // Jangan timpa nilai yang sedang ditaip apabila auto-refresh 15 saat berjalan.
+    if (drafPassKenderaanPetugas.sedangEdit) {
+      el("noSiriPassPetugas").value = drafPassKenderaanPetugas.noSiriPass;
+      el("noKenderaanPetugas").value = drafPassKenderaanPetugas.noKenderaan;
+    } else {
+      el("noSiriPassPetugas").value = data?.no_siri_pass || "";
+      el("noKenderaanPetugas").value = data?.no_kenderaan || "";
+      drafPassKenderaanPetugas.noSiriPass = data?.no_siri_pass || "";
+      drafPassKenderaanPetugas.noKenderaan = data?.no_kenderaan || "";
+    }
     if (data) {
       paparStatus("statusPassKenderaanPetugas", `<strong>Maklumat telah direkodkan.</strong><br>No. Siri PASS: ${escapeHtml(data.no_siri_pass || "-")}<br>No. Kenderaan: ${escapeHtml(data.no_kenderaan || "-")}`, "success");
       el("btnSimpanPassKenderaan").textContent = "KEMAS KINI MAKLUMAT";
@@ -1561,7 +1584,6 @@ async function simpanPassKenderaanPetugas() {
     const payload = {
       tarikh_penugasan: hariIniMalaysia(),
       petugas_id: userLogin.id,
-      penugasan_id: tugas.id || null,
       no_badan: atas(userLogin.noBadan),
       pangkat: atas(userLogin.pangkat),
       nama: atas(userLogin.nama),
@@ -1577,6 +1599,9 @@ async function simpanPassKenderaanPetugas() {
       }
       throw error;
     }
+    drafPassKenderaanPetugas = { noSiriPass: noSiri, noKenderaan, sedangEdit: false };
+    el("noSiriPassPetugas").value = noSiri;
+    el("noKenderaanPetugas").value = noKenderaan;
     paparStatus("statusPassKenderaanPetugas", `<strong>Berjaya disimpan.</strong><br>No. Siri PASS: ${escapeHtml(noSiri)}<br>No. Kenderaan: ${escapeHtml(noKenderaan)}`, "success");
     btn.textContent = "KEMAS KINI MAKLUMAT";
   } catch (err) {
