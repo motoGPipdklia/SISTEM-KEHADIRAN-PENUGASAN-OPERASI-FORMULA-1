@@ -1477,7 +1477,7 @@ async function hantarLaporan() {
 
 
 /* ================================================================
-   PASS & KENDERAAN PETUGAS — FIX 004
+   PASS & KENDERAAN PETUGAS — FIX 005
    Petugas mengisi No. Siri PASS dan No. Kenderaan sendiri.
    Draf input dikekalkan semasa auto-refresh dashboard.
 ================================================================ */
@@ -1518,14 +1518,51 @@ function sediakanModulPassKenderaanPetugas() {
       <div class="info-row"><div class="info-label">No. Siri PASS:</div><div class="info-value" id="paparanNoSiriPassKenderaan">-</div></div>
       <div class="info-row"><div class="info-label">No. Kenderaan:</div><div class="info-value" id="paparanNoKenderaanPassKenderaan">-</div></div>
     </div>
-    <label for="noSiriPassPetugas"><strong>No. Siri PASS</strong></label>
-    <input id="noSiriPassPetugas" type="text" placeholder="Contoh: F1-0045" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
-    <label for="noKenderaanPetugas"><strong>No. Kenderaan</strong></label>
-    <input id="noKenderaanPetugas" type="text" placeholder="Contoh: VAB 1234" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
+    <div id="borangPassKenderaanPetugas">
+      <label for="noSiriPassPetugas"><strong>No. Siri PASS</strong></label>
+      <input id="noSiriPassPetugas" type="text" placeholder="Contoh: F1-0045" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
+      <label for="noKenderaanPetugas"><strong>No. Kenderaan</strong></label>
+      <input id="noKenderaanPetugas" type="text" placeholder="Contoh: VAB 1234" autocomplete="off" oninput="tandaDrafPassKenderaanBerubah()" style="text-transform:uppercase;margin-bottom:10px">
+      <button id="btnSimpanPassKenderaan" type="button" onclick="simpanPassKenderaanPetugas()">SIMPAN MAKLUMAT</button>
+      <button id="btnBatalEditPassKenderaan" class="secondary" type="button" onclick="batalEditPassKenderaanPetugas()" style="display:none;margin-top:8px">BATAL</button>
+    </div>
+    <div id="tindakanPassKenderaanPetugas" style="display:none">
+      <button id="btnEditPassKenderaan" type="button" onclick="mulaEditPassKenderaanPetugas()">KEMAS KINI MAKLUMAT</button>
+    </div>
     <div class="status-box" id="statusPassKenderaanPetugas" role="status" aria-live="polite" style="display:none"></div>
-    <button id="btnSimpanPassKenderaan" type="button" onclick="simpanPassKenderaanPetugas()">SIMPAN MAKLUMAT</button>
   `;
   btnCheckout.insertAdjacentElement("afterend", seksyen);
+}
+
+function tetapkanModEditPassKenderaan(adaRekod, sedangEdit = false) {
+  const borang = el("borangPassKenderaanPetugas");
+  const tindakan = el("tindakanPassKenderaanPetugas");
+  const batal = el("btnBatalEditPassKenderaan");
+  const simpan = el("btnSimpanPassKenderaan");
+  if (!borang || !tindakan) return;
+
+  if (!adaRekod || sedangEdit) {
+    borang.style.display = "block";
+    tindakan.style.display = "none";
+    if (batal) batal.style.display = adaRekod ? "block" : "none";
+    if (simpan) simpan.textContent = adaRekod ? "SIMPAN PERUBAHAN" : "SIMPAN MAKLUMAT";
+  } else {
+    borang.style.display = "none";
+    tindakan.style.display = "block";
+  }
+}
+
+function mulaEditPassKenderaanPetugas() {
+  drafPassKenderaanPetugas.sedangEdit = true;
+  tetapkanModEditPassKenderaan(true, true);
+  el("noSiriPassPetugas")?.focus();
+}
+
+async function batalEditPassKenderaanPetugas() {
+  drafPassKenderaanPetugas.sedangEdit = false;
+  const status = el("statusPassKenderaanPetugas");
+  if (status) { status.style.display = "none"; status.innerHTML = ""; }
+  await muatPassKenderaanPetugas();
 }
 
 function paparModulPassKenderaanPetugas(aktif) {
@@ -1570,11 +1607,11 @@ async function muatPassKenderaanPetugas() {
       // Kotak hijau kejayaan tidak lagi diperlukan.
       status.style.display = "none";
       status.innerHTML = "";
-      el("btnSimpanPassKenderaan").textContent = "KEMAS KINI MAKLUMAT";
+      tetapkanModEditPassKenderaan(true, drafPassKenderaanPetugas.sedangEdit);
     } else {
       status.style.display = "none";
       status.innerHTML = "";
-      el("btnSimpanPassKenderaan").textContent = "SIMPAN MAKLUMAT";
+      tetapkanModEditPassKenderaan(false, true);
     }
   } catch (err) {
     paparStatus("statusPassKenderaanPetugas", `Ralat mendapatkan maklumat PASS/Kenderaan: ${escapeHtml(err.message)}`, "error");
@@ -1617,7 +1654,8 @@ async function simpanPassKenderaanPetugas() {
       statusPass.style.display = "none";
       statusPass.innerHTML = "";
     }
-    btn.textContent = "KEMAS KINI MAKLUMAT";
+    btn.textContent = "SIMPAN PERUBAHAN";
+    tetapkanModEditPassKenderaan(true, false);
   } catch (err) {
     paparStatus("statusPassKenderaanPetugas", `Gagal menyimpan: ${escapeHtml(err.message)}`, "error");
   } finally { btn.disabled = false; if (btn.textContent === "SEDANG MENYIMPAN...") btn.textContent = "SIMPAN MAKLUMAT"; }
