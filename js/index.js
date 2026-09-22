@@ -1515,7 +1515,7 @@ function sediakanModulPassKenderaanPetugas() {
       <div class="info-row"><div class="info-label">No. Badan:</div><div class="info-value" id="noBadanPassKenderaan">-</div></div>
       <div class="info-row"><div class="info-label">Pangkat:</div><div class="info-value" id="pangkatPassKenderaan">-</div></div>
       <div class="info-row"><div class="info-label">Nama:</div><div class="info-value" id="namaPassKenderaan">-</div></div>
-      <div class="info-row"><div class="info-label">No. Siri PASS:</div><div class="info-value" id="paparanNoSiriPassKenderaan">-</div></div>
+      <div class="info-row"><div class="info-label">No. Siri Pas:</div><div class="info-value" id="paparanNoSiriPassKenderaan">-</div></div>
       <div class="info-row"><div class="info-label">No. Kenderaan:</div><div class="info-value" id="paparanNoKenderaanPassKenderaan">-</div></div>
     </div>
     <div id="borangPassKenderaanPetugas">
