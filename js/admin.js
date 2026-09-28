@@ -1,6 +1,6 @@
 "use strict";
 
-/* SKPO FORMULA 1 BUILD: 20260917-CLEAN-ALFA-BRAVO-016 */
+/* SKPO FORMULA 1 BUILD: 20260928-RANK-PB-HOLDER-FIX-017 */
 
 /* ================================================================
    SKPO FORMULA 1 — PENTADBIR
@@ -3049,6 +3049,67 @@ function tutupJanaPenugasan() {
 }
 
 
+/* ================================================================
+   SUSUNAN PANGKAT & PERATURAN PEMEGANG SET — FIX 017
+================================================================ */
+
+const SUSUNAN_PANGKAT_F1 = [
+  "ACP", "SUPT", "DSP", "ASP", "INSP", "SI", "SM", "SJN",
+  "KPL", "L/KPL", "KONST", "KPL/S", "L/KPL/S", "KONST/S",
+  "KPL/PB", "L/KPL/PB", "KONST/PB"
+];
+
+const INDEKS_PANGKAT_F1 = new Map(
+  SUSUNAN_PANGKAT_F1.map((pangkat, index) => [pangkat, index])
+);
+
+const LOKASI_PENYELIA_BUKAN_PEMEGANG_SET_F1 = new Set([
+  "BALAI POLIS BERGERAK (MALL AREA)",
+  "BALAI POLIS BERGERAK (PX)",
+  "BALAI POLIS BERGERAK (GRANDSTAND F)"
+]);
+
+function indeksPangkatF1(pangkat) {
+  const nilai = atas(pangkat);
+  return INDEKS_PANGKAT_F1.has(nilai)
+    ? INDEKS_PANGKAT_F1.get(nilai)
+    : SUSUNAN_PANGKAT_F1.length + 100;
+}
+
+function bandingNoBadanF1(a, b) {
+  const teksA = teks(a);
+  const teksB = teks(b);
+  const noA = Number(teksA);
+  const noB = Number(teksB);
+  const sahA = Number.isFinite(noA);
+  const sahB = Number.isFinite(noB);
+
+  if (sahA && sahB && noA !== noB) return noA - noB;
+  if (sahA && !sahB) return -1;
+  if (!sahA && sahB) return 1;
+
+  return teksA.localeCompare(teksB, "ms", {
+    numeric: true,
+    sensitivity: "base"
+  });
+}
+
+function bandingPangkatNoBadanF1(a, b) {
+  const pangkatA = indeksPangkatF1(a?.pangkat);
+  const pangkatB = indeksPangkatF1(b?.pangkat);
+
+  if (pangkatA !== pangkatB) return pangkatA - pangkatB;
+  return bandingNoBadanF1(a?.no_badan, b?.no_badan);
+}
+
+function ialahPangkatPBF1(pangkat) {
+  return ["KPL/PB", "L/KPL/PB", "KONST/PB"].includes(atas(pangkat));
+}
+
+function lokasiPenyeliaBukanPemegangSetF1(tempat) {
+  return LOKASI_PENYELIA_BUKAN_PEMEGANG_SET_F1.has(atas(tempat));
+}
+
 async function muatPetugasAuto() {
   const jenis =
     atas(el("autoJenisPenugasan")?.value);
@@ -4566,29 +4627,29 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
     penyelia.slot.indeks_call_sign = 0;
     penyelia.slot.jumlah_pemegang_set = jumlahCallSign;
     penyelia.slot.kunci_lokasi = `${tempat}||${prefix} ALFA`;
-    penyelia.anggota.pemegang_set = true;
+
+    const penyeliaBukanPemegangSet =
+      lokasiPenyeliaBukanPemegangSetF1(tempat);
+
+    // Tiga lokasi Balai Polis Bergerak: Penyelia ALFA bukan Pemegang Set.
+    // Untuk lokasi lain, kekalkan peraturan Penyelia ALFA = Pemegang Set.
+    penyelia.anggota.pemegang_set = !penyeliaBukanPemegangSet;
 
     const biasa =
       rekodTempat
         .filter(r => r !== penyelia)
-        .sort((a, b) => {
-          const ta = teks(a.anggota.no_badan);
-          const tb = teks(b.anggota.no_badan);
-          const na = Number(ta);
-          const nb = Number(tb);
-          if (Number.isFinite(na) && Number.isFinite(nb) && na !== nb) {
-            return na - nb;
-          }
-          return ta.localeCompare(tb, "ms", {
-            numeric: true,
-            sensitivity: "base"
-          });
-        });
+        .sort((a, b) =>
+          bandingPangkatNoBadanF1(a.anggota, b.anggota)
+        );
 
     if (biasa.length) {
-      // jumlahCallSign termasuk ALFA.
-      const bilKumpulan =
-        Math.min(Math.max(1, jumlahCallSign - 1), biasa.length);
+      // Lokasi biasa: jumlahCallSign termasuk ALFA (Penyelia ialah Pemegang Set).
+      // Tiga lokasi Balai Polis Bergerak khas: ALFA bukan Pemegang Set,
+      // maka jumlah pemegang set diagihkan kepada BRAVO/CHARLIE/...
+      const bilKumpulan = Math.min(
+        Math.max(1, penyeliaBukanPemegangSet ? jumlahCallSign : jumlahCallSign - 1),
+        biasa.length
+      );
 
       let offset = 0;
 
@@ -4612,8 +4673,21 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
           r.slot.kunci_lokasi = `${tempat}||${callSign}`;
         });
 
-        // grup telah menaik; terakhir = No Badan terbesar.
-        grup[grup.length - 1].anggota.pemegang_set = true;
+        // Pemegang Set dipilih daripada anggota BUKAN PB sahaja.
+        // Susunan grup mengikut pangkat khusus kemudian No. Badan;
+        // calon terakhir yang layak dipilih sebagai Pemegang Set.
+        const calonPemegang = [...grup]
+          .reverse()
+          .find(r => !ialahPangkatPBF1(r.anggota.pangkat));
+
+        if (!calonPemegang) {
+          throw new Error(
+            `Hari ${hari + 1}: Kumpulan ${callSign} di ${tempat} hanya mempunyai ` +
+            `anggota PB. Pangkat PB tidak boleh menjadi Pemegang Set.`
+          );
+        }
+
+        calonPemegang.anggota.pemegang_set = true;
       }
     }
 
@@ -4628,12 +4702,39 @@ function binaAgihanLokasiAuto(petugas, lokasi, hari) {
       );
     }
 
+    if (alfa[0].anggota.penyelia !== true) {
+      throw new Error(
+        `Hari ${hari + 1}: ALFA di ${tempat} mesti Penyelia.`
+      );
+    }
+
     if (
-      alfa[0].anggota.penyelia !== true ||
+      penyeliaBukanPemegangSet &&
+      alfa[0].anggota.pemegang_set === true
+    ) {
+      throw new Error(
+        `Hari ${hari + 1}: Penyelia ALFA di ${tempat} tidak boleh menjadi Pemegang Set.`
+      );
+    }
+
+    if (
+      !penyeliaBukanPemegangSet &&
       alfa[0].anggota.pemegang_set !== true
     ) {
       throw new Error(
         `Hari ${hari + 1}: ALFA di ${tempat} mesti Penyelia dan Pemegang Set.`
+      );
+    }
+
+    const pbPemegangSet = rekodTempat.find(r =>
+      r.anggota.pemegang_set === true &&
+      ialahPangkatPBF1(r.anggota.pangkat)
+    );
+
+    if (pbPemegangSet) {
+      throw new Error(
+        `Hari ${hari + 1}: ${pbPemegangSet.anggota.pangkat} ` +
+        `${pbPemegangSet.anggota.nama} di ${tempat} tidak boleh menjadi Pemegang Set.`
       );
     }
 
@@ -5111,24 +5212,9 @@ function cetakJadualPenugasanAuto() {
       if (tempat && atas(item.tempat_tugas) !== tempat) return false;
       return true;
     })
-    .sort((a, b) => {
-      // No. Badan paling kecil di atas, paling besar di bawah.
-      const teksA = teks(a.no_badan);
-      const teksB = teks(b.no_badan);
-      const noA = Number(teksA);
-      const noB = Number(teksB);
-      const sahA = Number.isFinite(noA);
-      const sahB = Number.isFinite(noB);
-
-      if (sahA && sahB && noA !== noB) return noA - noB;
-      if (sahA && !sahB) return -1;
-      if (!sahA && sahB) return 1;
-
-      return teksA.localeCompare(teksB, "ms", {
-        numeric: true,
-        sensitivity: "base"
-      });
-    });
+    .sort((a, b) =>
+      bandingPangkatNoBadanF1(a, b)
+    );
 
   if (!rekod.length) {
     alert("Tiada rekod dijumpai untuk pilihan cetakan tersebut.");
@@ -14580,4 +14666,3 @@ function toggleMenuPentadbir(paksaBuka = null) {
 document.addEventListener("keydown", function (event) {
   if (event.key === "Escape") toggleMenuPentadbir(false);
 });
-
