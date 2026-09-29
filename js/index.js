@@ -1684,9 +1684,32 @@ function kembaliDashboardCheckout() { el("checkout").style.display = "none"; el(
 /* PAPARAN PETA OPERASI */
 let skalaPeta = 1;
 
+/*
+  Versi peta digunakan untuk memecahkan cache browser / PWA.
+  Tukar nilai ini setiap kali images/peta.png diganti di GitHub.
+*/
+const VERSI_PETA_OPERASI = "20260929-001";
+
+function muatSemulaPetaOperasi() {
+  const imej = el("imejPeta");
+  if (!imej) return;
+
+  const srcBaharu = `images/peta.png?v=${encodeURIComponent(VERSI_PETA_OPERASI)}`;
+
+  /* Elak reload berulang jika versi yang sama sudah dipaparkan. */
+  const srcSemasa = imej.getAttribute("src") || "";
+  if (srcSemasa !== srcBaharu) {
+    imej.src = srcBaharu;
+  }
+}
+
 function bukaPeta() {
   const modal = el("modalPeta");
   if (!modal) return;
+
+  /* Pastikan peta terkini diminta, bukan salinan cache lama. */
+  muatSemulaPetaOperasi();
+
   resetZumPeta();
   modal.hidden = false;
   modal.setAttribute("aria-hidden", "false");
