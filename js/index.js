@@ -1779,7 +1779,207 @@ function kiraJarakMeter(lat1, lng1, lat2, lng2) {
 }
 function darjahKeRadian(v) { return v * Math.PI / 180; }
 
+
+/* ================================================================
+   MUAT TURUN JADUAL FORMULA 1
+   Kategori: TUGAS AM / BSJ / BSJN / BSJK / CAW. KHAS
+   Fail PDF disimpan di folder: jadual/
+================================================================ */
+
+const JADUAL_F1_TARIKH = [
+  { nilai: "02102026", label: "02/10/2026" },
+  { nilai: "03102026", label: "03/10/2026" },
+  { nilai: "04102026", label: "04/10/2026" }
+];
+
+const JADUAL_F1_KATEGORI = [
+  { nilai: "TUGAS AM", label: "Tugas AM", fail: "TUGAS AM" },
+  { nilai: "BSJ", label: "BSJ", fail: "BSJ" },
+  { nilai: "BSJN", label: "BSJN", fail: "BSJN" },
+  { nilai: "BSJK", label: "BSJK", fail: "BSJK" },
+  { nilai: "CAW KHAS", label: "Caw. Khas", fail: "CAW KHAS" }
+];
+
+function pasangModulMuatTurunJadual() {
+  if (document.getElementById("btnMuatTurunJadual")) return;
+
+  const btnPeta = document.getElementById("btnPaparPeta");
+  if (!btnPeta) return;
+
+  const gaya = document.createElement("style");
+  gaya.id = "gayaMuatTurunJadualF1";
+  gaya.textContent = `
+    .schedule-download-button{
+      width:100%;margin-top:10px;padding:14px 16px;border:0;border-radius:6px;
+      background:#c89b2c;color:#111;font-weight:800;font-size:15px;cursor:pointer;
+    }
+    .schedule-download-button:hover{filter:brightness(1.08)}
+    .jadual-modal{
+      position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);
+      display:flex;align-items:center;justify-content:center;padding:18px;
+    }
+    .jadual-modal[hidden]{display:none!important}
+    .jadual-dialog{
+      width:min(520px,100%);background:#202020;border:1px solid #4b4b4b;
+      border-radius:14px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.55);
+      color:#fff;
+    }
+    .jadual-dialog h2{margin:0 0 8px;color:#d6ad35}
+    .jadual-dialog p{margin:0 0 18px;color:#ccc;line-height:1.45}
+    .jadual-field{margin-bottom:14px}
+    .jadual-field label{display:block;margin-bottom:7px;font-weight:700}
+    .jadual-field select{
+      width:100%;box-sizing:border-box;padding:12px;border-radius:7px;
+      border:1px solid #666;background:#111;color:#fff;font-size:16px;
+    }
+    .jadual-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+    .jadual-actions button{padding:13px;border:0;border-radius:7px;font-weight:800;cursor:pointer}
+    .jadual-download{background:#238b4b;color:#fff}
+    .jadual-cancel{background:#555;color:#fff}
+    #statusMuatTurunJadual{margin-top:14px;line-height:1.4}
+    @media(max-width:520px){.jadual-actions{grid-template-columns:1fr}}
+  `;
+  document.head.appendChild(gaya);
+
+  const butang = document.createElement("button");
+  butang.id = "btnMuatTurunJadual";
+  butang.type = "button";
+  butang.className = "schedule-download-button";
+  butang.textContent = "MUAT TURUN JADUAL";
+  butang.addEventListener("click", bukaMuatTurunJadual);
+  btnPeta.parentNode.insertBefore(butang, btnPeta);
+
+  const modal = document.createElement("section");
+  modal.id = "modalMuatTurunJadual";
+  modal.className = "jadual-modal";
+  modal.hidden = true;
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+  modal.setAttribute("aria-labelledby", "tajukMuatTurunJadual");
+  modal.innerHTML = `
+    <div class="jadual-dialog">
+      <h2 id="tajukMuatTurunJadual">Muat Turun Jadual</h2>
+      <p>Pilih tarikh dan kategori jadual Formula 1.</p>
+
+      <div class="jadual-field">
+        <label for="pilihTarikhJadual">Tarikh</label>
+        <select id="pilihTarikhJadual">
+          <option value="">-- PILIH TARIKH --</option>
+          ${JADUAL_F1_TARIKH.map(x => `<option value="${x.nilai}">${x.label}</option>`).join("")}
+        </select>
+      </div>
+
+      <div class="jadual-field">
+        <label for="pilihKategoriJadual">Kategori Jadual</label>
+        <select id="pilihKategoriJadual">
+          <option value="">-- PILIH KATEGORI --</option>
+          ${JADUAL_F1_KATEGORI.map(x => `<option value="${x.nilai}">${x.label}</option>`).join("")}
+        </select>
+      </div>
+
+      <div class="jadual-actions">
+        <button class="jadual-download" id="btnSahkanMuatTurunJadual" type="button">
+          MUAT TURUN PDF
+        </button>
+        <button class="jadual-cancel" type="button" onclick="tutupMuatTurunJadual()">
+          BATAL
+        </button>
+      </div>
+
+      <div id="statusMuatTurunJadual" role="status" aria-live="polite"></div>
+    </div>
+  `;
+
+  modal.addEventListener("click", event => {
+    if (event.target === modal) tutupMuatTurunJadual();
+  });
+
+  document.body.appendChild(modal);
+  document.getElementById("btnSahkanMuatTurunJadual")
+    ?.addEventListener("click", muatTurunJadualDipilih);
+}
+
+function bukaMuatTurunJadual() {
+  const modal = document.getElementById("modalMuatTurunJadual");
+  const status = document.getElementById("statusMuatTurunJadual");
+  if (!modal) return;
+  if (status) status.innerHTML = "";
+  modal.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function tutupMuatTurunJadual() {
+  const modal = document.getElementById("modalMuatTurunJadual");
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.style.overflow = "";
+  document.getElementById("btnMuatTurunJadual")?.focus();
+}
+
+function namaFailJadualFormula1(tarikh, kategori) {
+  const item = JADUAL_F1_KATEGORI.find(x => x.nilai === kategori);
+  if (!item) return "";
+  return `JADUAL FORMULA 1 ${item.fail} ${tarikh}.pdf`;
+}
+
+async function muatTurunJadualDipilih() {
+  const tarikh = document.getElementById("pilihTarikhJadual")?.value || "";
+  const kategori = document.getElementById("pilihKategoriJadual")?.value || "";
+  const status = document.getElementById("statusMuatTurunJadual");
+  const btn = document.getElementById("btnSahkanMuatTurunJadual");
+
+  if (!tarikh) {
+    if (status) status.innerHTML = '<span class="status-error">Sila pilih tarikh jadual.</span>';
+    return;
+  }
+  if (!kategori) {
+    if (status) status.innerHTML = '<span class="status-error">Sila pilih kategori jadual.</span>';
+    return;
+  }
+
+  const namaFail = namaFailJadualFormula1(tarikh, kategori);
+  const url = `jadual/${encodeURIComponent(namaFail)}`;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "MENYEMAK FAIL...";
+  }
+  if (status) status.innerHTML = '<span class="status-warning">Sedang menyemak jadual...</span>';
+
+  try {
+    const respons = await fetch(url, { method: "GET", cache: "no-store" });
+    if (!respons.ok) {
+      throw new Error(`Jadual ${kategori} bagi tarikh ${tarikh.slice(0,2)}/${tarikh.slice(2,4)}/${tarikh.slice(4)} belum tersedia.`);
+    }
+
+    const blob = await respons.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const pautan = document.createElement("a");
+    pautan.href = blobUrl;
+    pautan.download = namaFail;
+    document.body.appendChild(pautan);
+    pautan.click();
+    pautan.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
+
+    if (status) {
+      status.innerHTML = `<span class="status-success"><strong>Jadual dijumpai.</strong><br>${escapeHtml(namaFail)}</span>`;
+    }
+  } catch (err) {
+    if (status) {
+      status.innerHTML = `<span class="status-error">${escapeHtml(err.message || "Jadual tidak dapat dimuat turun.")}</span>`;
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "MUAT TURUN PDF";
+    }
+  }
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
+  pasangModulMuatTurunJadual();
   sediakanModulPassKenderaanPetugas();
   paparModulPassKenderaanPetugas(false);
   el("password")?.addEventListener("keydown", e => { if (e.key === "Enter") login(); });
