@@ -5337,10 +5337,8 @@ function rekodPenugasanPengganti(
   }
 
   /*
-    Status penugasan pengganti mesti menggunakan nilai status yang
-    memang sah pada jadual penugasan. Rekod asal hanya boleh diganti
-    ketika status paparannya BELUM HADIR, jadi kekalkan nilai status
-    database asal (termasuk null jika itu nilai asal).
+    Petugas pengganti menerima penugasan aktif.
+    Rekod petugas asal akan ditukar kepada DIGANTI selepas insert berjaya.
   */
   rekod.status = "AKTIF";
 
