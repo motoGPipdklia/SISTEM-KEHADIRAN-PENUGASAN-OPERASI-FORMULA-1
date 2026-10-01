@@ -5342,7 +5342,7 @@ function rekodPenugasanPengganti(
     ketika status paparannya BELUM HADIR, jadi kekalkan nilai status
     database asal (termasuk null jika itu nilai asal).
   */
-  rekod.status = tugasanAsal.status ?? null;
+  rekod.status = "AKTIF";
 
   if (Object.prototype.hasOwnProperty.call(
     tugasanAsal,
