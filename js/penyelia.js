@@ -5207,95 +5207,96 @@ async function daftarPetugasPengganti(noBadan) {
     );
   }
 
-  if (password.length < 6) {
+  /*
+    Edge Function tambah-petugas menggunakan syarat minimum
+    kata laluan 8 aksara.
+  */
+  if (password.length < 8) {
     throw new Error(
-      "Kata laluan petugas baharu mestilah sekurang-kurangnya 6 aksara."
+      "Kata laluan petugas baharu mestilah sekurang-kurangnya 8 aksara."
     );
   }
 
   const { data: sesiData, error: sesiError } =
     await dbPenyelia.auth.getSession();
 
-  if (sesiError || !sesiData.session) {
-    throw sesiError || new Error(
-      "Sesi Penyelia tidak ditemui."
+  if (sesiError) {
+    throw sesiError;
+  }
+
+  if (!sesiData?.session) {
+    throw new Error(
+      "Sesi Penyelia tidak ditemui. Sila log masuk semula."
     );
   }
 
-  const sesiPenyelia = sesiData.session;
-  let penggunaBaharu = null;
+  const { data, error } =
+    await dbPenyelia.functions.invoke(
+      "tambah-petugas",
+      {
+        body: {
+          no_badan: atasPenyelia(noBadan),
+          nama: atasPenyelia(nama),
+          pangkat: atasPenyelia(pangkat),
+          telefon: telefon || "",
+          bahagian: atasPenyelia(bahagian || ""),
+          daerah: "",
+          peranan: "PETUGAS",
+          aktif: true,
+          password
+        }
+      }
+    );
 
-  try {
-    const { data: daftarData, error: daftarError } =
-      await dbPenyelia.auth.signUp({
-        email: emailPenyelia(noBadan),
-        password
-      });
+  if (error) {
+    console.error(
+      "Ralat Edge Function tambah-petugas:",
+      error
+    );
 
-    if (daftarError || !daftarData?.user) {
-      throw daftarError || new Error(
-        "Akaun petugas baharu gagal didaftarkan."
+    let mesej =
+      error.message ||
+      "Petugas baharu gagal didaftarkan.";
+
+    /*
+      Supabase FunctionsHttpError lazimnya menyediakan Response pada
+      error.context. Cuba baca mesej sebenar Edge Function jika ada.
+    */
+    try {
+      if (
+        error.context &&
+        typeof error.context.clone === "function"
+      ) {
+        const responseData =
+          await error.context.clone().json();
+
+        if (responseData?.message) {
+          mesej = responseData.message;
+        }
+      }
+    } catch (parseError) {
+      console.warn(
+        "Tidak dapat membaca mesej Edge Function:",
+        parseError
       );
     }
 
-    penggunaBaharu = daftarData.user;
-
-    const profilBaharu = {
-      id: penggunaBaharu.id,
-      auth_user_id: penggunaBaharu.id,
-      no_badan: noBadan,
-      nama,
-      pangkat,
-      telefon: telefon || null,
-      bahagian: bahagian || null,
-      peranan: "PETUGAS",
-      aktif: true
-    };
-
-    let hasilProfil = await dbPenyelia
-      .from("profiles")
-      .insert(profilBaharu)
-      .select("*")
-      .single();
-
-    /* Sesetengah pemasangan menggunakan id sahaja dan tiada auth_user_id. */
-    if (
-      hasilProfil.error &&
-      /auth_user_id/i.test(hasilProfil.error.message || "")
-    ) {
-      delete profilBaharu.auth_user_id;
-
-      hasilProfil = await dbPenyelia
-        .from("profiles")
-        .insert(profilBaharu)
-        .select("*")
-        .single();
-    }
-
-    if (hasilProfil.error || !hasilProfil.data) {
-      throw hasilProfil.error || new Error(
-        "Profil petugas baharu gagal disimpan."
-      );
-    }
-
-    return hasilProfil.data;
-
-  } finally {
-    const { error: pulihError } =
-      await dbPenyelia.auth.setSession({
-        access_token: sesiPenyelia.access_token,
-        refresh_token: sesiPenyelia.refresh_token
-      });
-
-    if (pulihError) {
-      console.error(
-        "Sesi Penyelia gagal dipulihkan:",
-        pulihError
-      );
-    }
+    throw new Error(mesej);
   }
-}
 
+  if (
+    !data ||
+    data.success !== true ||
+    !data.profile
+  ) {
+    throw new Error(
+      data?.message ||
+      "Petugas baharu gagal didaftarkan."
+    );
+  }
+
+  return data.profile;
+}
 
 /* ================================================================
    BINA REKOD PENUGASAN PENGGANTI
@@ -5335,7 +5336,13 @@ function rekodPenugasanPengganti(
     rekod.profile_id = petugasBaruId;
   }
 
-  rekod.status = "DITUGASKAN";
+  /*
+    Status penugasan pengganti mesti menggunakan nilai status yang
+    memang sah pada jadual penugasan. Rekod asal hanya boleh diganti
+    ketika status paparannya BELUM HADIR, jadi kekalkan nilai status
+    database asal (termasuk null jika itu nilai asal).
+  */
+  rekod.status = tugasanAsal.status ?? null;
 
   if (Object.prototype.hasOwnProperty.call(
     tugasanAsal,
