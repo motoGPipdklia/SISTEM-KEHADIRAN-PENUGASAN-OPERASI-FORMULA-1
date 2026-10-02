@@ -1012,6 +1012,14 @@
                 </button>
 
                 <button
+                  class="red compact-button"
+                  type="button"
+                  onclick="bukaTolakPengunjungManualPentadbir()"
+                >
+                  − PENGUNJUNG
+                </button>
+
+                <button
                   class="gray compact-button"
                   type="button"
                   onclick="muatDataCartaPentadbir()"
@@ -2759,8 +2767,8 @@
     <div class="modal-card admin-manual-chart-modal">
       <div class="section-heading">
         <div>
-          <h2>Tambah Pengunjung</h2>
-          <p class="muted">Masukkan rekod pengunjung secara manual untuk Carta Pengunjung.</p>
+          <h2 id="tajukModalPengunjungManualPentadbir">Tambah Pengunjung</h2>
+          <p class="muted" id="peneranganModalPengunjungManualPentadbir">Masukkan rekod pengunjung secara manual untuk Carta Pengunjung.</p>
         </div>
         <button class="gray compact-button" type="button" onclick="tutupModalPengunjungManualPentadbir()">TUTUP</button>
       </div>
@@ -2779,8 +2787,8 @@
           <input id="lokasiPengunjungManualPentadbir" type="text" placeholder="Contoh: MAIN GRANDSTAND">
         </div>
         <div class="form-group form-group-wide">
-          <label for="jumlahPengunjungManualPentadbir">Jumlah Pengunjung *</label>
-          <input id="jumlahPengunjungManualPentadbir" type="number" min="0" step="1" value="0">
+          <label id="labelJumlahPengunjungManualPentadbir" for="jumlahPengunjungManualPentadbir">Jumlah Pengunjung *</label>
+          <input id="jumlahPengunjungManualPentadbir" type="number" min="1" step="1" value="1">
         </div>
         <div class="form-group form-group-wide">
           <label for="catatanPengunjungManualPentadbir">Catatan</label>
