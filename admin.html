@@ -1149,6 +1149,14 @@
                 </button>
 
                 <button
+                  class="red compact-button"
+                  type="button"
+                  onclick="bukaTolakKenderaanManualPentadbir()"
+                >
+                  − KENDERAAN
+                </button>
+
+                <button
                   class="gray compact-button"
                   type="button"
                   onclick="muatDataCartaPentadbir()"
@@ -2811,8 +2819,8 @@
     <div class="modal-card admin-manual-chart-modal">
       <div class="section-heading">
         <div>
-          <h2>Tambah Kenderaan Pengunjung</h2>
-          <p class="muted">Masukkan jumlah Bas, Motosikal dan Motokar secara manual.</p>
+          <h2 id="tajukModalKenderaanManualPentadbir">Tambah Kenderaan Pengunjung</h2>
+          <p class="muted" id="peneranganModalKenderaanManualPentadbir">Masukkan jumlah Bas, Motosikal dan Motokar secara manual.</p>
         </div>
         <button class="gray compact-button" type="button" onclick="tutupModalKenderaanManualPentadbir()">TUTUP</button>
       </div>
