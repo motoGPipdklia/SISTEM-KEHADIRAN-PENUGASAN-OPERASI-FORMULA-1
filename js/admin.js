@@ -7593,7 +7593,7 @@ async function simpanPengunjungManualPentadbir() {
 
       catatan:
         [
-          modTolak ? "PELARASAN TOLAK PENGUNJUNG" : "",
+          modTolak ? "PENGUNJUNG BEREDAR KELUAR" : "",
           atas(el("catatanPengunjungManualPentadbir")?.value)
         ].filter(Boolean).join(" - "),
 
