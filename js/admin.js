@@ -482,6 +482,7 @@ let kategoriKenderaanDipilihPentadbir = "BAS";
 let dataPengunjungManualPentadbir = [];
 let modPengunjungManualPentadbir = "TAMBAH";
 let dataKenderaanManualPentadbir = [];
+let modKenderaanManualPentadbir = "TAMBAH";
 const JADUAL_CARTA_MANUAL_F1 = "carta_manual";
 let cartaJawatankuasaPentadbir = null;
 let dataJawatankuasaOperasiPentadbir = [];
@@ -7742,15 +7743,107 @@ async function padamPengunjungManualPentadbir(id) {
   }
 }
 
+function bukaModalKenderaanManualPentadbir(mod = "TAMBAH") {
+  modKenderaanManualPentadbir =
+    atas(mod) === "TOLAK"
+      ? "TOLAK"
+      : "TAMBAH";
+
+  const tarikh =
+    el("tarikhCartaPentadbir")?.value ||
+    el("tarikh")?.value ||
+    hariIniMalaysia();
+
+  if (el("tarikhKenderaanManualPentadbir")) {
+    el("tarikhKenderaanManualPentadbir").value = tarikh;
+  }
+
+  if (el("masaKenderaanManualPentadbir")) {
+    el("masaKenderaanManualPentadbir").value = masaSekarangInputPentadbir();
+  }
+
+  [
+    "basKenderaanManualPentadbir",
+    "motosikalKenderaanManualPentadbir",
+    "motokarKenderaanManualPentadbir"
+  ].forEach(id => {
+    if (el(id)) el(id).value = "0";
+  });
+
+  if (el("lokasiKenderaanManualPentadbir")) {
+    el("lokasiKenderaanManualPentadbir").value = "";
+  }
+
+  if (el("catatanKenderaanManualPentadbir")) {
+    el("catatanKenderaanManualPentadbir").value = "";
+  }
+
+  const tolak =
+    modKenderaanManualPentadbir === "TOLAK";
+
+  const tajuk =
+    el("tajukModalKenderaanManualPentadbir");
+
+  if (tajuk) {
+    tajuk.textContent =
+      tolak
+        ? "Tolak Kenderaan Pengunjung"
+        : "Tambah Kenderaan Pengunjung";
+  }
+
+  const penerangan =
+    el("peneranganModalKenderaanManualPentadbir");
+
+  if (penerangan) {
+    penerangan.textContent =
+      tolak
+        ? "Masukkan jumlah Bas, Motosikal dan Motokar yang beredar keluar."
+        : "Masukkan jumlah Bas, Motosikal dan Motokar secara manual.";
+  }
+
+  const butang =
+    el("btnSimpanKenderaanManualPentadbir");
+
+  if (butang) {
+    butang.textContent =
+      tolak
+        ? "TOLAK KENDERAAN"
+        : "SIMPAN KENDERAAN";
+
+    butang.classList.toggle(
+      "red",
+      tolak
+    );
+
+    butang.classList.toggle(
+      "green-button",
+      !tolak
+    );
+  }
+
+  const status =
+    el("statusKenderaanManualPentadbir");
+
+  if (status) {
+    status.className = "status-box";
+    status.innerHTML = "";
+  }
+
+  const modal =
+    el("modalKenderaanManualPentadbir");
+
+  if (modal) {
+    modal.hidden = false;
+    modal.classList.add("open");
+  }
+}
+
 function bukaTambahKenderaanManualPentadbir() {
-  const tarikh = el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || hariIniMalaysia();
-  if (el("tarikhKenderaanManualPentadbir")) el("tarikhKenderaanManualPentadbir").value = tarikh;
-  if (el("masaKenderaanManualPentadbir")) el("masaKenderaanManualPentadbir").value = masaSekarangInputPentadbir();
-  ["basKenderaanManualPentadbir","motosikalKenderaanManualPentadbir","motokarKenderaanManualPentadbir"].forEach(id => { if(el(id)) el(id).value="0"; });
-  if (el("lokasiKenderaanManualPentadbir")) el("lokasiKenderaanManualPentadbir").value = "";
-  if (el("catatanKenderaanManualPentadbir")) el("catatanKenderaanManualPentadbir").value = "";
-  const status=el("statusKenderaanManualPentadbir"); if(status){status.className="status-box";status.innerHTML="";}
-  const modal=el("modalKenderaanManualPentadbir"); if(modal){modal.hidden=false;modal.classList.add("open");}
+  bukaModalKenderaanManualPentadbir("TAMBAH");
+}
+
+function bukaTolakKenderaanManualPentadbir() {
+  bukaModalKenderaanManualPentadbir("TOLAK");
 }
 
 function tutupModalKenderaanManualPentadbir() {
@@ -7772,7 +7865,7 @@ async function simpanKenderaanManualPentadbir() {
       )?.value
     );
 
-  const bas =
+  const basInput =
     Math.max(
       0,
       Math.trunc(
@@ -7780,12 +7873,11 @@ async function simpanKenderaanManualPentadbir() {
           el(
             "basKenderaanManualPentadbir"
           )?.value
-        ) ||
-        0
+        ) || 0
       )
     );
 
-  const motosikal =
+  const motosikalInput =
     Math.max(
       0,
       Math.trunc(
@@ -7793,12 +7885,11 @@ async function simpanKenderaanManualPentadbir() {
           el(
             "motosikalKenderaanManualPentadbir"
           )?.value
-        ) ||
-        0
+        ) || 0
       )
     );
 
-  const motokar =
+  const motokarInput =
     Math.max(
       0,
       Math.trunc(
@@ -7806,21 +7897,95 @@ async function simpanKenderaanManualPentadbir() {
           el(
             "motokarKenderaanManualPentadbir"
           )?.value
-        ) ||
-        0
+        ) || 0
       )
     );
 
-  if (
-    !tarikh ||
-    !masa
-  ) {
+  if (!tarikh || !masa) {
     return paparMesej(
       "statusKenderaanManualPentadbir",
       "Tarikh dan Masa wajib diisi.",
       "error"
     );
   }
+
+  if (
+    basInput === 0 &&
+    motosikalInput === 0 &&
+    motokarInput === 0
+  ) {
+    return paparMesej(
+      "statusKenderaanManualPentadbir",
+      "Masukkan sekurang-kurangnya satu jumlah kenderaan.",
+      "error"
+    );
+  }
+
+  const tolak =
+    modKenderaanManualPentadbir === "TOLAK";
+
+  if (tolak) {
+    const rekodSemasa =
+      senaraiKenderaanCartaPentadbir();
+
+    const jumlahSemasa = kategori =>
+      rekodSemasa.reduce(
+        (jumlah, item) =>
+          jumlah +
+          nilaiKenderaanDaripadaLaporanPentadbir(
+            item,
+            kategori
+          ),
+        0
+      );
+
+    const basSemasa =
+      Math.max(0, jumlahSemasa("BAS"));
+
+    const motosikalSemasa =
+      Math.max(0, jumlahSemasa("MOTOSIKAL"));
+
+    const motokarSemasa =
+      Math.max(0, jumlahSemasa("MOTOKAR"));
+
+    if (basInput > basSemasa) {
+      return paparMesej(
+        "statusKenderaanManualPentadbir",
+        `Jumlah Bas yang hendak ditolak (${basInput}) melebihi jumlah semasa (${basSemasa}).`,
+        "error"
+      );
+    }
+
+    if (motosikalInput > motosikalSemasa) {
+      return paparMesej(
+        "statusKenderaanManualPentadbir",
+        `Jumlah Motosikal yang hendak ditolak (${motosikalInput}) melebihi jumlah semasa (${motosikalSemasa}).`,
+        "error"
+      );
+    }
+
+    if (motokarInput > motokarSemasa) {
+      return paparMesej(
+        "statusKenderaanManualPentadbir",
+        `Jumlah Motokar yang hendak ditolak (${motokarInput}) melebihi jumlah semasa (${motokarSemasa}).`,
+        "error"
+      );
+    }
+  }
+
+  const tanda =
+    tolak
+      ? -1
+      : 1;
+
+  const bas =
+    basInput * tanda;
+
+  const motosikal =
+    motosikalInput * tanda;
+
+  const motokar =
+    motokarInput * tanda;
 
   const butang =
     el(
@@ -7830,10 +7995,19 @@ async function simpanKenderaanManualPentadbir() {
   if (butang) {
     butang.disabled = true;
     butang.textContent =
-      "MENYIMPAN...";
+      tolak
+        ? "MENOLAK..."
+        : "MENYIMPAN...";
   }
 
   try {
+    const catatanPengguna =
+      atas(
+        el(
+          "catatanKenderaanManualPentadbir"
+        )?.value
+      );
+
     const payload = {
       jenis:
         "KENDERAAN",
@@ -7860,12 +8034,13 @@ async function simpanKenderaanManualPentadbir() {
       motokar,
 
       catatan:
-        atas(
-          el(
-            "catatanKenderaanManualPentadbir"
-          )?.value
-        ) ||
-        "",
+        tolak
+          ? (
+              catatanPengguna
+                ? `KENDERAAN BEREDAR KELUAR - ${catatanPengguna}`
+                : "KENDERAAN BEREDAR KELUAR"
+            )
+          : catatanPengguna,
 
       created_by_profile_id:
         adminLogin?.id ||
@@ -7921,13 +8096,17 @@ async function simpanKenderaanManualPentadbir() {
 
     paparMesej(
       "statusCartaPentadbir",
-      "Rekod kenderaan manual berjaya disimpan ke Supabase.",
+      tolak
+        ? "Rekod kenderaan beredar keluar berjaya disimpan ke Supabase."
+        : "Rekod kenderaan manual berjaya disimpan ke Supabase.",
       "success"
     );
 
   } catch (error) {
     console.error(
-      "Simpan kenderaan manual gagal:",
+      tolak
+        ? "Tolak kenderaan manual gagal:"
+        : "Simpan kenderaan manual gagal:",
       error
     );
 
@@ -7941,11 +8120,12 @@ async function simpanKenderaanManualPentadbir() {
     if (butang) {
       butang.disabled = false;
       butang.textContent =
-        "SIMPAN KENDERAAN";
+        tolak
+          ? "TOLAK KENDERAAN"
+          : "SIMPAN KENDERAAN";
     }
   }
 }
-
 
 async function padamKenderaanManualPentadbir(id) {
   if (
