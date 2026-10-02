@@ -480,6 +480,7 @@ let cartaKenderaanLokasiPentadbir = null;
 let lokasiKenderaanDipilihPentadbir = "SEMUA";
 let kategoriKenderaanDipilihPentadbir = "BAS";
 let dataPengunjungManualPentadbir = [];
+let modPengunjungManualPentadbir = "TAMBAH";
 let dataKenderaanManualPentadbir = [];
 const JADUAL_CARTA_MANUAL_F1 = "carta_manual";
 let cartaJawatankuasaPentadbir = null;
@@ -7455,15 +7456,42 @@ function senaraiKenderaanCartaPentadbir() {
   return [...laporanKeselamatanCarta(), ...manual].sort((a,b) => new Date(a.tarikh_masa || 0) - new Date(b.tarikh_masa || 0));
 }
 
-function bukaTambahPengunjungManualPentadbir() {
+function bukaModalPengunjungManualPentadbir(mod = "TAMBAH") {
+  modPengunjungManualPentadbir = atas(mod) === "TOLAK" ? "TOLAK" : "TAMBAH";
+
   const tarikh = el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || hariIniMalaysia();
   if (el("tarikhPengunjungManualPentadbir")) el("tarikhPengunjungManualPentadbir").value = tarikh;
   if (el("masaPengunjungManualPentadbir")) el("masaPengunjungManualPentadbir").value = masaSekarangInputPentadbir();
   if (el("lokasiPengunjungManualPentadbir")) el("lokasiPengunjungManualPentadbir").value = "";
-  if (el("jumlahPengunjungManualPentadbir")) el("jumlahPengunjungManualPentadbir").value = "0";
+  if (el("jumlahPengunjungManualPentadbir")) el("jumlahPengunjungManualPentadbir").value = "1";
   if (el("catatanPengunjungManualPentadbir")) el("catatanPengunjungManualPentadbir").value = "";
-  const status = el("statusPengunjungManualPentadbir"); if (status) { status.className="status-box"; status.innerHTML=""; }
-  const modal = el("modalPengunjungManualPentadbir"); if (modal) { modal.hidden=false; modal.classList.add("open"); }
+
+  const modTolak = modPengunjungManualPentadbir === "TOLAK";
+  if (el("tajukModalPengunjungManualPentadbir")) el("tajukModalPengunjungManualPentadbir").textContent = modTolak ? "Tolak Pengunjung" : "Tambah Pengunjung";
+  if (el("peneranganModalPengunjungManualPentadbir")) el("peneranganModalPengunjungManualPentadbir").textContent = modTolak
+    ? "Masukkan jumlah yang hendak ditolak daripada jumlah keseluruhan Carta Pengunjung."
+    : "Masukkan rekod pengunjung secara manual untuk Carta Pengunjung.";
+  if (el("labelJumlahPengunjungManualPentadbir")) el("labelJumlahPengunjungManualPentadbir").textContent = modTolak ? "Jumlah Pengunjung Ditolak *" : "Jumlah Pengunjung *";
+
+  const butang = el("btnSimpanPengunjungManualPentadbir");
+  if (butang) {
+    butang.textContent = modTolak ? "TOLAK PENGUNJUNG" : "SIMPAN PENGUNJUNG";
+    butang.classList.toggle("red", modTolak);
+    butang.classList.toggle("green-button", !modTolak);
+  }
+
+  const status = el("statusPengunjungManualPentadbir");
+  if (status) { status.className = "status-box"; status.innerHTML = ""; }
+  const modal = el("modalPengunjungManualPentadbir");
+  if (modal) { modal.hidden = false; modal.classList.add("open"); }
+}
+
+function bukaTambahPengunjungManualPentadbir() {
+  bukaModalPengunjungManualPentadbir("TAMBAH");
+}
+
+function bukaTolakPengunjungManualPentadbir() {
+  bukaModalPengunjungManualPentadbir("TOLAK");
 }
 
 function tutupModalPengunjungManualPentadbir() {
@@ -7485,18 +7513,13 @@ async function simpanPengunjungManualPentadbir() {
       )?.value
     );
 
-  const jumlah =
-    Math.max(
-      0,
-      Math.trunc(
-        Number(
-          el(
-            "jumlahPengunjungManualPentadbir"
-          )?.value
-        ) ||
-        0
-      )
-    );
+  const jumlahInput = Math.max(
+    0,
+    Math.trunc(Number(el("jumlahPengunjungManualPentadbir")?.value) || 0)
+  );
+
+  const modTolak = modPengunjungManualPentadbir === "TOLAK";
+  const jumlah = modTolak ? -jumlahInput : jumlahInput;
 
   if (
     !tarikh ||
@@ -7507,6 +7530,25 @@ async function simpanPengunjungManualPentadbir() {
       "Tarikh dan Masa wajib diisi.",
       "error"
     );
+  }
+
+  if (jumlahInput <= 0) {
+    return paparMesej(
+      "statusPengunjungManualPentadbir",
+      "Jumlah pengunjung mestilah sekurang-kurangnya 1.",
+      "error"
+    );
+  }
+
+  if (modTolak) {
+    const jumlahSemasa = jumlahPengunjungSemasaCarta();
+    if (jumlahInput > jumlahSemasa) {
+      return paparMesej(
+        "statusPengunjungManualPentadbir",
+        `Jumlah yang hendak ditolak (${jumlahInput.toLocaleString("ms-MY")}) melebihi jumlah semasa (${jumlahSemasa.toLocaleString("ms-MY")}).`,
+        "error"
+      );
+    }
   }
 
   const butang =
@@ -7550,12 +7592,10 @@ async function simpanPengunjungManualPentadbir() {
         0,
 
       catatan:
-        atas(
-          el(
-            "catatanPengunjungManualPentadbir"
-          )?.value
-        ) ||
-        "",
+        [
+          modTolak ? "PELARASAN TOLAK PENGUNJUNG" : "",
+          atas(el("catatanPengunjungManualPentadbir")?.value)
+        ].filter(Boolean).join(" - "),
 
       created_by_profile_id:
         adminLogin?.id ||
@@ -7611,7 +7651,9 @@ async function simpanPengunjungManualPentadbir() {
 
     paparMesej(
       "statusCartaPentadbir",
-      "Rekod pengunjung manual berjaya disimpan ke Supabase.",
+      modTolak
+        ? "Jumlah pengunjung berjaya ditolak dan disimpan ke Supabase."
+        : "Rekod pengunjung manual berjaya disimpan ke Supabase.",
       "success"
     );
 
@@ -7630,8 +7672,9 @@ async function simpanPengunjungManualPentadbir() {
   } finally {
     if (butang) {
       butang.disabled = false;
-      butang.textContent =
-        "SIMPAN PENGUNJUNG";
+      butang.textContent = modTolak
+        ? "TOLAK PENGUNJUNG"
+        : "SIMPAN PENGUNJUNG";
     }
   }
 }
