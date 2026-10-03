@@ -7756,15 +7756,26 @@ function bukaModalPengunjungManualPentadbir(mod = "TAMBAH") {
   if (el("catatanPengunjungManualPentadbir")) el("catatanPengunjungManualPentadbir").value = "";
 
   const modTolak = modPengunjungManualPentadbir === "TOLAK";
-  if (el("tajukModalPengunjungManualPentadbir")) el("tajukModalPengunjungManualPentadbir").textContent = modTolak ? "Tolak Pengunjung" : "Tambah Pengunjung";
-  if (el("peneranganModalPengunjungManualPentadbir")) el("peneranganModalPengunjungManualPentadbir").textContent = modTolak
-    ? "Masukkan jumlah yang hendak ditolak daripada jumlah keseluruhan Carta Pengunjung."
-    : "Masukkan rekod pengunjung secara manual untuk Carta Pengunjung.";
-  if (el("labelJumlahPengunjungManualPentadbir")) el("labelJumlahPengunjungManualPentadbir").textContent = modTolak ? "Jumlah Pengunjung Ditolak *" : "Jumlah Pengunjung *";
+  if (el("tajukModalPengunjungManualPentadbir")) {
+    el("tajukModalPengunjungManualPentadbir").textContent =
+      modTolak ? "Pengunjung Beredar Keluar" : "Tambah Pengunjung";
+  }
+
+  if (el("peneranganModalPengunjungManualPentadbir")) {
+    el("peneranganModalPengunjungManualPentadbir").textContent =
+      modTolak
+        ? "Masukkan jumlah pengunjung yang telah beredar keluar."
+        : "Masukkan rekod pengunjung secara manual untuk Carta Pengunjung.";
+  }
+
+  if (el("labelJumlahPengunjungManualPentadbir")) {
+    el("labelJumlahPengunjungManualPentadbir").textContent =
+      modTolak ? "Jumlah Pengunjung Beredar Keluar *" : "Jumlah Pengunjung *";
+  }
 
   const butang = el("btnSimpanPengunjungManualPentadbir");
   if (butang) {
-    butang.textContent = modTolak ? "TOLAK PENGUNJUNG" : "SIMPAN PENGUNJUNG";
+    butang.textContent = modTolak ? "SIMPAN PENGUNJUNG BEREDAR KELUAR" : "SIMPAN PENGUNJUNG";
     butang.classList.toggle("red", modTolak);
     butang.classList.toggle("green-button", !modTolak);
   }
@@ -7772,7 +7783,22 @@ function bukaModalPengunjungManualPentadbir(mod = "TAMBAH") {
   const status = el("statusPengunjungManualPentadbir");
   if (status) { status.className = "status-box"; status.innerHTML = ""; }
   const modal = el("modalPengunjungManualPentadbir");
-  if (modal) { modal.hidden = false; modal.classList.add("open"); }
+
+  if (!modal) {
+    console.error("Modal pengunjung manual tidak ditemui.");
+    alert("Borang Pengunjung tidak ditemui. Sila muat semula halaman.");
+    return;
+  }
+
+  modal.hidden = false;
+  modal.removeAttribute("hidden");
+  modal.classList.add("open");
+  modal.style.display = "block";
+  modal.style.zIndex = "99999";
+
+  setTimeout(() => {
+    el("jumlahPengunjungManualPentadbir")?.focus();
+  }, 50);
 }
 
 function bukaTambahPengunjungManualPentadbir() {
@@ -7784,8 +7810,28 @@ function bukaTolakPengunjungManualPentadbir() {
 }
 
 function tutupModalPengunjungManualPentadbir() {
-  const modal = el("modalPengunjungManualPentadbir"); if (modal) { modal.classList.remove("open"); modal.hidden=true; }
+  const modal = el("modalPengunjungManualPentadbir");
+  if (!modal) return;
+
+  modal.classList.remove("open");
+  modal.hidden = true;
+  modal.setAttribute("hidden", "");
+  modal.style.display = "none";
 }
+
+/*
+  FIX 20261003:
+  Pastikan fungsi butang Carta Pengunjung sentiasa tersedia
+  kepada onclick dalam admin.html.
+*/
+window.bukaTambahPengunjungManualPentadbir =
+  bukaTambahPengunjungManualPentadbir;
+
+window.bukaTolakPengunjungManualPentadbir =
+  bukaTolakPengunjungManualPentadbir;
+
+window.tutupModalPengunjungManualPentadbir =
+  tutupModalPengunjungManualPentadbir;
 
 async function simpanPengunjungManualPentadbir() {
   const tarikh =
@@ -8137,6 +8183,11 @@ function bukaTolakKenderaanManualPentadbir() {
 function tutupModalKenderaanManualPentadbir() {
   const modal=el("modalKenderaanManualPentadbir"); if(modal){modal.classList.remove("open");modal.hidden=true;}
 }
+
+
+window.bukaTambahKenderaanManualPentadbir = bukaTambahKenderaanManualPentadbir;
+window.bukaTolakKenderaanManualPentadbir = bukaTolakKenderaanManualPentadbir;
+window.tutupModalKenderaanManualPentadbir = tutupModalKenderaanManualPentadbir;
 
 async function simpanKenderaanManualPentadbir() {
   const tarikh =
