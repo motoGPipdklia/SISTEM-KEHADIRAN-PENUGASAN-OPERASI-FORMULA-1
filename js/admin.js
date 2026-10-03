@@ -5447,6 +5447,159 @@ function cetakJadualPenugasanAuto() {
 }
 
 
+
+/* ================================================================
+   FIX 20261003 — SYNC JADUAL JANA PENUGASAN
+   Buang rekod lama dalam Supabase yang sudah tiada dalam Pratonton
+   bagi TARIKH + JENIS TUGAS yang sedang disimpan.
+================================================================ */
+async function syncBuangPenugasanLamaAuto(payload) {
+  const rekodBaharu = Array.isArray(payload) ? payload : [];
+  if (!rekodBaharu.length) return 0;
+
+  const tarikhTerlibat = [...new Set(
+    rekodBaharu.map(item => teks(item.tarikh)).filter(Boolean)
+  )];
+
+  const jenisTerlibat = [...new Set(
+    rekodBaharu.map(item => atas(item.jenis_tugas)).filter(Boolean)
+  )];
+
+  if (!tarikhTerlibat.length || !jenisTerlibat.length) return 0;
+
+  /*
+    Ambil profil untuk memadankan petugas_id/profile_id kepada No Badan.
+    Ini menyokong rekod lama yang mungkin menyimpan profiles.id
+    atau profiles.auth_user_id.
+  */
+  const { data: profilData, error: profilError } = await denganHadMasa(
+    db.from("profiles").select("id,auth_user_id,no_badan")
+  );
+
+  if (profilError) throw profilError;
+
+  const noBadanById = new Map();
+
+  (profilData || []).forEach(item => {
+    const noBadan = atas(item.no_badan);
+    if (!noBadan) return;
+
+    if (item.id) {
+      noBadanById.set(String(item.id), noBadan);
+    }
+
+    if (item.auth_user_id) {
+      noBadanById.set(String(item.auth_user_id), noBadan);
+    }
+  });
+
+  /*
+    Kunci rekod yang memang masih wujud dalam Pratonton.
+    No Badan + Tarikh + Jenis Tugas digunakan supaya lokasi/call sign
+    boleh berubah tanpa dianggap sebagai petugas yang telah dibuang.
+  */
+  const kunciBaharu = new Set(
+    rekodBaharu.map(item =>
+      [
+        teks(item.tarikh),
+        atas(item.jenis_tugas),
+        atas(item.no_badan)
+      ].join("|")
+    )
+  );
+
+  const { data: rekodSediaAda, error: rekodError } = await denganHadMasa(
+    db.from("penugasan")
+      .select("id,tarikh,jenis_tugas,petugas_id,profile_id,no_badan")
+      .in("tarikh", tarikhTerlibat)
+      .in("jenis_tugas", jenisTerlibat)
+  );
+
+  if (rekodError) throw rekodError;
+
+  const idUntukPadam = (rekodSediaAda || [])
+    .filter(item => {
+      const petugasId = String(item.petugas_id || item.profile_id || "");
+      const noBadan =
+        atas(item.no_badan) ||
+        noBadanById.get(petugasId) ||
+        "";
+
+      const kunci = [
+        teks(item.tarikh),
+        atas(item.jenis_tugas),
+        noBadan
+      ].join("|");
+
+      return noBadan && !kunciBaharu.has(kunci);
+    })
+    .map(item => item.id)
+    .filter(Boolean);
+
+  if (!idUntukPadam.length) return 0;
+
+  /*
+    Jangan padam rekod yang sudah mempunyai Check-In / Check-Out.
+    Ini melindungi rekod kehadiran yang telah berlaku.
+  */
+  const [checkinRes, checkoutRes] = await Promise.all([
+    denganHadMasa(
+      db.from("checkin")
+        .select("penugasan_id")
+        .in("penugasan_id", idUntukPadam)
+    ),
+    denganHadMasa(
+      db.from("checkout")
+        .select("penugasan_id")
+        .in("penugasan_id", idUntukPadam)
+    )
+  ]);
+
+  if (checkinRes.error) throw checkinRes.error;
+  if (checkoutRes.error) throw checkoutRes.error;
+
+  const idAdaKehadiran = new Set([
+    ...(checkinRes.data || []).map(item => String(item.penugasan_id)),
+    ...(checkoutRes.data || []).map(item => String(item.penugasan_id))
+  ]);
+
+  const idSelamatPadam = idUntukPadam.filter(
+    id => !idAdaKehadiran.has(String(id))
+  );
+
+  if (!idSelamatPadam.length) return 0;
+
+  const kumpulanPadam = bahagiKumpulan(idSelamatPadam, 200);
+  let jumlahDipadam = 0;
+
+  for (const kumpulan of kumpulanPadam) {
+    const { data, error } = await denganHadMasa(
+      db.from("penugasan")
+        .delete()
+        .in("id", kumpulan)
+        .select("id")
+    );
+
+    if (error) {
+      const mesej = String(error.message || "");
+
+      if (/row-level security|permission denied|policy/i.test(mesej)) {
+        throw new Error(
+          "Jadual baharu berjaya disimpan tetapi rekod lama tidak dapat dipadam. " +
+          "Semak polisi DELETE (RLS) table penugasan untuk Pentadbir."
+        );
+      }
+
+      throw error;
+    }
+
+    jumlahDipadam += (data || []).length;
+  }
+
+  return jumlahDipadam;
+}
+
+
 async function simpanPenugasanAuto() {
   if (
     autoSedangSimpan ||
@@ -5607,6 +5760,15 @@ async function simpanPenugasanAuto() {
       gagal ? "warning" : "success"
     );
 
+    /*
+      FIX 20261003:
+      Selepas INSERT/UPDATE selesai, selaraskan Supabase dengan Pratonton.
+      Rekod lama yang sudah tiada dalam Pratonton akan dibuang bagi
+      tarikh + jenis tugas yang sedang disimpan.
+    */
+    const jumlahDipadam =
+      await syncBuangPenugasanLamaAuto(payload);
+
     const tarikhPertama =
       previewPenugasanAuto[0]?.tarikh;
 
@@ -5616,6 +5778,19 @@ async function simpanPenugasanAuto() {
     ) {
       el("tarikh").value =
         tarikhPertama;
+    }
+
+    if (jumlahDipadam > 0) {
+      paparMesej(
+        "statusJanaAuto",
+        `<strong>SIMPANAN & SYNC SELESAI</strong><br>` +
+        `Berjaya: ${berjaya} ` +
+        `(Baharu: ${baharu}, Dikemas kini: ${dikemasKini})<br>` +
+        `Rekod lama dibuang: ${jumlahDipadam}<br>` +
+        `Gagal: ${gagal}` +
+        butiranRalat,
+        gagal ? "warning" : "success"
+      );
     }
 
     await muatData(true);
