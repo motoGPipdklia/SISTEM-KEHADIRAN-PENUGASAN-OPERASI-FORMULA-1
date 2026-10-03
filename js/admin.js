@@ -1720,11 +1720,124 @@ function paparJadual() {
           >
             RESET DEVICE
           </button>
+          <button
+            class="reset-device"
+            type="button"
+            style="margin-top:6px;background:#9f2d2d;"
+            onclick="padamPenugasanDashboard(
+              '${escapeHtml(item.idPenugasan)}',
+              '${escapeHtml(item.noBadan)}',
+              '${escapeHtml(item.nama)}'
+            )"
+          >
+            PADAM
+          </button>
         </td>
       </tr>
     `;
   }).join("");
 }
+
+
+/* ================================================================
+   FIX 20261003 — PADAM PENUGASAN TERUS DARI DASHBOARD
+================================================================ */
+async function padamPenugasanDashboard(idPenugasan, noBadan, nama) {
+  const id = teks(idPenugasan);
+
+  if (!id) {
+    alert("ID penugasan tidak ditemui.");
+    return;
+  }
+
+  const rekod = dataDashboard.find(
+    item => teks(item.idPenugasan) === id
+  );
+
+  if (!rekod) {
+    alert("Rekod penugasan tidak ditemui dalam Dashboard.");
+    return;
+  }
+
+  /*
+    Lindungi rekod kehadiran yang telah bermula.
+    Petugas yang sudah Check-In / Check-Out tidak boleh dipadam
+    terus kerana rekod kehadiran berkait dengan penugasan ini.
+  */
+  if (rekod.checkin || rekod.checkout) {
+    alert(
+      "Rekod ini tidak boleh dipadam kerana petugas sudah mempunyai " +
+      "rekod Check-In atau Check-Out."
+    );
+    return;
+  }
+
+  const label = [
+    atas(noBadan || rekod.noBadan),
+    teks(nama || rekod.nama)
+  ].filter(Boolean).join(" — ");
+
+  if (!confirm(
+    `PADAM PENUGASAN INI?\n\n${label}\n` +
+    `${rekod.jenisTugas || "-"}\n${rekod.tempatTugas || "-"}\n\n` +
+    "Tindakan ini akan membuang rekod daripada table penugasan Supabase. " +
+    "Profil pengguna TIDAK akan dipadam."
+  )) {
+    return;
+  }
+
+  try {
+    paparMesej(
+      "status",
+      `Sedang memadam penugasan ${escapeHtml(label)}...`,
+      "warning"
+    );
+
+    const { data, error } = await denganHadMasa(
+      db.from("penugasan")
+        .delete()
+        .eq("id", id)
+        .select("id")
+    );
+
+    if (error) {
+      const mesej = String(error.message || "");
+
+      if (/row-level security|permission denied|policy/i.test(mesej)) {
+        throw new Error(
+          "Supabase menghalang DELETE pada table penugasan. " +
+          "Benarkan polisi DELETE untuk akaun Pentadbir."
+        );
+      }
+
+      throw error;
+    }
+
+    if (!Array.isArray(data) || !data.length) {
+      throw new Error(
+        "Tiada rekod dipadam. Semak polisi DELETE (RLS) table penugasan."
+      );
+    }
+
+    await muatData(true);
+
+    paparMesej(
+      "status",
+      `${escapeHtml(label)} berjaya dibuang daripada jadual penugasan.`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error("Padam penugasan Dashboard gagal:", error);
+
+    paparMesej(
+      "status",
+      `Gagal memadam penugasan: ${escapeHtml(error.message || "Ralat tidak diketahui.")}`,
+      "error"
+    );
+  }
+}
+
 
 function kelasBadge(status) {
   if (status === "HADIR") return "badge-green";
