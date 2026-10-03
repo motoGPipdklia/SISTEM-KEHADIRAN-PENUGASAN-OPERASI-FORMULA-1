@@ -1005,16 +1005,19 @@
 
                 <button
                   class="green-button compact-button"
+                  id="btnTambahPengunjungCarta"
                   type="button"
-                  onclick="bukaTambahPengunjungManualPentadbir()"
+                  onclick="window.bukaTambahPengunjungManualPentadbir()"
                 >
                   + PENGUNJUNG
                 </button>
 
                 <button
                   class="red compact-button"
+                  id="btnTolakPengunjungCarta"
                   type="button"
-                  onclick="bukaTolakPengunjungManualPentadbir()"
+                  onclick="window.bukaTolakPengunjungManualPentadbir()"
+                  style="pointer-events:auto;position:relative;z-index:2;"
                 >
                   − PENGUNJUNG
                 </button>
@@ -1141,17 +1144,17 @@
                 </button>
 
                 <button
-                  class="green-button compact-button"
+                  id="btnTambahKenderaanCarta" class="green-button compact-button"
                   type="button"
-                  onclick="bukaTambahKenderaanManualPentadbir()"
+                  onclick="window.bukaTambahKenderaanManualPentadbir()"
                 >
                   + KENDERAAN
                 </button>
 
                 <button
-                  class="red compact-button"
+                  id="btnTolakKenderaanCarta" style="pointer-events:auto;position:relative;z-index:2;" class="red compact-button"
                   type="button"
-                  onclick="bukaTolakKenderaanManualPentadbir()"
+                  onclick="window.bukaTolakKenderaanManualPentadbir()"
                 >
                   − KENDERAAN
                 </button>
@@ -2764,7 +2767,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20260922-menu-pentadbir-001"></script>
+<script src="js/admin.js?v=20261003-pengunjung-kenderaan-tolak-fix-002"></script>
 
 
 
