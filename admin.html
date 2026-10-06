@@ -56,6 +56,23 @@
       .admin-menu-toggle, .admin-menu-shell > .logout { width: 100%; }
       .admin-menu-panel { grid-template-columns: 1fr; }
     }
+
+    /* Laporan Keseluruhan Harian: sembunyikan butiran individu sahaja. */
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-visitor-detail-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-detail-panel {
+      display: none !important;
+    }
+
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-visitor-layout,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-layout {
+      display: block !important;
+    }
+
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-visitor-chart-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-chart-panel {
+      width: 100% !important;
+      max-width: none !important;
+    }
   </style>
 </head>
 
@@ -1382,7 +1399,7 @@
         <div class="section-heading">
           <div>
             <h2>LAPORAN KESELURUHAN HARIAN</h2>
-            <p class="muted">Paparan interaktif semua Carta Operasi. Klik carta, label, lokasi dan kategori untuk melihat butiran.</p>
+            <p class="muted">Paparan interaktif semua Carta Operasi. Jumlah keseluruhan Pengunjung/Kenderaan ialah nilai tertinggi graf; jumlah terkini ialah nilai akhir graf. Butiran individu Pengunjung/Kenderaan tidak dipaparkan.</p>
           </div>
           <button class="gray" type="button" onclick="tutupLaporanKeseluruhanHarian()">TUTUP</button>
         </div>
@@ -2817,7 +2834,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-<script src="js/admin.js?v=20261006-laporan-interaktif-pdf-002"></script>
+<script src="js/admin.js?v=20261006-laporan-peak-terkini-003"></script>
 
 
 
