@@ -14053,6 +14053,7 @@ let laporanHarianSudahDijana = false;
 
 function pulihkanCartaDaripadaLaporanHarian() {
   const grid = document.querySelector("#kandunganLaporanKeseluruhanHarian .admin-chart-grid");
+  if (grid) grid.classList.remove("laporan-keseluruhan-aktif");
   if (grid && penandaCartaAsalLaporanHarian?.parentNode) {
     penandaCartaAsalLaporanHarian.parentNode.insertBefore(grid, penandaCartaAsalLaporanHarian);
   } else if (grid && indukCartaAsalLaporanHarian) {
@@ -14083,19 +14084,61 @@ function tutupLaporanKeseluruhanHarian() {
   el("btnBukaLaporanKeseluruhanHarian")?.setAttribute("aria-expanded", "false");
 }
 
+function statistikPengunjungLaporanHarian() {
+  const senarai = senaraiPengunjungCartaPentadbir();
+  let semasa = 0;
+  let tertinggi = 0;
+
+  senarai.forEach(item => {
+    semasa += nilaiJumlahPengunjungPentadbir(item);
+    tertinggi = Math.max(tertinggi, semasa);
+  });
+
+  return {
+    keseluruhan: Math.max(0, tertinggi),
+    terkini: Math.max(0, semasa)
+  };
+}
+
+function statistikKenderaanLaporanHarian() {
+  const senarai = senaraiKenderaanCartaPentadbir();
+  let bas = 0;
+  let motokar = 0;
+  let motosikal = 0;
+  let tertinggi = 0;
+
+  senarai.forEach(item => {
+    bas += nilaiKenderaanDaripadaLaporanPentadbir(item, "BAS");
+    motokar += nilaiKenderaanDaripadaLaporanPentadbir(item, "MOTOKAR");
+    motosikal += nilaiKenderaanDaripadaLaporanPentadbir(item, "MOTOSIKAL");
+
+    const jumlahSemasa = bas + motokar + motosikal;
+    tertinggi = Math.max(tertinggi, jumlahSemasa);
+  });
+
+  return {
+    keseluruhan: Math.max(0, tertinggi),
+    terkini: Math.max(0, bas + motokar + motosikal)
+  };
+}
+
 function binaRingkasanLaporanHarian() {
-  const kenderaan = pecahanKenderaanSemasaCarta();
+  const pengunjung = statistikPengunjungLaporanHarian();
+  const kenderaan = statistikKenderaanLaporanHarian();
   const vvip = kumpulanVvipVipCarta();
   const insiden = kiraInsidenCarta();
-  const pengunjung = jumlahPengunjungSemasaCarta();
+
   const item = [
-    ["JUMLAH PENGUNJUNG", pengunjung],
-    ["JUMLAH KENDERAAN PENGUNJUNG", kenderaan.jumlah],
+    ["JUMLAH PENGUNJUNG KESELURUHAN", pengunjung.keseluruhan],
+    ["JUMLAH PENGUNJUNG TERKINI", pengunjung.terkini],
+    ["JUMLAH KENDERAAN PENGUNJUNG KESELURUHAN", kenderaan.keseluruhan],
+    ["JUMLAH KENDERAAN PENGUNJUNG TERKINI", kenderaan.terkini],
     ["VVIP / VIP", vvip.length],
     ["TANGKAPAN", insiden.tangkapan],
     ["RAMPASAN", insiden.rampasan],
     ["KEMALANGAN", insiden.kemalangan]
   ];
+
   return `<div class="admin-chart-summary-grid laporan-harian-summary">${item.map(([label,nilai]) => `
     <article class="admin-chart-summary-card"><span>${escapeHtml(label)}</span><strong>${Number(nilai || 0).toLocaleString("ms-MY")}</strong></article>`).join("")}</div>`;
 }
@@ -14146,12 +14189,13 @@ async function janaLaporanKeseluruhanHarian() {
       ${binaRingkasanLaporanHarian()}
       <div id="hosCartaLaporanHarian" style="margin-top:18px;"></div>`;
 
+    gridAsal.classList.add("laporan-keseluruhan-aktif");
     el("hosCartaLaporanHarian").appendChild(gridAsal);
     laporanHarianSudahDijana = true;
     tapisLaporanKeseluruhanHarian(el("paparanLaporanKeseluruhanHarian")?.value || "SEMUA");
     if (btnCetak) btnCetak.disabled = false;
     if (btnPdf) btnPdf.disabled = false;
-    paparMesej("statusLaporanKeseluruhanHarian", `Laporan interaktif ${escapeHtml(formatTarikhMalaysia(tarikh))} sedia. Klik carta, label atau butiran untuk berinteraksi.`, "success");
+    paparMesej("statusLaporanKeseluruhanHarian", `Laporan interaktif ${escapeHtml(formatTarikhMalaysia(tarikh))} sedia. Carta kekal interaktif dan butiran individu Pengunjung/Kenderaan disembunyikan dalam laporan keseluruhan.`, "success");
   } catch (error) {
     console.error("Jana laporan keseluruhan harian gagal:", error);
     laporanHarianSudahDijana = false;
