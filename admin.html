@@ -57,19 +57,31 @@
       .admin-menu-panel { grid-template-columns: 1fr; }
     }
 
-    /* Laporan Keseluruhan Harian: sembunyikan butiran individu sahaja. */
+    /* Laporan Keseluruhan Harian: paparan ringkas tanpa panel butiran/senarai sampingan. */
     #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-visitor-detail-panel,
-    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-detail-panel {
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-detail-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-attendance-list-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-map-location-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vvip-detail-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-incident-detail-panel {
       display: none !important;
     }
 
     #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-visitor-layout,
-    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-layout {
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-layout,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-attendance-layout,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-operation-map-layout,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vvip-layout,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-incident-layout {
       display: block !important;
     }
 
     #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-visitor-chart-panel,
-    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-chart-panel {
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vehicle-chart-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-attendance-chart-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-operation-map-stage,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-vvip-list-panel,
+    #kandunganLaporanKeseluruhanHarian .laporan-keseluruhan-aktif .admin-incident-chart-panel {
       width: 100% !important;
       max-width: none !important;
     }
@@ -2834,7 +2846,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-<script src="js/admin.js?v=20261006-pdf-putih-final-005"></script>
+<script src="js/admin.js?v=20261006-laporan-ringkas-006"></script>
 
 
 
