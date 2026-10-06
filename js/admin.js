@@ -14227,24 +14227,29 @@ function salinanStatikLaporanHarianUntukEksport() {
   const asal = el("kandunganLaporanKeseluruhanHarian");
   if (!asal || !laporanHarianSudahDijana) return null;
   const clone = asal.cloneNode(true);
+
+  /* Tukar canvas kepada imej tanpa menukar rupa/warna carta. */
   const asalCanvas = [...asal.querySelectorAll("canvas")];
   const cloneCanvas = [...clone.querySelectorAll("canvas")];
-  asalCanvas.forEach((canvas,index) => {
+  asalCanvas.forEach((canvas, index) => {
     const sasaran = cloneCanvas[index];
     if (!sasaran) return;
     try {
       const img = document.createElement("img");
       img.src = canvas.toDataURL("image/png", 1);
       img.alt = canvas.getAttribute("aria-label") || "Carta operasi";
-      img.style.cssText = "display:block;width:100%;max-width:100%;height:auto;object-fit:contain;";
+      const rect = canvas.getBoundingClientRect();
+      img.style.cssText = `display:block;width:${Math.max(1, Math.round(rect.width))}px;max-width:100%;height:auto;object-fit:contain;`;
       sasaran.replaceWith(img);
-    } catch (e) { console.warn("Carta gagal ditukar untuk eksport:", e); }
+    } catch (e) {
+      console.warn("Carta gagal ditukar untuk eksport:", e);
+    }
   });
+
+  /* Elemen kawalan tidak perlu dalam Cetak/PDF. */
   clone.querySelectorAll("button,select,input,textarea,.admin-chart-print-button,.admin-vehicle-hint,.admin-attendance-hint,.admin-incident-hint,.admin-map-controls,.admin-map-marker-controls,.status-box").forEach(n => n.remove());
 
-  /* Betulkan angka PECAHAN LOKASI untuk laporan keseluruhan.
-     Carta lokasi asal menggunakan jumlah bersih lokasi (boleh kembali 0 selepas pengunjung/kenderaan keluar).
-     Untuk laporan keseluruhan kita paparkan nilai puncak operasi, selaras dengan kad JUMLAH KESELURUHAN. */
+  /* Kekalkan formula laporan keseluruhan: KESELURUHAN = nilai peak graf. */
   const statPengunjungEksport = statistikPengunjungLaporanHarian();
   const statKenderaanEksport = statistikKenderaanLaporanHarian();
   const jumlahLokasiPengunjung = clone.querySelector("#jumlahKeseluruhanPengunjungLokasiPentadbir");
@@ -14252,8 +14257,12 @@ function salinanStatikLaporanHarianUntukEksport() {
   if (jumlahLokasiPengunjung) jumlahLokasiPengunjung.textContent = Number(statPengunjungEksport.keseluruhan || 0).toLocaleString("ms-MY");
   if (jumlahLokasiKenderaan) jumlahLokasiKenderaan.textContent = Number(statKenderaanEksport.keseluruhan || 0).toLocaleString("ms-MY");
 
-  /* Laporan keseluruhan tidak membawa senarai butiran individu Pengunjung/Kenderaan. */
-  clone.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel,.admin-attendance-list-panel,.admin-map-location-panel,.admin-vvip-detail-panel,.admin-incident-detail-panel").forEach(n => n.remove());
+  /* Khusus Laporan Keseluruhan: panel-panel ini memang tidak dipaparkan. */
+  clone.querySelectorAll(
+    ".admin-visitor-detail-panel,.admin-vehicle-detail-panel," +
+    ".admin-attendance-list-panel,.admin-map-location-panel," +
+    ".admin-vvip-detail-panel,.admin-incident-detail-panel"
+  ).forEach(n => n.remove());
 
   clone.querySelectorAll("[data-chart-section]").forEach(n => {
     n.hidden = false;
@@ -14261,140 +14270,161 @@ function salinanStatikLaporanHarianUntukEksport() {
     n.style.display = "";
   });
 
-  /*
-    Paksa permukaan laporan eksport menjadi putih.
-    admin.css asal menggunakan tema gelap pada chart-block/canvas wrapper;
-    inline !important di sini memastikan tema itu tidak terbawa ke Cetak/PDF.
-  */
+  /* Selepas panel kanan dibuang, bahagian utama menggunakan ruang laporan yang tersedia.
+     Warna, font, border dan tema TIDAK diubah — semuanya ikut paparan dalam sistem. */
   clone.querySelectorAll(
-    ".admin-chart-card,.admin-chart-summary-card,.admin-visitor-chart-panel,.admin-vehicle-chart-panel," +
-    ".admin-visitor-chart-block,.admin-vehicle-chart-block,.admin-chart-canvas-wrap," +
-    ".admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total," +
-    ".admin-attendance-chart-panel,.admin-attendance-list-panel,.admin-incident-chart-panel,.admin-incident-detail-panel," +
-    ".admin-chart-panel,.admin-chart-subcard,.admin-vvip-list-panel,.admin-vvip-detail-panel," +
-    ".admin-operation-map-panel,.admin-operation-map-detail,.admin-committee-table-wrap"
+    ".admin-visitor-layout,.admin-vehicle-layout,.admin-attendance-layout," +
+    ".admin-operation-map-layout,.admin-vvip-layout,.admin-incident-layout"
+  ).forEach(n => n.style.setProperty("display", "block", "important"));
+
+  clone.querySelectorAll(
+    ".admin-visitor-chart-panel,.admin-vehicle-chart-panel,.admin-attendance-chart-panel," +
+    ".admin-operation-map-stage,.admin-vvip-list-panel,.admin-incident-chart-panel"
   ).forEach(n => {
-    n.style.setProperty("background", "#ffffff", "important");
-    n.style.setProperty("background-color", "#ffffff", "important");
-    n.style.setProperty("background-image", "none", "important");
-    n.style.setProperty("box-shadow", "none", "important");
-    n.style.setProperty("border-color", "#bcbcbc", "important");
-  });
-
-  clone.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout,.admin-attendance-layout,.admin-operation-map-layout,.admin-vvip-layout,.admin-incident-layout").forEach(n => {
-    n.style.setProperty("display", "block", "important");
-  });
-
-  clone.querySelectorAll(".admin-visitor-chart-panel,.admin-vehicle-chart-panel,.admin-attendance-chart-panel,.admin-operation-map-stage,.admin-vvip-list-panel,.admin-incident-chart-panel").forEach(n => {
     n.style.setProperty("width", "100%", "important");
     n.style.setProperty("max-width", "none", "important");
-  });
-
-  /* Tema dashboard asal mempunyai banyak lapisan hitam yang tidak semuanya berkongsi class yang sama.
-     Untuk salinan eksport, putihkan SEMUA elemen HTML. Carta telah ditukar kepada <img>, jadi warna graf tidak terjejas. */
-  clone.querySelectorAll("*:not(img):not(svg):not(path):not(canvas)").forEach(n => {
-    n.style.setProperty("background-color", "#ffffff", "important");
-    n.style.setProperty("background-image", "none", "important");
-    n.style.setProperty("color", "#111111", "important");
-  });
-
-  /* Buang scrollbar/ruang gelap panel yang menggunakan overflow pada paparan dashboard. */
-  clone.querySelectorAll(".admin-attendance-list,.admin-map-location-panel,.admin-map-personnel-list,.admin-vvip-name-list,.admin-vvip-detail-content,.admin-incident-detail-content,.admin-committee-table-wrap").forEach(n => {
-    n.style.setProperty("background", "#ffffff", "important");
-    n.style.setProperty("overflow", "visible", "important");
-    n.style.setProperty("max-height", "none", "important");
   });
 
   return clone;
 }
 
 function cetakLaporanKeseluruhanHarian() {
+  const asal = el("kandunganLaporanKeseluruhanHarian");
   const clone = salinanStatikLaporanHarianUntukEksport();
-  if (!clone) return alert("Sila jana laporan terlebih dahulu.");
+  if (!clone || !asal) return alert("Sila jana laporan terlebih dahulu.");
+
   const tarikh = el("tarikhLaporanKeseluruhanHarian")?.value || hariIniMalaysia();
-  const cssLinks = [...document.querySelectorAll('link[rel="stylesheet"]')].map(link => `<link rel="stylesheet" href="${escapeHtml(new URL(link.getAttribute("href"), document.baseURI).href)}">`).join("\n");
+  const cssLinks = [...document.querySelectorAll('link[rel="stylesheet"]')]
+    .map(link => `<link rel="stylesheet" href="${escapeHtml(new URL(link.getAttribute("href"), document.baseURI).href)}">`)
+    .join("\n");
+
+  const lebarAsal = Math.max(900, Math.round(asal.getBoundingClientRect().width));
+  const bgBody = getComputedStyle(document.body).backgroundColor || "#111";
   const w = window.open("", "_blank", "width=1500,height=950");
   if (!w) return alert("Pelayar menghalang tetingkap cetak. Benarkan pop-up dan cuba semula.");
+
   w.document.open();
   w.document.write(`<!DOCTYPE html><html lang="ms"><head><meta charset="UTF-8"><title>Laporan Keseluruhan Harian ${escapeHtml(formatTarikhMalaysia(tarikh))}</title>${cssLinks}<style>
     @page{size:A4 landscape;margin:8mm}
-    html,body{background:#fff!important;color:#111!important;font-family:Arial,Helvetica,sans-serif!important;margin:0!important;padding:0!important}
-    body{padding:4mm!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    #kandunganCetak,#kandunganCetak *{box-sizing:border-box}
-    #kandunganCetak *{color:#111!important;background-color:#fff!important;background-image:none!important}
-    #kandunganCetak .muted,#kandunganCetak small{color:#555!important}
-    .laporan-harian-kepala{break-after:avoid-page!important}
-    .admin-chart-grid{display:block!important}
-    .admin-chart-card{background:#fff!important;border:1px solid #aaa!important;box-shadow:none!important;margin:0 0 12px!important;padding:12px!important;break-inside:avoid-page;page-break-inside:avoid}
-    .admin-chart-card,.admin-chart-card>*,.admin-visitor-layout>*,.admin-vehicle-layout>*,.admin-chart-panel,.admin-chart-subcard,[class*="chart-panel"],[class*="detail-panel"],.admin-visitor-chart-block,.admin-vehicle-chart-block,.admin-chart-canvas-wrap,.admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total{background:#fff!important;background-color:#fff!important;background-image:none!important;box-shadow:none!important;border-color:#bbb!important}
-    .admin-chart-summary-grid{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:8px!important;margin-bottom:14px!important;break-inside:avoid-page}
-    .admin-chart-summary-card{background:#fff!important;border:1px solid #aaa!important;box-shadow:none!important;padding:9px!important}
-    .admin-chart-summary-card strong{font-size:20px!important}
-    .admin-visitor-detail-panel,.admin-vehicle-detail-panel,.admin-attendance-list-panel,.admin-map-location-panel,.admin-vvip-detail-panel,.admin-incident-detail-panel{display:none!important}
-    .admin-visitor-layout,.admin-vehicle-layout{display:block!important}
-    .admin-visitor-chart-panel,.admin-vehicle-chart-panel{width:100%!important;max-width:none!important;background:#fff!important;background-image:none!important}
-    .admin-visitor-chart-block,.admin-vehicle-chart-block{background:#fff!important;background-image:none!important;border:1px solid #ccc!important;margin:0 0 10px!important;padding:8px!important;break-inside:avoid-page!important;page-break-inside:avoid!important}
-    .admin-chart-canvas-wrap,.admin-visitor-canvas-wrap,.admin-vehicle-canvas-wrap,.admin-attendance-canvas-wrap,.admin-incident-canvas-wrap{background:#fff!important;background-color:#fff!important;background-image:none!important;height:auto!important;min-height:0!important}
-    .admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total{background:#fff!important;background-image:none!important;color:#111!important}
-    .admin-visitor-chart-card,.admin-vehicle-chart-card{break-inside:auto!important;page-break-inside:auto!important}
-    .admin-visitor-chart-card .admin-visitor-chart-block,.admin-vehicle-chart-card .admin-vehicle-chart-block{break-before:auto!important;break-after:auto!important}
-    .admin-attendance-layout,.admin-operation-map-layout,.admin-vvip-layout,.admin-incident-layout{display:block!important}
-    table{width:100%!important;border-collapse:collapse!important;background:#fff!important}
-    th,td{border:1px solid #999!important;background:#fff!important;color:#111!important;font-size:9px!important;padding:5px!important}
-    img{display:block!important;max-width:100%!important;height:auto!important;object-fit:contain!important}
-    button,select,input,textarea,.status-box{display:none!important}
+    html,body{margin:0!important;padding:0!important;background:${escapeHtml(bgBody)}!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    body{padding:12px!important}
+    #kandunganCetak{box-sizing:border-box!important;width:${lebarAsal}px!important;max-width:none!important;margin:0 auto!important}
+    #kandunganCetak *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    #kandunganCetak img{max-width:100%!important;height:auto!important;object-fit:contain!important}
+    #kandunganCetak .admin-visitor-detail-panel,
+    #kandunganCetak .admin-vehicle-detail-panel,
+    #kandunganCetak .admin-attendance-list-panel,
+    #kandunganCetak .admin-map-location-panel,
+    #kandunganCetak .admin-vvip-detail-panel,
+    #kandunganCetak .admin-incident-detail-panel{display:none!important}
+    #kandunganCetak .admin-visitor-layout,
+    #kandunganCetak .admin-vehicle-layout,
+    #kandunganCetak .admin-attendance-layout,
+    #kandunganCetak .admin-operation-map-layout,
+    #kandunganCetak .admin-vvip-layout,
+    #kandunganCetak .admin-incident-layout{display:block!important}
+    #kandunganCetak .admin-visitor-chart-panel,
+    #kandunganCetak .admin-vehicle-chart-panel,
+    #kandunganCetak .admin-attendance-chart-panel,
+    #kandunganCetak .admin-operation-map-stage,
+    #kandunganCetak .admin-vvip-list-panel,
+    #kandunganCetak .admin-incident-chart-panel{width:100%!important;max-width:none!important}
     @media print{
-      .admin-chart-card{break-inside:avoid-page;page-break-inside:avoid}
-      .admin-visitor-chart-card,.admin-vehicle-chart-card{break-inside:auto!important;page-break-inside:auto!important}
-      .admin-visitor-chart-block,.admin-vehicle-chart-block{break-inside:avoid-page!important;page-break-inside:avoid!important}
-    }</style></head><body><main id="kandunganCetak">${clone.innerHTML}</main><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},700)});<\/script></body></html>`);
+      body{padding:0!important}
+      #kandunganCetak{margin:0!important}
+      .admin-chart-card,.admin-visitor-chart-block,.admin-vehicle-chart-block{break-inside:avoid-page;page-break-inside:avoid}
+    }
+  </style></head><body><main id="kandunganCetak">${clone.innerHTML}</main><script>
+    window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},900)});
+  <\/script></body></html>`);
   w.document.close();
 }
 
 async function muatTurunPdfLaporanKeseluruhanHarian() {
+  const asal = el("kandunganLaporanKeseluruhanHarian");
   const clone = salinanStatikLaporanHarianUntukEksport();
-  if (!clone) return alert("Sila jana laporan terlebih dahulu.");
+  if (!clone || !asal) return alert("Sila jana laporan terlebih dahulu.");
   if (!window.html2canvas || !window.jspdf?.jsPDF) return alert("Modul PDF belum dimuatkan. Pastikan internet tersedia dan muat semula halaman.");
+
   const btn = el("btnPdfLaporanKeseluruhanHarian");
   const tarikh = el("tarikhLaporanKeseluruhanHarian")?.value || hariIniMalaysia();
   const statusId = "statusLaporanKeseluruhanHarian";
+  let bekas = null;
+
   try {
     if (btn) { btn.disabled = true; btn.textContent = "SEDANG MENJANA PDF..."; }
-    paparMesej(statusId, "Sedang menjana PDF. Proses ini mungkin mengambil beberapa saat...", "warning");
-    const bekas = document.createElement("div");
-    bekas.style.cssText = "position:absolute;left:-10000px;top:0;width:1120px;background:#fff;color:#111;padding:24px;font-family:Arial,Helvetica,sans-serif;z-index:-1;";
+    paparMesej(statusId, "Sedang menjana PDF mengikut paparan Laporan Keseluruhan...", "warning");
+
+    const rectAsal = asal.getBoundingClientRect();
+    const lebarAsal = Math.max(900, Math.round(rectAsal.width));
+    const gayaAsal = getComputedStyle(asal);
+
+    bekas = document.createElement("div");
+    bekas.id = "bekasPdfLaporanKeseluruhan";
+    bekas.style.cssText = [
+      "position:absolute",
+      "left:-20000px",
+      "top:0",
+      `width:${lebarAsal}px`,
+      "max-width:none",
+      `background:${gayaAsal.backgroundColor || getComputedStyle(document.body).backgroundColor}`,
+      `color:${gayaAsal.color}`,
+      "padding:0",
+      "margin:0",
+      "z-index:-1",
+      "overflow:visible"
+    ].join(";");
     bekas.appendChild(clone);
-    bekas.querySelectorAll("*:not(img):not(svg):not(path):not(canvas)").forEach(n => {
-      n.style.setProperty("color", "#111", "important");
-      n.style.setProperty("background-color", "#fff", "important");
-      n.style.setProperty("background-image", "none", "important");
-    });
-    bekas.querySelectorAll(".admin-chart-card,.admin-chart-summary-card,.admin-visitor-layout > *,.admin-vehicle-layout > *,.admin-chart-panel,.admin-chart-subcard,.admin-visitor-chart-block,.admin-vehicle-chart-block,.admin-chart-canvas-wrap,.admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total,[class*=\"chart-panel\"],[class*=\"detail-panel\"]").forEach(n => { n.style.setProperty("background", "#fff", "important"); n.style.setProperty("box-shadow", "none", "important"); n.style.setProperty("border-color", "#bbb", "important"); });
-    bekas.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel,.admin-attendance-list-panel,.admin-map-location-panel,.admin-vvip-detail-panel,.admin-incident-detail-panel").forEach(n => n.remove());
-    bekas.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout,.admin-attendance-layout,.admin-operation-map-layout,.admin-vvip-layout,.admin-incident-layout").forEach(n => { n.style.setProperty("display", "block", "important"); });
-    bekas.querySelectorAll(".admin-visitor-chart-panel,.admin-vehicle-chart-panel,.admin-attendance-chart-panel,.admin-operation-map-stage,.admin-vvip-list-panel,.admin-incident-chart-panel").forEach(n => { n.style.setProperty("width", "100%", "important"); n.style.setProperty("max-width", "none", "important"); });
     document.body.appendChild(bekas);
-    const canvas = await window.html2canvas(bekas, { scale: 1.35, useCORS: true, backgroundColor: "#ffffff", logging: false, windowWidth: 1200 });
+
+    /* Beri masa imej/carta selesai layout supaya hasil PDF sama dengan skrin. */
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const imej = [...bekas.querySelectorAll("img")];
+    await Promise.all(imej.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.onload = img.onerror = r; })));
+
+    const canvas = await window.html2canvas(bekas, {
+      scale: 1.35,
+      useCORS: true,
+      backgroundColor: getComputedStyle(document.body).backgroundColor || null,
+      logging: false,
+      width: lebarAsal,
+      windowWidth: lebarAsal,
+      scrollX: 0,
+      scrollY: 0
+    });
+
     bekas.remove();
+    bekas = null;
+
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
-    const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
-    const margin = 7, usableW = pageW - margin*2, usableH = pageH - margin*2;
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 7;
+    const usableW = pageW - margin * 2;
+    const usableH = pageH - margin * 2;
     const pxPerMm = canvas.width / usableW;
     const pagePxH = Math.floor(usableH * pxPerMm);
-    let y = 0, page = 0;
+
+    let y = 0;
+    let page = 0;
     while (y < canvas.height) {
       const h = Math.min(pagePxH, canvas.height - y);
-      const slice = document.createElement("canvas"); slice.width = canvas.width; slice.height = h;
-      slice.getContext("2d").drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+      const slice = document.createElement("canvas");
+      slice.width = canvas.width;
+      slice.height = h;
+      const ctx = slice.getContext("2d");
+      ctx.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
       if (page > 0) pdf.addPage("a4", "landscape");
-      const imgH = h / pxPerMm;
-      pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, usableW, imgH, undefined, "FAST");
-      y += h; page++;
+      pdf.addImage(slice.toDataURL("image/jpeg", 0.94), "JPEG", margin, margin, usableW, h / pxPerMm, undefined, "FAST");
+      y += h;
+      page++;
     }
+
     pdf.save(`SKPO_LAPORAN_KESELURUHAN_HARIAN_${tarikh}.pdf`);
-    paparMesej(statusId, `PDF laporan ${escapeHtml(formatTarikhMalaysia(tarikh))} berjaya dijana dan dimuat turun.`, "success");
+    paparMesej(statusId, `PDF laporan ${escapeHtml(formatTarikhMalaysia(tarikh))} berjaya dijana mengikut paparan sistem.`, "success");
   } catch (error) {
+    if (bekas?.isConnected) bekas.remove();
     console.error("PDF laporan harian gagal:", error);
     paparMesej(statusId, `Gagal menjana PDF: ${escapeHtml(error?.message || "Ralat tidak diketahui.")}`, "error");
   } finally {
