@@ -1376,13 +1376,13 @@
 
 
       <!-- ===============================================
-           LAPORAN KESELURUHAN HARIAN
+           LAPORAN KESELURUHAN HARIAN — INTERAKTIF
       ================================================ -->
       <section class="card admin-chart-module" id="modulLaporanKeseluruhanHarian" hidden style="display:none;">
         <div class="section-heading">
           <div>
             <h2>LAPORAN KESELURUHAN HARIAN</h2>
-            <p class="muted">Gabungan semua maklumat dan carta operasi bagi tarikh yang dipilih.</p>
+            <p class="muted">Paparan interaktif semua Carta Operasi. Klik carta, label, lokasi dan kategori untuk melihat butiran.</p>
           </div>
           <button class="gray" type="button" onclick="tutupLaporanKeseluruhanHarian()">TUTUP</button>
         </div>
@@ -1390,16 +1390,32 @@
         <div class="admin-chart-toolbar">
           <div>
             <label for="tarikhLaporanKeseluruhanHarian">Tarikh</label>
-            <input id="tarikhLaporanKeseluruhanHarian" type="date">
+            <input id="tarikhLaporanKeseluruhanHarian" type="date" onchange="janaLaporanKeseluruhanHarian()">
           </div>
-          <button class="gold" type="button" onclick="janaLaporanKeseluruhanHarian()">JANA LAPORAN</button>
-          <button class="gray" id="btnCetakLaporanKeseluruhanHarian" type="button" onclick="cetakLaporanKeseluruhanHarian()" disabled>CETAK LAPORAN</button>
+          <div>
+            <label for="paparanLaporanKeseluruhanHarian">Paparan</label>
+            <select id="paparanLaporanKeseluruhanHarian" onchange="tapisLaporanKeseluruhanHarian(this.value)">
+              <option value="SEMUA">SEMUA BAHAGIAN</option>
+              <option value="JAWATANKUASA">AHLI JAWATANKUASA</option>
+              <option value="KEHADIRAN">KEHADIRAN PETUGAS</option>
+              <option value="AGENSI_LUAR">BANTUAN LUAR</option>
+              <option value="PETA">PETA LOKASI PENUGASAN</option>
+              <option value="VVIP_VIP">VVIP / VIP</option>
+              <option value="PENGUNJUNG">PENGUNJUNG</option>
+              <option value="KENDERAAN">KENDERAAN PENGUNJUNG</option>
+              <option value="INSIDEN">INSIDEN OPERASI</option>
+              <option value="KRONOLOGI">KRONOLOGI</option>
+            </select>
+          </div>
+          <button class="gold" type="button" onclick="janaLaporanKeseluruhanHarian()">JANA / KEMAS KINI</button>
+          <button class="gray" id="btnCetakLaporanKeseluruhanHarian" type="button" onclick="cetakLaporanKeseluruhanHarian()" disabled>CETAK</button>
+          <button class="green-button" id="btnPdfLaporanKeseluruhanHarian" type="button" onclick="muatTurunPdfLaporanKeseluruhanHarian()" disabled>MUAT TURUN PDF</button>
         </div>
 
         <div class="status-box" id="statusLaporanKeseluruhanHarian" role="status" aria-live="polite"></div>
 
         <div id="kandunganLaporanKeseluruhanHarian" style="margin-top:16px;">
-          <div class="empty-row">Pilih tarikh dan tekan JANA LAPORAN.</div>
+          <div class="empty-row">Pilih tarikh dan tekan JANA / KEMAS KINI.</div>
         </div>
       </section>
 
@@ -2799,7 +2815,9 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20261006-laporan-keseluruhan-harian-001"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="js/admin.js?v=20261006-laporan-interaktif-pdf-002"></script>
 
 
 
