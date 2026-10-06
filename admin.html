@@ -168,6 +168,10 @@
       CARTA
     </button>
 
+    <button class="header-action-button" id="btnBukaLaporanKeseluruhanHarian" type="button" onclick="bukaLaporanKeseluruhanHarian()" aria-controls="modulLaporanKeseluruhanHarian" aria-expanded="false">
+      LAPORAN KESELURUHAN HARIAN
+    </button>
+
     <button class="header-action-button header-reports" type="button" onclick="bukaModulLaporanPentadbir()">
       LAPORAN
     </button>
@@ -1370,6 +1374,34 @@
 
       </section>
 
+
+      <!-- ===============================================
+           LAPORAN KESELURUHAN HARIAN
+      ================================================ -->
+      <section class="card admin-chart-module" id="modulLaporanKeseluruhanHarian" hidden style="display:none;">
+        <div class="section-heading">
+          <div>
+            <h2>LAPORAN KESELURUHAN HARIAN</h2>
+            <p class="muted">Gabungan semua maklumat dan carta operasi bagi tarikh yang dipilih.</p>
+          </div>
+          <button class="gray" type="button" onclick="tutupLaporanKeseluruhanHarian()">TUTUP</button>
+        </div>
+
+        <div class="admin-chart-toolbar">
+          <div>
+            <label for="tarikhLaporanKeseluruhanHarian">Tarikh</label>
+            <input id="tarikhLaporanKeseluruhanHarian" type="date">
+          </div>
+          <button class="gold" type="button" onclick="janaLaporanKeseluruhanHarian()">JANA LAPORAN</button>
+          <button class="gray" id="btnCetakLaporanKeseluruhanHarian" type="button" onclick="cetakLaporanKeseluruhanHarian()" disabled>CETAK LAPORAN</button>
+        </div>
+
+        <div class="status-box" id="statusLaporanKeseluruhanHarian" role="status" aria-live="polite"></div>
+
+        <div id="kandunganLaporanKeseluruhanHarian" style="margin-top:16px;">
+          <div class="empty-row">Pilih tarikh dan tekan JANA LAPORAN.</div>
+        </div>
+      </section>
 
       <!-- ===============================================
            LAPORAN PETUGAS & REKOD SITREP
@@ -2767,7 +2799,7 @@
 <script src="js/api-config.js?v=20260722-0215"></script>
 <script src="js/supabase-client.js?v=20260722-0215"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-<script src="js/admin.js?v=20261003-pengunjung-kenderaan-tolak-fix-002"></script>
+<script src="js/admin.js?v=20261006-laporan-keseluruhan-harian-001"></script>
 
 
 
