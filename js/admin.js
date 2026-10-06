@@ -6219,6 +6219,7 @@ async function hantarResetDevice() {
   dipaparkan pada satu masa.
 */
 function tutupSemuaModulPentadbir() {
+  pulihkanCartaDaripadaLaporanHarian();
   const senaraiModul = [
     {
       idModul: "modulPerantiKhasAdmin",
@@ -14041,75 +14042,45 @@ function tukarPaparanCartaPentadbir(
 
 
 /* ================================================================
-   LAPORAN KESELURUHAN HARIAN
-   Menggabungkan SEMUA bahagian yang berada dalam CARTA OPERASI.
+   LAPORAN KESELURUHAN HARIAN — INTERAKTIF + CETAK + PDF
+   Carta asal DIPINDAHKAN (bukan clone) supaya semua event Chart.js,
+   klik label, senarai lokasi dan kawalan interaktif kekal berfungsi.
 ================================================================ */
+
+let indukCartaAsalLaporanHarian = null;
+let penandaCartaAsalLaporanHarian = null;
+let laporanHarianSudahDijana = false;
+
+function pulihkanCartaDaripadaLaporanHarian() {
+  const grid = document.querySelector("#kandunganLaporanKeseluruhanHarian .admin-chart-grid");
+  if (grid && penandaCartaAsalLaporanHarian?.parentNode) {
+    penandaCartaAsalLaporanHarian.parentNode.insertBefore(grid, penandaCartaAsalLaporanHarian);
+  } else if (grid && indukCartaAsalLaporanHarian) {
+    indukCartaAsalLaporanHarian.appendChild(grid);
+  }
+}
 
 function bukaLaporanKeseluruhanHarian() {
   tutupSemuaModulPentadbir();
-
   const modul = el("modulLaporanKeseluruhanHarian");
-  if (!modul) {
-    alert("Modul LAPORAN KESELURUHAN HARIAN tidak ditemui dalam admin.html.");
-    return;
-  }
-
+  if (!modul) return alert("Modul LAPORAN KESELURUHAN HARIAN tidak ditemui dalam admin.html.");
   modul.hidden = false;
   modul.removeAttribute("hidden");
   modul.style.removeProperty("display");
-
-  const btn = el("btnBukaLaporanKeseluruhanHarian");
-  if (btn) btn.setAttribute("aria-expanded", "true");
-
+  el("btnBukaLaporanKeseluruhanHarian")?.setAttribute("aria-expanded", "true");
   const input = el("tarikhLaporanKeseluruhanHarian");
-  if (input && !input.value) {
-    input.value = el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || hariIniMalaysia();
-  }
-
+  if (input && !input.value) input.value = el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || hariIniMalaysia();
   setTimeout(() => modul.scrollIntoView({ behavior: "smooth", block: "start" }), 40);
 }
 
 function tutupLaporanKeseluruhanHarian() {
+  pulihkanCartaDaripadaLaporanHarian();
   const modul = el("modulLaporanKeseluruhanHarian");
   if (!modul) return;
   modul.hidden = true;
   modul.setAttribute("hidden", "");
   modul.style.display = "none";
-  const btn = el("btnBukaLaporanKeseluruhanHarian");
-  if (btn) btn.setAttribute("aria-expanded", "false");
-}
-
-function tukarCanvasLaporanHarianKeImej(asal, salinan) {
-  const asalCanvas = [...asal.querySelectorAll("canvas")];
-  const salinanCanvas = [...salinan.querySelectorAll("canvas")];
-  asalCanvas.forEach((canvas, index) => {
-    const clone = salinanCanvas[index];
-    if (!clone) return;
-    try {
-      const img = document.createElement("img");
-      img.src = canvas.toDataURL("image/png", 1);
-      img.alt = canvas.getAttribute("aria-label") || "Carta operasi";
-      img.style.cssText = "display:block;width:100%;max-width:100%;height:auto;object-fit:contain;";
-      clone.replaceWith(img);
-    } catch (error) {
-      console.warn("Canvas laporan harian gagal ditukar:", error);
-    }
-  });
-}
-
-function bersihkanSalinanLaporanHarian(salinan) {
-  salinan.querySelectorAll(
-    "button, select, input, textarea, .admin-chart-print-button, .admin-vehicle-hint, " +
-    ".admin-attendance-hint, .admin-incident-hint, .admin-map-controls, .admin-map-marker-controls, .status-box"
-  ).forEach(item => item.remove());
-
-  salinan.querySelectorAll("[hidden]").forEach(item => {
-    item.hidden = false;
-    item.removeAttribute("hidden");
-    item.style.removeProperty("display");
-  });
-
-  return salinan;
+  el("btnBukaLaporanKeseluruhanHarian")?.setAttribute("aria-expanded", "false");
 }
 
 function binaRingkasanLaporanHarian() {
@@ -14117,7 +14088,6 @@ function binaRingkasanLaporanHarian() {
   const vvip = kumpulanVvipVipCarta();
   const insiden = kiraInsidenCarta();
   const pengunjung = jumlahPengunjungSemasaCarta();
-
   const item = [
     ["JUMLAH PENGUNJUNG", pengunjung],
     ["JUMLAH KENDERAAN PENGUNJUNG", kenderaan.jumlah],
@@ -14126,44 +14096,46 @@ function binaRingkasanLaporanHarian() {
     ["RAMPASAN", insiden.rampasan],
     ["KEMALANGAN", insiden.kemalangan]
   ];
+  return `<div class="admin-chart-summary-grid laporan-harian-summary">${item.map(([label,nilai]) => `
+    <article class="admin-chart-summary-card"><span>${escapeHtml(label)}</span><strong>${Number(nilai || 0).toLocaleString("ms-MY")}</strong></article>`).join("")}</div>`;
+}
 
-  return `<div class="admin-chart-summary-grid laporan-harian-summary">${item.map(([label, nilai]) => `
-    <article class="admin-chart-summary-card">
-      <span>${escapeHtml(label)}</span>
-      <strong>${Number(nilai || 0).toLocaleString("ms-MY")}</strong>
-    </article>`).join("")}</div>`;
+function tapisLaporanKeseluruhanHarian(nilai = "SEMUA") {
+  const kandungan = el("kandunganLaporanKeseluruhanHarian");
+  if (!kandungan) return;
+  const pilihan = atas(nilai) || "SEMUA";
+  kandungan.querySelectorAll("[data-chart-section]").forEach(section => {
+    const kategori = atas(section.dataset.chartSection);
+    const papar = pilihan === "SEMUA" || kategori === pilihan;
+    section.hidden = !papar;
+    section.style.display = papar ? "" : "none";
+  });
 }
 
 async function janaLaporanKeseluruhanHarian() {
   if (!adminLogin) return;
-
   const tarikh = el("tarikhLaporanKeseluruhanHarian")?.value || hariIniMalaysia();
   const kandungan = el("kandunganLaporanKeseluruhanHarian");
   const btnCetak = el("btnCetakLaporanKeseluruhanHarian");
-
+  const btnPdf = el("btnPdfLaporanKeseluruhanHarian");
   if (!kandungan) return;
   if (btnCetak) btnCetak.disabled = true;
-
-  paparMesej("statusLaporanKeseluruhanHarian", "Sedang menjana laporan keseluruhan harian...", "warning");
+  if (btnPdf) btnPdf.disabled = true;
+  paparMesej("statusLaporanKeseluruhanHarian", "Sedang memuatkan laporan interaktif...", "warning");
 
   try {
-    // Gunakan enjin data CARTA sedia ada supaya angka laporan sama dengan Carta Operasi.
+    pulihkanCartaDaripadaLaporanHarian();
     if (el("tarikhCartaPentadbir")) el("tarikhCartaPentadbir").value = tarikh;
     await muatDataCartaPentadbir();
 
     const gridAsal = document.querySelector("#modulCartaPentadbir .admin-chart-grid");
     if (!gridAsal) throw new Error("Kandungan Carta Operasi tidak ditemui.");
 
-    const gridSalinan = gridAsal.cloneNode(true);
-    tukarCanvasLaporanHarianKeImej(gridAsal, gridSalinan);
-    bersihkanSalinanLaporanHarian(gridSalinan);
-
-    // Pastikan semua kategori Carta dipaparkan dalam laporan, walaupun paparan Carta asal ditapis.
-    gridSalinan.querySelectorAll("[data-chart-section]").forEach(section => {
-      section.hidden = false;
-      section.removeAttribute("hidden");
-      section.style.removeProperty("display");
-    });
+    if (!penandaCartaAsalLaporanHarian || !penandaCartaAsalLaporanHarian.isConnected) {
+      indukCartaAsalLaporanHarian = gridAsal.parentNode;
+      penandaCartaAsalLaporanHarian = document.createComment("SKPO: kedudukan asal admin-chart-grid");
+      gridAsal.parentNode.insertBefore(penandaCartaAsalLaporanHarian, gridAsal);
+    }
 
     kandungan.innerHTML = `
       <div class="laporan-harian-kepala" style="text-align:center;margin-bottom:16px;">
@@ -14172,58 +14144,99 @@ async function janaLaporanKeseluruhanHarian() {
         <div class="muted">TARIKH: ${escapeHtml(formatTarikhMalaysia(tarikh))}</div>
       </div>
       ${binaRingkasanLaporanHarian()}
-      <div style="margin-top:18px;">${gridSalinan.outerHTML}</div>
-    `;
+      <div id="hosCartaLaporanHarian" style="margin-top:18px;"></div>`;
 
+    el("hosCartaLaporanHarian").appendChild(gridAsal);
+    laporanHarianSudahDijana = true;
+    tapisLaporanKeseluruhanHarian(el("paparanLaporanKeseluruhanHarian")?.value || "SEMUA");
     if (btnCetak) btnCetak.disabled = false;
-    paparMesej(
-      "statusLaporanKeseluruhanHarian",
-      `Laporan keseluruhan ${escapeHtml(formatTarikhMalaysia(tarikh))} berjaya dijana. Semua bahagian Carta Operasi telah dimasukkan.`,
-      "success"
-    );
+    if (btnPdf) btnPdf.disabled = false;
+    paparMesej("statusLaporanKeseluruhanHarian", `Laporan interaktif ${escapeHtml(formatTarikhMalaysia(tarikh))} sedia. Klik carta, label atau butiran untuk berinteraksi.`, "success");
   } catch (error) {
     console.error("Jana laporan keseluruhan harian gagal:", error);
+    laporanHarianSudahDijana = false;
     kandungan.innerHTML = `<div class="empty-row">Laporan gagal dijana.</div>`;
-    paparMesej(
-      "statusLaporanKeseluruhanHarian",
-      `Ralat menjana laporan: ${escapeHtml(error?.message || "Ralat tidak diketahui.")}`,
-      "error"
-    );
+    paparMesej("statusLaporanKeseluruhanHarian", `Ralat menjana laporan: ${escapeHtml(error?.message || "Ralat tidak diketahui.")}`, "error");
   }
 }
 
+function salinanStatikLaporanHarianUntukEksport() {
+  const asal = el("kandunganLaporanKeseluruhanHarian");
+  if (!asal || !laporanHarianSudahDijana) return null;
+  const clone = asal.cloneNode(true);
+  const asalCanvas = [...asal.querySelectorAll("canvas")];
+  const cloneCanvas = [...clone.querySelectorAll("canvas")];
+  asalCanvas.forEach((canvas,index) => {
+    const sasaran = cloneCanvas[index];
+    if (!sasaran) return;
+    try {
+      const img = document.createElement("img");
+      img.src = canvas.toDataURL("image/png", 1);
+      img.alt = canvas.getAttribute("aria-label") || "Carta operasi";
+      img.style.cssText = "display:block;width:100%;max-width:100%;height:auto;object-fit:contain;";
+      sasaran.replaceWith(img);
+    } catch (e) { console.warn("Carta gagal ditukar untuk eksport:", e); }
+  });
+  clone.querySelectorAll("button,select,input,textarea,.admin-chart-print-button,.admin-vehicle-hint,.admin-attendance-hint,.admin-incident-hint,.admin-map-controls,.admin-map-marker-controls,.status-box").forEach(n => n.remove());
+  clone.querySelectorAll("[data-chart-section]").forEach(n => { n.hidden=false; n.removeAttribute("hidden"); n.style.display=""; });
+  return clone;
+}
+
 function cetakLaporanKeseluruhanHarian() {
-  const kandungan = el("kandunganLaporanKeseluruhanHarian");
-  if (!kandungan || kandungan.querySelector(".empty-row")) {
-    alert("Sila jana laporan terlebih dahulu.");
-    return;
-  }
-
+  const clone = salinanStatikLaporanHarianUntukEksport();
+  if (!clone) return alert("Sila jana laporan terlebih dahulu.");
   const tarikh = el("tarikhLaporanKeseluruhanHarian")?.value || hariIniMalaysia();
-  const cssLinks = [...document.querySelectorAll('link[rel="stylesheet"]')]
-    .map(link => `<link rel="stylesheet" href="${escapeHtml(new URL(link.getAttribute("href"), document.baseURI).href)}">`)
-    .join("\n");
+  const cssLinks = [...document.querySelectorAll('link[rel="stylesheet"]')].map(link => `<link rel="stylesheet" href="${escapeHtml(new URL(link.getAttribute("href"), document.baseURI).href)}">`).join("\n");
+  const w = window.open("", "_blank", "width=1500,height=950");
+  if (!w) return alert("Pelayar menghalang tetingkap cetak. Benarkan pop-up dan cuba semula.");
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html lang="ms"><head><meta charset="UTF-8"><title>Laporan Keseluruhan Harian ${escapeHtml(formatTarikhMalaysia(tarikh))}</title>${cssLinks}<style>
+    @page{size:A4 landscape;margin:8mm}body{background:#fff!important;color:#111!important;font-family:Arial,Helvetica,sans-serif;padding:4mm}#kandunganCetak *{color:#111}.admin-chart-grid{display:block!important}.admin-chart-card{background:#fff!important;border:1px solid #aaa!important;box-shadow:none!important;margin:0 0 14px!important;break-inside:avoid-page}.admin-chart-summary-grid{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin-bottom:14px}.admin-chart-summary-card{background:#fff!important;border:1px solid #aaa!important}table{width:100%!important;border-collapse:collapse!important}th,td{border:1px solid #999!important;background:#fff!important;color:#111!important;font-size:9px!important;padding:5px!important}img{max-width:100%!important;height:auto!important}.muted{color:#555!important}.admin-attendance-layout,.admin-vehicle-layout,.admin-incident-layout,.admin-operation-map-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(260px,.72fr)!important;gap:10px!important}</style></head><body><main id="kandunganCetak">${clone.innerHTML}</main><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},700)});<\/script></body></html>`);
+  w.document.close();
+}
 
-  const tetingkap = window.open("", "_blank", "width=1500,height=950");
-  if (!tetingkap) {
-    alert("Pelayar menghalang tetingkap cetak. Benarkan pop-up dan cuba semula.");
-    return;
+async function muatTurunPdfLaporanKeseluruhanHarian() {
+  const clone = salinanStatikLaporanHarianUntukEksport();
+  if (!clone) return alert("Sila jana laporan terlebih dahulu.");
+  if (!window.html2canvas || !window.jspdf?.jsPDF) return alert("Modul PDF belum dimuatkan. Pastikan internet tersedia dan muat semula halaman.");
+  const btn = el("btnPdfLaporanKeseluruhanHarian");
+  const tarikh = el("tarikhLaporanKeseluruhanHarian")?.value || hariIniMalaysia();
+  const statusId = "statusLaporanKeseluruhanHarian";
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = "SEDANG MENJANA PDF..."; }
+    paparMesej(statusId, "Sedang menjana PDF. Proses ini mungkin mengambil beberapa saat...", "warning");
+    const bekas = document.createElement("div");
+    bekas.style.cssText = "position:absolute;left:-10000px;top:0;width:1120px;background:#fff;color:#111;padding:24px;font-family:Arial,Helvetica,sans-serif;z-index:-1;";
+    bekas.appendChild(clone);
+    bekas.querySelectorAll("*").forEach(n => { n.style.setProperty("color", "#111", "important"); });
+    bekas.querySelectorAll(".admin-chart-card,.admin-chart-summary-card").forEach(n => { n.style.setProperty("background", "#fff", "important"); n.style.setProperty("box-shadow", "none", "important"); });
+    document.body.appendChild(bekas);
+    const canvas = await window.html2canvas(bekas, { scale: 1.35, useCORS: true, backgroundColor: "#ffffff", logging: false, windowWidth: 1200 });
+    bekas.remove();
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4", compress: true });
+    const pageW = pdf.internal.pageSize.getWidth(), pageH = pdf.internal.pageSize.getHeight();
+    const margin = 7, usableW = pageW - margin*2, usableH = pageH - margin*2;
+    const pxPerMm = canvas.width / usableW;
+    const pagePxH = Math.floor(usableH * pxPerMm);
+    let y = 0, page = 0;
+    while (y < canvas.height) {
+      const h = Math.min(pagePxH, canvas.height - y);
+      const slice = document.createElement("canvas"); slice.width = canvas.width; slice.height = h;
+      slice.getContext("2d").drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+      if (page > 0) pdf.addPage("a4", "landscape");
+      const imgH = h / pxPerMm;
+      pdf.addImage(slice.toDataURL("image/jpeg", 0.92), "JPEG", margin, margin, usableW, imgH, undefined, "FAST");
+      y += h; page++;
+    }
+    pdf.save(`SKPO_LAPORAN_KESELURUHAN_HARIAN_${tarikh}.pdf`);
+    paparMesej(statusId, `PDF laporan ${escapeHtml(formatTarikhMalaysia(tarikh))} berjaya dijana dan dimuat turun.`, "success");
+  } catch (error) {
+    console.error("PDF laporan harian gagal:", error);
+    paparMesej(statusId, `Gagal menjana PDF: ${escapeHtml(error?.message || "Ralat tidak diketahui.")}`, "error");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "MUAT TURUN PDF"; }
   }
-
-  tetingkap.document.open();
-  tetingkap.document.write(`<!DOCTYPE html><html lang="ms"><head><meta charset="UTF-8">
-    <title>Laporan Keseluruhan Harian ${escapeHtml(formatTarikhMalaysia(tarikh))}</title>${cssLinks}
-    <style>
-      @page{size:A4 landscape;margin:8mm} body{background:#fff!important;color:#111!important;font-family:Arial,Helvetica,sans-serif;padding:4mm}
-      #kandunganCetak *{color:#111} .admin-chart-grid{display:block!important}.admin-chart-card{background:#fff!important;border:1px solid #aaa!important;box-shadow:none!important;margin:0 0 14px!important;break-inside:avoid-page}
-      .admin-chart-summary-grid{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin-bottom:14px}.admin-chart-summary-card{background:#fff!important;border:1px solid #aaa!important}
-      table{width:100%!important;border-collapse:collapse!important} th,td{border:1px solid #999!important;background:#fff!important;color:#111!important;font-size:9px!important;padding:5px!important}
-      img{max-width:100%!important;height:auto!important}.muted{color:#555!important} button,input,select,textarea{display:none!important}
-      .admin-attendance-layout,.admin-vehicle-layout,.admin-incident-layout,.admin-operation-map-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(260px,.72fr)!important;gap:10px!important}
-    </style></head><body><main id="kandunganCetak">${kandungan.innerHTML}</main>
-    <script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},600)});<\/script>
-    </body></html>`);
-  tetingkap.document.close();
 }
 
 /* ================================================================
