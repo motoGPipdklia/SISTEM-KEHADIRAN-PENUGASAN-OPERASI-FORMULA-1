@@ -14241,7 +14241,45 @@ function salinanStatikLaporanHarianUntukEksport() {
     } catch (e) { console.warn("Carta gagal ditukar untuk eksport:", e); }
   });
   clone.querySelectorAll("button,select,input,textarea,.admin-chart-print-button,.admin-vehicle-hint,.admin-attendance-hint,.admin-incident-hint,.admin-map-controls,.admin-map-marker-controls,.status-box").forEach(n => n.remove());
-  clone.querySelectorAll("[data-chart-section]").forEach(n => { n.hidden=false; n.removeAttribute("hidden"); n.style.display=""; });
+
+  /* Laporan keseluruhan tidak membawa senarai butiran individu Pengunjung/Kenderaan. */
+  clone.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel").forEach(n => n.remove());
+
+  clone.querySelectorAll("[data-chart-section]").forEach(n => {
+    n.hidden = false;
+    n.removeAttribute("hidden");
+    n.style.display = "";
+  });
+
+  /*
+    Paksa permukaan laporan eksport menjadi putih.
+    admin.css asal menggunakan tema gelap pada chart-block/canvas wrapper;
+    inline !important di sini memastikan tema itu tidak terbawa ke Cetak/PDF.
+  */
+  clone.querySelectorAll(
+    ".admin-chart-card,.admin-chart-summary-card,.admin-visitor-chart-panel,.admin-vehicle-chart-panel," +
+    ".admin-visitor-chart-block,.admin-vehicle-chart-block,.admin-chart-canvas-wrap," +
+    ".admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total," +
+    ".admin-attendance-chart-panel,.admin-attendance-list-panel,.admin-incident-chart-panel,.admin-incident-detail-panel," +
+    ".admin-chart-panel,.admin-chart-subcard,.admin-vvip-list-panel,.admin-vvip-detail-panel," +
+    ".admin-operation-map-panel,.admin-operation-map-detail,.admin-committee-table-wrap"
+  ).forEach(n => {
+    n.style.setProperty("background", "#ffffff", "important");
+    n.style.setProperty("background-color", "#ffffff", "important");
+    n.style.setProperty("background-image", "none", "important");
+    n.style.setProperty("box-shadow", "none", "important");
+    n.style.setProperty("border-color", "#bcbcbc", "important");
+  });
+
+  clone.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout").forEach(n => {
+    n.style.setProperty("display", "block", "important");
+  });
+
+  clone.querySelectorAll(".admin-visitor-chart-panel,.admin-vehicle-chart-panel").forEach(n => {
+    n.style.setProperty("width", "100%", "important");
+    n.style.setProperty("max-width", "none", "important");
+  });
+
   return clone;
 }
 
@@ -14263,14 +14301,18 @@ function cetakLaporanKeseluruhanHarian() {
     .laporan-harian-kepala{break-after:avoid-page!important}
     .admin-chart-grid{display:block!important}
     .admin-chart-card{background:#fff!important;border:1px solid #aaa!important;box-shadow:none!important;margin:0 0 12px!important;padding:12px!important;break-inside:avoid-page;page-break-inside:avoid}
-    .admin-chart-card,.admin-chart-card>*,.admin-visitor-layout>*,.admin-vehicle-layout>*,.admin-chart-panel,.admin-chart-subcard,[class*="chart-panel"],[class*="detail-panel"]{background:#fff!important;box-shadow:none!important;border-color:#bbb!important}
+    .admin-chart-card,.admin-chart-card>*,.admin-visitor-layout>*,.admin-vehicle-layout>*,.admin-chart-panel,.admin-chart-subcard,[class*="chart-panel"],[class*="detail-panel"],.admin-visitor-chart-block,.admin-vehicle-chart-block,.admin-chart-canvas-wrap,.admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total{background:#fff!important;background-color:#fff!important;background-image:none!important;box-shadow:none!important;border-color:#bbb!important}
     .admin-chart-summary-grid{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:8px!important;margin-bottom:14px!important;break-inside:avoid-page}
     .admin-chart-summary-card{background:#fff!important;border:1px solid #aaa!important;box-shadow:none!important;padding:9px!important}
     .admin-chart-summary-card strong{font-size:20px!important}
     .admin-visitor-detail-panel,.admin-vehicle-detail-panel{display:none!important}
     .admin-visitor-layout,.admin-vehicle-layout{display:block!important}
-    .admin-visitor-chart-panel,.admin-vehicle-chart-panel{width:100%!important;max-width:none!important;background:#fff!important}
-    .admin-chart-canvas-wrap,.admin-visitor-canvas-wrap,.admin-vehicle-canvas-wrap,.admin-attendance-canvas-wrap,.admin-incident-canvas-wrap{background:#fff!important;height:auto!important;min-height:0!important}
+    .admin-visitor-chart-panel,.admin-vehicle-chart-panel{width:100%!important;max-width:none!important;background:#fff!important;background-image:none!important}
+    .admin-visitor-chart-block,.admin-vehicle-chart-block{background:#fff!important;background-image:none!important;border:1px solid #ccc!important;margin:0 0 10px!important;padding:8px!important;break-inside:avoid-page!important;page-break-inside:avoid!important}
+    .admin-chart-canvas-wrap,.admin-visitor-canvas-wrap,.admin-vehicle-canvas-wrap,.admin-attendance-canvas-wrap,.admin-incident-canvas-wrap{background:#fff!important;background-color:#fff!important;background-image:none!important;height:auto!important;min-height:0!important}
+    .admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total{background:#fff!important;background-image:none!important;color:#111!important}
+    .admin-visitor-chart-card,.admin-vehicle-chart-card{break-inside:auto!important;page-break-inside:auto!important}
+    .admin-visitor-chart-card .admin-visitor-chart-block,.admin-vehicle-chart-card .admin-vehicle-chart-block{break-before:auto!important;break-after:auto!important}
     .admin-attendance-layout,.admin-incident-layout,.admin-operation-map-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(260px,.72fr)!important;gap:10px!important}
     table{width:100%!important;border-collapse:collapse!important;background:#fff!important}
     th,td{border:1px solid #999!important;background:#fff!important;color:#111!important;font-size:9px!important;padding:5px!important}
@@ -14294,7 +14336,7 @@ async function muatTurunPdfLaporanKeseluruhanHarian() {
     bekas.style.cssText = "position:absolute;left:-10000px;top:0;width:1120px;background:#fff;color:#111;padding:24px;font-family:Arial,Helvetica,sans-serif;z-index:-1;";
     bekas.appendChild(clone);
     bekas.querySelectorAll("*").forEach(n => { n.style.setProperty("color", "#111", "important"); });
-    bekas.querySelectorAll(".admin-chart-card,.admin-chart-summary-card,.admin-visitor-layout > *,.admin-vehicle-layout > *,.admin-chart-panel,.admin-chart-subcard,[class*=\"chart-panel\"],[class*=\"detail-panel\"]").forEach(n => { n.style.setProperty("background", "#fff", "important"); n.style.setProperty("box-shadow", "none", "important"); n.style.setProperty("border-color", "#bbb", "important"); });
+    bekas.querySelectorAll(".admin-chart-card,.admin-chart-summary-card,.admin-visitor-layout > *,.admin-vehicle-layout > *,.admin-chart-panel,.admin-chart-subcard,.admin-visitor-chart-block,.admin-vehicle-chart-block,.admin-chart-canvas-wrap,.admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total,[class*=\"chart-panel\"],[class*=\"detail-panel\"]").forEach(n => { n.style.setProperty("background", "#fff", "important"); n.style.setProperty("box-shadow", "none", "important"); n.style.setProperty("border-color", "#bbb", "important"); });
     bekas.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel").forEach(n => n.remove());
     bekas.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout").forEach(n => { n.style.setProperty("display", "block", "important"); });
     bekas.querySelectorAll(".admin-visitor-chart-panel,.admin-vehicle-chart-panel").forEach(n => { n.style.setProperty("width", "100%", "important"); n.style.setProperty("max-width", "none", "important"); });
