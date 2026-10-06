@@ -14253,7 +14253,7 @@ function salinanStatikLaporanHarianUntukEksport() {
   if (jumlahLokasiKenderaan) jumlahLokasiKenderaan.textContent = Number(statKenderaanEksport.keseluruhan || 0).toLocaleString("ms-MY");
 
   /* Laporan keseluruhan tidak membawa senarai butiran individu Pengunjung/Kenderaan. */
-  clone.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel").forEach(n => n.remove());
+  clone.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel,.admin-attendance-list-panel,.admin-map-location-panel,.admin-vvip-detail-panel,.admin-incident-detail-panel").forEach(n => n.remove());
 
   clone.querySelectorAll("[data-chart-section]").forEach(n => {
     n.hidden = false;
@@ -14281,11 +14281,11 @@ function salinanStatikLaporanHarianUntukEksport() {
     n.style.setProperty("border-color", "#bcbcbc", "important");
   });
 
-  clone.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout").forEach(n => {
+  clone.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout,.admin-attendance-layout,.admin-operation-map-layout,.admin-vvip-layout,.admin-incident-layout").forEach(n => {
     n.style.setProperty("display", "block", "important");
   });
 
-  clone.querySelectorAll(".admin-visitor-chart-panel,.admin-vehicle-chart-panel").forEach(n => {
+  clone.querySelectorAll(".admin-visitor-chart-panel,.admin-vehicle-chart-panel,.admin-attendance-chart-panel,.admin-operation-map-stage,.admin-vvip-list-panel,.admin-incident-chart-panel").forEach(n => {
     n.style.setProperty("width", "100%", "important");
     n.style.setProperty("max-width", "none", "important");
   });
@@ -14330,7 +14330,7 @@ function cetakLaporanKeseluruhanHarian() {
     .admin-chart-summary-grid{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:8px!important;margin-bottom:14px!important;break-inside:avoid-page}
     .admin-chart-summary-card{background:#fff!important;border:1px solid #aaa!important;box-shadow:none!important;padding:9px!important}
     .admin-chart-summary-card strong{font-size:20px!important}
-    .admin-visitor-detail-panel,.admin-vehicle-detail-panel{display:none!important}
+    .admin-visitor-detail-panel,.admin-vehicle-detail-panel,.admin-attendance-list-panel,.admin-map-location-panel,.admin-vvip-detail-panel,.admin-incident-detail-panel{display:none!important}
     .admin-visitor-layout,.admin-vehicle-layout{display:block!important}
     .admin-visitor-chart-panel,.admin-vehicle-chart-panel{width:100%!important;max-width:none!important;background:#fff!important;background-image:none!important}
     .admin-visitor-chart-block,.admin-vehicle-chart-block{background:#fff!important;background-image:none!important;border:1px solid #ccc!important;margin:0 0 10px!important;padding:8px!important;break-inside:avoid-page!important;page-break-inside:avoid!important}
@@ -14338,7 +14338,7 @@ function cetakLaporanKeseluruhanHarian() {
     .admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total{background:#fff!important;background-image:none!important;color:#111!important}
     .admin-visitor-chart-card,.admin-vehicle-chart-card{break-inside:auto!important;page-break-inside:auto!important}
     .admin-visitor-chart-card .admin-visitor-chart-block,.admin-vehicle-chart-card .admin-vehicle-chart-block{break-before:auto!important;break-after:auto!important}
-    .admin-attendance-layout,.admin-incident-layout,.admin-operation-map-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(260px,.72fr)!important;gap:10px!important}
+    .admin-attendance-layout,.admin-operation-map-layout,.admin-vvip-layout,.admin-incident-layout{display:block!important}
     table{width:100%!important;border-collapse:collapse!important;background:#fff!important}
     th,td{border:1px solid #999!important;background:#fff!important;color:#111!important;font-size:9px!important;padding:5px!important}
     img{display:block!important;max-width:100%!important;height:auto!important;object-fit:contain!important}
@@ -14370,9 +14370,9 @@ async function muatTurunPdfLaporanKeseluruhanHarian() {
       n.style.setProperty("background-image", "none", "important");
     });
     bekas.querySelectorAll(".admin-chart-card,.admin-chart-summary-card,.admin-visitor-layout > *,.admin-vehicle-layout > *,.admin-chart-panel,.admin-chart-subcard,.admin-visitor-chart-block,.admin-vehicle-chart-block,.admin-chart-canvas-wrap,.admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total,[class*=\"chart-panel\"],[class*=\"detail-panel\"]").forEach(n => { n.style.setProperty("background", "#fff", "important"); n.style.setProperty("box-shadow", "none", "important"); n.style.setProperty("border-color", "#bbb", "important"); });
-    bekas.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel").forEach(n => n.remove());
-    bekas.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout").forEach(n => { n.style.setProperty("display", "block", "important"); });
-    bekas.querySelectorAll(".admin-visitor-chart-panel,.admin-vehicle-chart-panel").forEach(n => { n.style.setProperty("width", "100%", "important"); n.style.setProperty("max-width", "none", "important"); });
+    bekas.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel,.admin-attendance-list-panel,.admin-map-location-panel,.admin-vvip-detail-panel,.admin-incident-detail-panel").forEach(n => n.remove());
+    bekas.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout,.admin-attendance-layout,.admin-operation-map-layout,.admin-vvip-layout,.admin-incident-layout").forEach(n => { n.style.setProperty("display", "block", "important"); });
+    bekas.querySelectorAll(".admin-visitor-chart-panel,.admin-vehicle-chart-panel,.admin-attendance-chart-panel,.admin-operation-map-stage,.admin-vvip-list-panel,.admin-incident-chart-panel").forEach(n => { n.style.setProperty("width", "100%", "important"); n.style.setProperty("max-width", "none", "important"); });
     document.body.appendChild(bekas);
     const canvas = await window.html2canvas(bekas, { scale: 1.35, useCORS: true, backgroundColor: "#ffffff", logging: false, windowWidth: 1200 });
     bekas.remove();
