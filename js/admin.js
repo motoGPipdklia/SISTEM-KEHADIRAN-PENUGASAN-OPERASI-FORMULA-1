@@ -6267,6 +6267,12 @@ function tutupSemuaModulPentadbir() {
       idKandungan: "",
       idButang: "btnBukaCartaPentadbir",
       teksButang: "CARTA"
+    },
+    {
+      idModul: "modulLaporanKeseluruhanHarian",
+      idKandungan: "",
+      idButang: "btnBukaLaporanKeseluruhanHarian",
+      teksButang: "LAPORAN KESELURUHAN HARIAN"
     }
   ];
 
@@ -14035,6 +14041,192 @@ function tukarPaparanCartaPentadbir(
 
 
 /* ================================================================
+   LAPORAN KESELURUHAN HARIAN
+   Menggabungkan SEMUA bahagian yang berada dalam CARTA OPERASI.
+================================================================ */
+
+function bukaLaporanKeseluruhanHarian() {
+  tutupSemuaModulPentadbir();
+
+  const modul = el("modulLaporanKeseluruhanHarian");
+  if (!modul) {
+    alert("Modul LAPORAN KESELURUHAN HARIAN tidak ditemui dalam admin.html.");
+    return;
+  }
+
+  modul.hidden = false;
+  modul.removeAttribute("hidden");
+  modul.style.removeProperty("display");
+
+  const btn = el("btnBukaLaporanKeseluruhanHarian");
+  if (btn) btn.setAttribute("aria-expanded", "true");
+
+  const input = el("tarikhLaporanKeseluruhanHarian");
+  if (input && !input.value) {
+    input.value = el("tarikhCartaPentadbir")?.value || el("tarikh")?.value || hariIniMalaysia();
+  }
+
+  setTimeout(() => modul.scrollIntoView({ behavior: "smooth", block: "start" }), 40);
+}
+
+function tutupLaporanKeseluruhanHarian() {
+  const modul = el("modulLaporanKeseluruhanHarian");
+  if (!modul) return;
+  modul.hidden = true;
+  modul.setAttribute("hidden", "");
+  modul.style.display = "none";
+  const btn = el("btnBukaLaporanKeseluruhanHarian");
+  if (btn) btn.setAttribute("aria-expanded", "false");
+}
+
+function tukarCanvasLaporanHarianKeImej(asal, salinan) {
+  const asalCanvas = [...asal.querySelectorAll("canvas")];
+  const salinanCanvas = [...salinan.querySelectorAll("canvas")];
+  asalCanvas.forEach((canvas, index) => {
+    const clone = salinanCanvas[index];
+    if (!clone) return;
+    try {
+      const img = document.createElement("img");
+      img.src = canvas.toDataURL("image/png", 1);
+      img.alt = canvas.getAttribute("aria-label") || "Carta operasi";
+      img.style.cssText = "display:block;width:100%;max-width:100%;height:auto;object-fit:contain;";
+      clone.replaceWith(img);
+    } catch (error) {
+      console.warn("Canvas laporan harian gagal ditukar:", error);
+    }
+  });
+}
+
+function bersihkanSalinanLaporanHarian(salinan) {
+  salinan.querySelectorAll(
+    "button, select, input, textarea, .admin-chart-print-button, .admin-vehicle-hint, " +
+    ".admin-attendance-hint, .admin-incident-hint, .admin-map-controls, .admin-map-marker-controls, .status-box"
+  ).forEach(item => item.remove());
+
+  salinan.querySelectorAll("[hidden]").forEach(item => {
+    item.hidden = false;
+    item.removeAttribute("hidden");
+    item.style.removeProperty("display");
+  });
+
+  return salinan;
+}
+
+function binaRingkasanLaporanHarian() {
+  const kenderaan = pecahanKenderaanSemasaCarta();
+  const vvip = kumpulanVvipVipCarta();
+  const insiden = kiraInsidenCarta();
+  const pengunjung = jumlahPengunjungSemasaCarta();
+
+  const item = [
+    ["JUMLAH PENGUNJUNG", pengunjung],
+    ["JUMLAH KENDERAAN PENGUNJUNG", kenderaan.jumlah],
+    ["VVIP / VIP", vvip.length],
+    ["TANGKAPAN", insiden.tangkapan],
+    ["RAMPASAN", insiden.rampasan],
+    ["KEMALANGAN", insiden.kemalangan]
+  ];
+
+  return `<div class="admin-chart-summary-grid laporan-harian-summary">${item.map(([label, nilai]) => `
+    <article class="admin-chart-summary-card">
+      <span>${escapeHtml(label)}</span>
+      <strong>${Number(nilai || 0).toLocaleString("ms-MY")}</strong>
+    </article>`).join("")}</div>`;
+}
+
+async function janaLaporanKeseluruhanHarian() {
+  if (!adminLogin) return;
+
+  const tarikh = el("tarikhLaporanKeseluruhanHarian")?.value || hariIniMalaysia();
+  const kandungan = el("kandunganLaporanKeseluruhanHarian");
+  const btnCetak = el("btnCetakLaporanKeseluruhanHarian");
+
+  if (!kandungan) return;
+  if (btnCetak) btnCetak.disabled = true;
+
+  paparMesej("statusLaporanKeseluruhanHarian", "Sedang menjana laporan keseluruhan harian...", "warning");
+
+  try {
+    // Gunakan enjin data CARTA sedia ada supaya angka laporan sama dengan Carta Operasi.
+    if (el("tarikhCartaPentadbir")) el("tarikhCartaPentadbir").value = tarikh;
+    await muatDataCartaPentadbir();
+
+    const gridAsal = document.querySelector("#modulCartaPentadbir .admin-chart-grid");
+    if (!gridAsal) throw new Error("Kandungan Carta Operasi tidak ditemui.");
+
+    const gridSalinan = gridAsal.cloneNode(true);
+    tukarCanvasLaporanHarianKeImej(gridAsal, gridSalinan);
+    bersihkanSalinanLaporanHarian(gridSalinan);
+
+    // Pastikan semua kategori Carta dipaparkan dalam laporan, walaupun paparan Carta asal ditapis.
+    gridSalinan.querySelectorAll("[data-chart-section]").forEach(section => {
+      section.hidden = false;
+      section.removeAttribute("hidden");
+      section.style.removeProperty("display");
+    });
+
+    kandungan.innerHTML = `
+      <div class="laporan-harian-kepala" style="text-align:center;margin-bottom:16px;">
+        <h2 style="margin:0;">OP LITAR FORMULA 1 2026</h2>
+        <h3 style="margin:6px 0;">LAPORAN KESELURUHAN HARIAN</h3>
+        <div class="muted">TARIKH: ${escapeHtml(formatTarikhMalaysia(tarikh))}</div>
+      </div>
+      ${binaRingkasanLaporanHarian()}
+      <div style="margin-top:18px;">${gridSalinan.outerHTML}</div>
+    `;
+
+    if (btnCetak) btnCetak.disabled = false;
+    paparMesej(
+      "statusLaporanKeseluruhanHarian",
+      `Laporan keseluruhan ${escapeHtml(formatTarikhMalaysia(tarikh))} berjaya dijana. Semua bahagian Carta Operasi telah dimasukkan.`,
+      "success"
+    );
+  } catch (error) {
+    console.error("Jana laporan keseluruhan harian gagal:", error);
+    kandungan.innerHTML = `<div class="empty-row">Laporan gagal dijana.</div>`;
+    paparMesej(
+      "statusLaporanKeseluruhanHarian",
+      `Ralat menjana laporan: ${escapeHtml(error?.message || "Ralat tidak diketahui.")}`,
+      "error"
+    );
+  }
+}
+
+function cetakLaporanKeseluruhanHarian() {
+  const kandungan = el("kandunganLaporanKeseluruhanHarian");
+  if (!kandungan || kandungan.querySelector(".empty-row")) {
+    alert("Sila jana laporan terlebih dahulu.");
+    return;
+  }
+
+  const tarikh = el("tarikhLaporanKeseluruhanHarian")?.value || hariIniMalaysia();
+  const cssLinks = [...document.querySelectorAll('link[rel="stylesheet"]')]
+    .map(link => `<link rel="stylesheet" href="${escapeHtml(new URL(link.getAttribute("href"), document.baseURI).href)}">`)
+    .join("\n");
+
+  const tetingkap = window.open("", "_blank", "width=1500,height=950");
+  if (!tetingkap) {
+    alert("Pelayar menghalang tetingkap cetak. Benarkan pop-up dan cuba semula.");
+    return;
+  }
+
+  tetingkap.document.open();
+  tetingkap.document.write(`<!DOCTYPE html><html lang="ms"><head><meta charset="UTF-8">
+    <title>Laporan Keseluruhan Harian ${escapeHtml(formatTarikhMalaysia(tarikh))}</title>${cssLinks}
+    <style>
+      @page{size:A4 landscape;margin:8mm} body{background:#fff!important;color:#111!important;font-family:Arial,Helvetica,sans-serif;padding:4mm}
+      #kandunganCetak *{color:#111} .admin-chart-grid{display:block!important}.admin-chart-card{background:#fff!important;border:1px solid #aaa!important;box-shadow:none!important;margin:0 0 14px!important;break-inside:avoid-page}
+      .admin-chart-summary-grid{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:8px!important;margin-bottom:14px}.admin-chart-summary-card{background:#fff!important;border:1px solid #aaa!important}
+      table{width:100%!important;border-collapse:collapse!important} th,td{border:1px solid #999!important;background:#fff!important;color:#111!important;font-size:9px!important;padding:5px!important}
+      img{max-width:100%!important;height:auto!important}.muted{color:#555!important} button,input,select,textarea{display:none!important}
+      .admin-attendance-layout,.admin-vehicle-layout,.admin-incident-layout,.admin-operation-map-layout{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(260px,.72fr)!important;gap:10px!important}
+    </style></head><body><main id="kandunganCetak">${kandungan.innerHTML}</main>
+    <script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},600)});<\/script>
+    </body></html>`);
+  tetingkap.document.close();
+}
+
+/* ================================================================
    PETA LOKASI PENUGASAN
 ================================================================ */
 
@@ -15169,6 +15361,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const tarikhCarta = el("tarikhCartaPentadbir");
   if (tarikhCarta) {
     tarikhCarta.value = hariIniMalaysia();
+  }
+
+  const tarikhLaporanKeseluruhan = el("tarikhLaporanKeseluruhanHarian");
+  if (tarikhLaporanKeseluruhan) {
+    tarikhLaporanKeseluruhan.value = hariIniMalaysia();
   }
 
   el("password")?.addEventListener("keydown", event => {
