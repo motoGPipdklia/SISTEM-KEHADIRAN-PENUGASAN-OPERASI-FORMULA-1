@@ -14242,6 +14242,16 @@ function salinanStatikLaporanHarianUntukEksport() {
   });
   clone.querySelectorAll("button,select,input,textarea,.admin-chart-print-button,.admin-vehicle-hint,.admin-attendance-hint,.admin-incident-hint,.admin-map-controls,.admin-map-marker-controls,.status-box").forEach(n => n.remove());
 
+  /* Betulkan angka PECAHAN LOKASI untuk laporan keseluruhan.
+     Carta lokasi asal menggunakan jumlah bersih lokasi (boleh kembali 0 selepas pengunjung/kenderaan keluar).
+     Untuk laporan keseluruhan kita paparkan nilai puncak operasi, selaras dengan kad JUMLAH KESELURUHAN. */
+  const statPengunjungEksport = statistikPengunjungLaporanHarian();
+  const statKenderaanEksport = statistikKenderaanLaporanHarian();
+  const jumlahLokasiPengunjung = clone.querySelector("#jumlahKeseluruhanPengunjungLokasiPentadbir");
+  const jumlahLokasiKenderaan = clone.querySelector("#jumlahKeseluruhanKenderaanLokasiPentadbir");
+  if (jumlahLokasiPengunjung) jumlahLokasiPengunjung.textContent = Number(statPengunjungEksport.keseluruhan || 0).toLocaleString("ms-MY");
+  if (jumlahLokasiKenderaan) jumlahLokasiKenderaan.textContent = Number(statKenderaanEksport.keseluruhan || 0).toLocaleString("ms-MY");
+
   /* Laporan keseluruhan tidak membawa senarai butiran individu Pengunjung/Kenderaan. */
   clone.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel").forEach(n => n.remove());
 
@@ -14280,6 +14290,21 @@ function salinanStatikLaporanHarianUntukEksport() {
     n.style.setProperty("max-width", "none", "important");
   });
 
+  /* Tema dashboard asal mempunyai banyak lapisan hitam yang tidak semuanya berkongsi class yang sama.
+     Untuk salinan eksport, putihkan SEMUA elemen HTML. Carta telah ditukar kepada <img>, jadi warna graf tidak terjejas. */
+  clone.querySelectorAll("*:not(img):not(svg):not(path):not(canvas)").forEach(n => {
+    n.style.setProperty("background-color", "#ffffff", "important");
+    n.style.setProperty("background-image", "none", "important");
+    n.style.setProperty("color", "#111111", "important");
+  });
+
+  /* Buang scrollbar/ruang gelap panel yang menggunakan overflow pada paparan dashboard. */
+  clone.querySelectorAll(".admin-attendance-list,.admin-map-location-panel,.admin-map-personnel-list,.admin-vvip-name-list,.admin-vvip-detail-content,.admin-incident-detail-content,.admin-committee-table-wrap").forEach(n => {
+    n.style.setProperty("background", "#ffffff", "important");
+    n.style.setProperty("overflow", "visible", "important");
+    n.style.setProperty("max-height", "none", "important");
+  });
+
   return clone;
 }
 
@@ -14296,7 +14321,7 @@ function cetakLaporanKeseluruhanHarian() {
     html,body{background:#fff!important;color:#111!important;font-family:Arial,Helvetica,sans-serif!important;margin:0!important;padding:0!important}
     body{padding:4mm!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     #kandunganCetak,#kandunganCetak *{box-sizing:border-box}
-    #kandunganCetak *{color:#111!important}
+    #kandunganCetak *{color:#111!important;background-color:#fff!important;background-image:none!important}
     #kandunganCetak .muted,#kandunganCetak small{color:#555!important}
     .laporan-harian-kepala{break-after:avoid-page!important}
     .admin-chart-grid{display:block!important}
@@ -14318,7 +14343,11 @@ function cetakLaporanKeseluruhanHarian() {
     th,td{border:1px solid #999!important;background:#fff!important;color:#111!important;font-size:9px!important;padding:5px!important}
     img{display:block!important;max-width:100%!important;height:auto!important;object-fit:contain!important}
     button,select,input,textarea,.status-box{display:none!important}
-    @media print{.admin-chart-card{break-inside:avoid-page;page-break-inside:avoid}}</style></head><body><main id="kandunganCetak">${clone.innerHTML}</main><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},700)});<\/script></body></html>`);
+    @media print{
+      .admin-chart-card{break-inside:avoid-page;page-break-inside:avoid}
+      .admin-visitor-chart-card,.admin-vehicle-chart-card{break-inside:auto!important;page-break-inside:auto!important}
+      .admin-visitor-chart-block,.admin-vehicle-chart-block{break-inside:avoid-page!important;page-break-inside:avoid!important}
+    }</style></head><body><main id="kandunganCetak">${clone.innerHTML}</main><script>window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},700)});<\/script></body></html>`);
   w.document.close();
 }
 
@@ -14335,7 +14364,11 @@ async function muatTurunPdfLaporanKeseluruhanHarian() {
     const bekas = document.createElement("div");
     bekas.style.cssText = "position:absolute;left:-10000px;top:0;width:1120px;background:#fff;color:#111;padding:24px;font-family:Arial,Helvetica,sans-serif;z-index:-1;";
     bekas.appendChild(clone);
-    bekas.querySelectorAll("*").forEach(n => { n.style.setProperty("color", "#111", "important"); });
+    bekas.querySelectorAll("*:not(img):not(svg):not(path):not(canvas)").forEach(n => {
+      n.style.setProperty("color", "#111", "important");
+      n.style.setProperty("background-color", "#fff", "important");
+      n.style.setProperty("background-image", "none", "important");
+    });
     bekas.querySelectorAll(".admin-chart-card,.admin-chart-summary-card,.admin-visitor-layout > *,.admin-vehicle-layout > *,.admin-chart-panel,.admin-chart-subcard,.admin-visitor-chart-block,.admin-vehicle-chart-block,.admin-chart-canvas-wrap,.admin-visitor-subheading,.admin-vehicle-subheading,.admin-visitor-location-total,.admin-vehicle-location-total,[class*=\"chart-panel\"],[class*=\"detail-panel\"]").forEach(n => { n.style.setProperty("background", "#fff", "important"); n.style.setProperty("box-shadow", "none", "important"); n.style.setProperty("border-color", "#bbb", "important"); });
     bekas.querySelectorAll(".admin-visitor-detail-panel,.admin-vehicle-detail-panel").forEach(n => n.remove());
     bekas.querySelectorAll(".admin-visitor-layout,.admin-vehicle-layout").forEach(n => { n.style.setProperty("display", "block", "important"); });
