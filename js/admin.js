@@ -14288,56 +14288,120 @@ function salinanStatikLaporanHarianUntukEksport() {
   return clone;
 }
 
-function cetakLaporanKeseluruhanHarian() {
+async function cetakLaporanKeseluruhanHarian() {
   const asal = el("kandunganLaporanKeseluruhanHarian");
   const clone = salinanStatikLaporanHarianUntukEksport();
   if (!clone || !asal) return alert("Sila jana laporan terlebih dahulu.");
+  if (!window.html2canvas) return alert("Modul cetakan belum dimuatkan. Pastikan internet tersedia dan muat semula halaman.");
 
   const tarikh = el("tarikhLaporanKeseluruhanHarian")?.value || hariIniMalaysia();
-  const cssLinks = [...document.querySelectorAll('link[rel="stylesheet"]')]
-    .map(link => `<link rel="stylesheet" href="${escapeHtml(new URL(link.getAttribute("href"), document.baseURI).href)}">`)
-    .join("\n");
+  const btn = el("btnCetakLaporanKeseluruhanHarian");
+  const statusId = "statusLaporanKeseluruhanHarian";
+  let bekas = null;
 
-  const lebarAsal = Math.max(900, Math.round(asal.getBoundingClientRect().width));
-  const bgBody = getComputedStyle(document.body).backgroundColor || "#111";
-  const w = window.open("", "_blank", "width=1500,height=950");
-  if (!w) return alert("Pelayar menghalang tetingkap cetak. Benarkan pop-up dan cuba semula.");
+  try {
+    if (btn) { btn.disabled = true; btn.textContent = "SEDANG MENYEDIAKAN..."; }
+    paparMesej(statusId, "Sedang menyediakan cetakan mengikut saiz dan susun atur paparan sistem...", "warning");
 
-  w.document.open();
-  w.document.write(`<!DOCTYPE html><html lang="ms"><head><meta charset="UTF-8"><title>Laporan Keseluruhan Harian ${escapeHtml(formatTarikhMalaysia(tarikh))}</title>${cssLinks}<style>
-    @page{size:A4 landscape;margin:8mm}
-    html,body{margin:0!important;padding:0!important;background:${escapeHtml(bgBody)}!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    body{padding:12px!important}
-    #kandunganCetak{box-sizing:border-box!important;width:${lebarAsal}px!important;max-width:none!important;margin:0 auto!important}
-    #kandunganCetak *{box-sizing:border-box!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-    #kandunganCetak img{max-width:100%!important;height:auto!important;object-fit:contain!important}
-    #kandunganCetak .admin-visitor-detail-panel,
-    #kandunganCetak .admin-vehicle-detail-panel,
-    #kandunganCetak .admin-attendance-list-panel,
-    #kandunganCetak .admin-map-location-panel,
-    #kandunganCetak .admin-vvip-detail-panel,
-    #kandunganCetak .admin-incident-detail-panel{display:none!important}
-    #kandunganCetak .admin-visitor-layout,
-    #kandunganCetak .admin-vehicle-layout,
-    #kandunganCetak .admin-attendance-layout,
-    #kandunganCetak .admin-operation-map-layout,
-    #kandunganCetak .admin-vvip-layout,
-    #kandunganCetak .admin-incident-layout{display:block!important}
-    #kandunganCetak .admin-visitor-chart-panel,
-    #kandunganCetak .admin-vehicle-chart-panel,
-    #kandunganCetak .admin-attendance-chart-panel,
-    #kandunganCetak .admin-operation-map-stage,
-    #kandunganCetak .admin-vvip-list-panel,
-    #kandunganCetak .admin-incident-chart-panel{width:100%!important;max-width:none!important}
-    @media print{
-      body{padding:0!important}
-      #kandunganCetak{margin:0!important}
-      .admin-chart-card,.admin-visitor-chart-block,.admin-vehicle-chart-block{break-inside:avoid-page;page-break-inside:avoid}
+    /*
+      FIX 008 — WYSIWYG sebenar untuk cetakan.
+      Jangan serahkan DOM laporan kepada Chrome Print kerana @media print / lebar A4
+      akan menyebabkan grid dan carta di-layout semula. Sebaliknya, render dahulu
+      laporan pada lebar SKRIN sebenar, kemudian cetak imej halaman. Dengan cara ini
+      semua saiz relatif, grid, font, carta dan jarak kekal sama seperti paparan.
+    */
+    const rectAsal = asal.getBoundingClientRect();
+    const lebarAsal = Math.max(900, Math.round(rectAsal.width));
+    const gayaAsal = getComputedStyle(asal);
+
+    bekas = document.createElement("div");
+    bekas.id = "bekasCetakLaporanKeseluruhan";
+    bekas.style.cssText = [
+      "position:absolute",
+      "left:-20000px",
+      "top:0",
+      `width:${lebarAsal}px`,
+      "max-width:none",
+      `background:${gayaAsal.backgroundColor || getComputedStyle(document.body).backgroundColor}`,
+      `color:${gayaAsal.color}`,
+      "padding:0",
+      "margin:0",
+      "z-index:-1",
+      "overflow:visible"
+    ].join(";");
+    bekas.appendChild(clone);
+    document.body.appendChild(bekas);
+
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const imejDalam = [...bekas.querySelectorAll("img")];
+    await Promise.all(imejDalam.map(img => img.complete ? Promise.resolve() : new Promise(r => { img.onload = img.onerror = r; })));
+
+    const canvas = await window.html2canvas(bekas, {
+      scale: 1.35,
+      useCORS: true,
+      backgroundColor: getComputedStyle(document.body).backgroundColor || null,
+      logging: false,
+      width: lebarAsal,
+      windowWidth: lebarAsal,
+      scrollX: 0,
+      scrollY: 0
+    });
+
+    bekas.remove();
+    bekas = null;
+
+    /* Nisbah kawasan cetak A4 landscape: 297x210 mm dengan margin 7 mm. */
+    const pageWmm = 297;
+    const pageHmm = 210;
+    const marginMm = 7;
+    const usableWmm = pageWmm - marginMm * 2;
+    const usableHmm = pageHmm - marginMm * 2;
+    const pxPerMm = canvas.width / usableWmm;
+    const pagePxH = Math.max(1, Math.floor(usableHmm * pxPerMm));
+
+    const halaman = [];
+    for (let y = 0; y < canvas.height; y += pagePxH) {
+      const h = Math.min(pagePxH, canvas.height - y);
+      const slice = document.createElement("canvas");
+      slice.width = canvas.width;
+      slice.height = h;
+      const ctx = slice.getContext("2d");
+      ctx.drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+      halaman.push({ src: slice.toDataURL("image/png"), tinggiMm: h / pxPerMm });
     }
-  </style></head><body><main id="kandunganCetak">${clone.innerHTML}</main><script>
-    window.addEventListener("load",function(){setTimeout(function(){window.focus();window.print();},900)});
-  <\/script></body></html>`);
-  w.document.close();
+
+    const w = window.open("", "_blank", "width=1500,height=950");
+    if (!w) throw new Error("Pelayar menghalang tetingkap cetak. Benarkan pop-up dan cuba semula.");
+
+    const htmlHalaman = halaman.map((item, i) => `
+      <section class="print-page${i === halaman.length - 1 ? " last" : ""}">
+        <img src="${item.src}" alt="Laporan Keseluruhan halaman ${i + 1}" style="width:${usableWmm}mm;height:${item.tinggiMm}mm;">
+      </section>`).join("");
+
+    w.document.open();
+    w.document.write(`<!doctype html><html lang="ms"><head><meta charset="UTF-8">
+      <title>Laporan Keseluruhan Harian ${escapeHtml(formatTarikhMalaysia(tarikh))}</title>
+      <style>
+        @page{size:A4 landscape;margin:${marginMm}mm}
+        html,body{margin:0;padding:0;background:#fff}
+        body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+        .print-page{width:${usableWmm}mm;height:${usableHmm}mm;margin:0;overflow:hidden;break-after:page;page-break-after:always}
+        .print-page.last{break-after:auto;page-break-after:auto}
+        .print-page img{display:block;margin:0;width:${usableWmm}mm;max-width:none;object-fit:contain;object-position:top left}
+        @media screen{body{background:#555;padding:12px}.print-page{background:#fff;margin:0 auto 12px auto}}
+      </style></head><body>${htmlHalaman}<script>
+        window.addEventListener("load",()=>setTimeout(()=>{window.focus();window.print();},500));
+      <\/script></body></html>`);
+    w.document.close();
+
+    paparMesej(statusId, `Cetakan ${escapeHtml(formatTarikhMalaysia(tarikh))} disediakan mengikut saiz dan susun atur paparan sistem.`, "success");
+  } catch (error) {
+    if (bekas?.isConnected) bekas.remove();
+    console.error("Cetak laporan harian gagal:", error);
+    paparMesej(statusId, `Gagal menyediakan cetakan: ${escapeHtml(error?.message || "Ralat tidak diketahui.")}`, "error");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "CETAK"; }
+  }
 }
 
 async function muatTurunPdfLaporanKeseluruhanHarian() {
